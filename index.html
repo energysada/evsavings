@@ -313,23 +313,29 @@ a{color:inherit;text-decoration:none}
         The <strong>"e-gallon"</strong> is the cost of charging an EV to drive the same distance as one gallon of gas.
         While gas costs $3–5/gallon, the EV equivalent is typically <strong>$1–2</strong>.
       </p>
-      <p style="color:#999;text-align:center;margin-bottom:16px;font-size:12px">Calculated using Hyundai Kona Electric (27 kWh/100mi) vs Kona gas (3.2 gal/100mi) · EIA electricity rates · AAA gas prices (Apr 7, 2026)</p>
+      <p style="color:#999;text-align:center;margin-bottom:16px;font-size:12px">Calculated using Hyundai Kona Electric (27 kWh/100mi) vs Kona gas (3.2 gal/100mi) · EIA electricity rates · AAA gas prices (Apr 30, 2026)</p>
 
       <!-- Scenario toggle -->
-      <div style="display:flex;justify-content:center;gap:0;margin-bottom:20px;flex-wrap:wrap">
+      <div style="display:flex;justify-content:center;gap:0;margin-bottom:14px;flex-wrap:wrap">
         <div class="ctrl-toggle" id="scenarioToggle">
           <button class="scenario-btn active" data-scenario="current">📊 Today ($4.30 nat'l avg)</button>
           <button class="scenario-btn" data-scenario="peak2022">🚨 If Gas Hits 2022 Peak ($5.03 nat'l avg)</button>
         </div>
       </div>
 
-      <!-- Map legend -->
-      <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:6px 20px;margin-bottom:16px">
-        <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:#666;font-weight:600"><div style="width:14px;height:14px;background:#1b5e20"></div> Under $1.20</div>
-        <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:#666;font-weight:600"><div style="width:14px;height:14px;background:#2e7d32"></div> $1.20–$1.50</div>
-        <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:#666;font-weight:600"><div style="width:14px;height:14px;background:#66bb6a"></div> $1.50–$2.00</div>
-        <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:#666;font-weight:600"><div style="width:14px;height:14px;background:#a5d6a7"></div> $2.00–$2.50</div>
-        <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:#666;font-weight:600"><div style="width:14px;height:14px;background:#c8e6c9"></div> $2.50+</div>
+      <!-- Scenario banner: updates with scenario -->
+      <div id="egal-banner" style="text-align:center;margin-bottom:18px;font-size:14px;color:#1a1a2e;padding:10px 16px;background:#e8f5e9;border-radius:6px;max-width:720px;margin-left:auto;margin-right:auto">
+        On average across the U.S., charging an EV costs <strong id="egal-banner-pct">68%</strong> less per gallon-equivalent than the pump.
+      </div>
+
+      <!-- Map legend (colors = % savings vs gas in selected scenario) -->
+      <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:6px 20px;margin-bottom:8px">
+        <div style="font-size:11px;color:#999;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;width:100%;text-align:center;margin-bottom:4px">Color: how much cheaper the e-gallon is than gas</div>
+        <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:#666;font-weight:600"><div style="width:14px;height:14px;background:#1b5e20"></div> Saves &gt; 75%</div>
+        <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:#666;font-weight:600"><div style="width:14px;height:14px;background:#2e7d32"></div> 65–75%</div>
+        <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:#666;font-weight:600"><div style="width:14px;height:14px;background:#66bb6a"></div> 55–65%</div>
+        <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:#666;font-weight:600"><div style="width:14px;height:14px;background:#a5d6a7"></div> 40–55%</div>
+        <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:#666;font-weight:600"><div style="width:14px;height:14px;background:#c8e6c9"></div> &lt; 40%</div>
       </div>
 
       <!-- Map container -->
@@ -372,7 +378,7 @@ a{color:inherit;text-decoration:none}
       <div class="stat-label">Oil changes, belts,<br>exhaust repairs</div>
     </div>
     <div class="stat-item">
-      <div class="stat-value" id="stat-payback"><a href="https://recharged.com/articles/when-does-ev-break-even-vs-gas-car" target="_blank" style="color:#2e7d32;text-decoration:none">4–8 yrs</a></div>
+      <div class="stat-value"><a href="https://recharged.com/articles/when-does-ev-break-even-vs-gas-car" target="_blank" style="color:#2e7d32;text-decoration:none">3–8 yrs</a></div>
       <div class="stat-label">Typical payback period<br>for EV price premium</div>
     </div>
     <div class="stat-item">
@@ -1923,12 +1929,19 @@ function initEGallon() {
 
   const stateAbbr = {Alabama:'AL',Alaska:'AK',Arizona:'AZ',Arkansas:'AR',California:'CA',Colorado:'CO',Connecticut:'CT',Delaware:'DE','District of Columbia':'DC',Florida:'FL',Georgia:'GA',Hawaii:'HI',Idaho:'ID',Illinois:'IL',Indiana:'IN',Iowa:'IA',Kansas:'KS',Kentucky:'KY',Louisiana:'LA',Maine:'ME',Maryland:'MD',Massachusetts:'MA',Michigan:'MI',Minnesota:'MN',Mississippi:'MS',Missouri:'MO',Montana:'MT',Nebraska:'NE',Nevada:'NV','New Hampshire':'NH','New Jersey':'NJ','New Mexico':'NM','New York':'NY','North Carolina':'NC','North Dakota':'ND',Ohio:'OH',Oklahoma:'OK',Oregon:'OR',Pennsylvania:'PA','Rhode Island':'RI','South Carolina':'SC','South Dakota':'SD',Tennessee:'TN',Texas:'TX',Utah:'UT',Vermont:'VT',Virginia:'VA',Washington:'WA','West Virginia':'WV',Wisconsin:'WI',Wyoming:'WY'};
 
-  function eGallonColor(val) {
-    if (val < 1.20) return '#1b5e20';
-    if (val < 1.50) return '#2e7d32';
-    if (val < 2.00) return '#66bb6a';
-    if (val < 2.50) return '#a5d6a7';
+  // Color is now driven by the savings percentage (gas - egallon) / gas — so the
+  // map visibly shifts greener under the 2022-peak scenario.
+  function savingsColor(pct) {
+    if (pct >= 75) return '#1b5e20';
+    if (pct >= 65) return '#2e7d32';
+    if (pct >= 55) return '#66bb6a';
+    if (pct >= 40) return '#a5d6a7';
     return '#c8e6c9';
+  }
+  function stateSavingsPct(stateName) {
+    const eg = getEGallon(stateName), gp = getGasPrice(stateName);
+    if (!eg || !gp) return null;
+    return (1 - eg / gp) * 100;
   }
 
   function calcEGallon(stateName) {
@@ -1962,9 +1975,8 @@ function initEGallon() {
       .join('path')
       .attr('d', path)
       .attr('fill', d => {
-        const name = d.properties.name;
-        const eg = getEGallon(name);
-        return eg ? eGallonColor(eg) : '#ddd';
+        const pct = stateSavingsPct(d.properties.name);
+        return pct == null ? '#ddd' : savingsColor(pct);
       })
       .attr('stroke', '#fff')
       .attr('stroke-width', 1)
@@ -2010,8 +2022,8 @@ function initEGallon() {
       .attr('font-weight', '700')
       .attr('font-family', 'Open Sans, sans-serif')
       .attr('fill', d => {
-        const eg = getEGallon(d.properties.name);
-        return eg && eg < 1.50 ? '#fff' : '#333';
+        const pct = stateSavingsPct(d.properties.name);
+        return pct != null && pct >= 65 ? '#fff' : '#1a1a2e';
       })
       .attr('pointer-events', 'none')
       .text(d => {
@@ -2019,6 +2031,29 @@ function initEGallon() {
         return eg ? '$' + eg.toFixed(2) : '';
       });
   });
+
+  // Re-color the map (and update banner) — called when scenario changes.
+  window.refreshEGallonMap = function() {
+    d3.select('#egallon-map svg').selectAll('path')
+      .attr('fill', d => {
+        const pct = stateSavingsPct(d.properties.name);
+        return pct == null ? '#ddd' : savingsColor(pct);
+      });
+    d3.select('#egallon-map svg').selectAll('text')
+      .attr('fill', d => {
+        const pct = stateSavingsPct(d.properties.name);
+        return pct != null && pct >= 65 ? '#fff' : '#1a1a2e';
+      });
+    // Average savings % across the 50 states (skip National)
+    const pcts = Object.values(stateNames)
+      .map(n => stateSavingsPct(n))
+      .filter(v => v != null);
+    const avg = pcts.length ? Math.round(pcts.reduce((a,b)=>a+b,0) / pcts.length) : 0;
+    const el = document.getElementById('egal-banner-pct');
+    if (el) el.textContent = avg + '%';
+  };
+  // First render
+  setTimeout(() => { if (window.refreshEGallonMap) window.refreshEGallonMap(); }, 200);
 
   // Close popover on click outside
   document.addEventListener('click', function(e) {
@@ -2039,6 +2074,7 @@ function initEGallon() {
       renderPairs(); renderBrandMatrix();
       renderMaintenance();
       renderHeroStats();
+      if (window.refreshEGallonMap) window.refreshEGallonMap();
     });
   });
 
@@ -2066,11 +2102,6 @@ function renderHeroStats() {
   const annualSave = (gasCost100 - evCost100) * miles / 100;
   const pctSave    = gasCost100 > 0 ? (1 - evCost100 / gasCost100) * 100 : 0;
 
-  // Payback range, given a $6,400 sticker premium and ~$370/yr maint delta:
-  const totalAnnual = annualSave + 370;
-  const paybackLow  = totalAnnual > 0 ? Math.max(2, Math.round(6400 / (totalAnnual * 1.25))) : 8;
-  const paybackHigh = totalAnnual > 0 ? Math.min(12, Math.round(6400 / (totalAnnual * 0.75))) : 8;
-
   const natlGas = (typeof getGasPrice === 'function') ? getGasPrice('National') : 4.30;
 
   const setText = (id, text) => { const el = document.getElementById(id); if (el) el.textContent = text; };
@@ -2083,9 +2114,6 @@ function renderHeroStats() {
     annualSave >= 0
       ? `Annual savings · Model Y vs RAV4 · ${abbr} · ${(miles/1000).toFixed(0)}k mi`
       : `Annual loss · Model Y vs RAV4 · ${abbr}`);
-  // payback uses an inline link, replace innerHTML to keep the anchor
-  const pay = document.getElementById('stat-payback');
-  if (pay) pay.innerHTML = `<a href="https://recharged.com/articles/when-does-ev-break-even-vs-gas-car" target="_blank" style="color:#2e7d32;text-decoration:none">${paybackLow}–${paybackHigh} yrs</a>`;
   setText('stat-natlGas', '$' + natlGas.toFixed(2));
   setText('stat-natlGasLabel',
     gasPriceScenario === 'peak2022'
