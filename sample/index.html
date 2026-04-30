@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EV Savings — Design Gallery</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,700;9..144,900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:#f4f1ea;color:#151414;font-family:'Fraunces',Georgia,serif;min-height:100vh}
+  body{padding:64px 32px 120px;max-width:1280px;margin:0 auto}
+  .eyebrow{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:0.3em;text-transform:uppercase;color:#8a2f1e;margin-bottom:24px}
+  h1{font-size:clamp(44px,7vw,96px);font-weight:300;line-height:0.95;letter-spacing:-0.03em;margin-bottom:16px;max-width:14ch}
+  h1 em{font-style:italic;font-weight:400;color:#8a2f1e}
+  .lede{font-size:19px;line-height:1.5;max-width:62ch;color:#433e39;margin-bottom:64px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:32px}
+  .card{background:#fff;border:1px solid #d9d2c5;border-radius:2px;overflow:hidden;text-decoration:none;color:inherit;transition:transform .3s cubic-bezier(.2,.8,.2,1),box-shadow .3s;display:flex;flex-direction:column}
+  .card:hover{transform:translateY(-6px);box-shadow:0 30px 60px -20px rgba(20,20,20,0.25)}
+  .thumb{aspect-ratio:4/3;position:relative;overflow:hidden}
+  .card-body{padding:24px 22px 28px;display:flex;flex-direction:column;gap:8px;flex:1}
+  .tag{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.25em;text-transform:uppercase;color:#8a6a3a}
+  .card h2{font-size:28px;font-weight:400;letter-spacing:-0.01em;line-height:1.1}
+  .card p{font-size:14px;color:#5a5347;line-height:1.5}
+  .meta{margin-top:auto;padding-top:14px;font-family:'JetBrains Mono',monospace;font-size:11px;color:#8a6a3a;display:flex;justify-content:space-between}
+
+  .thumb.editorial{background:#f0ebe0;padding:18px;display:flex;flex-direction:column;justify-content:space-between}
+  .thumb.editorial .h{font-family:'Fraunces';font-size:34px;font-weight:300;line-height:0.95;letter-spacing:-0.02em}
+  .thumb.editorial .h em{font-style:italic;color:#8a2f1e}
+  .thumb.editorial .col{display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:10px;font-family:'JetBrains Mono',monospace;color:#444;border-top:1px solid #151414;padding-top:10px}
+
+  .thumb.brutalist{background:#ffe900;padding:18px;display:flex;flex-direction:column;justify-content:space-between;font-family:'JetBrains Mono',monospace;position:relative}
+  .thumb.brutalist::before{content:"";position:absolute;inset:10px;border:2px solid #000;pointer-events:none}
+  .thumb.brutalist .bh{font-size:42px;font-weight:700;line-height:0.9;letter-spacing:-0.02em;color:#000;text-transform:uppercase}
+  .thumb.brutalist .bstat{background:#000;color:#ffe900;padding:8px 12px;font-size:11px;display:inline-block;align-self:flex-start}
+
+  .thumb.retro{background:linear-gradient(175deg,#f5c26b 0%,#e8854a 60%,#c94c2e 100%);padding:18px;display:flex;flex-direction:column;justify-content:space-between;position:relative;overflow:hidden}
+  .thumb.retro::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent 0,transparent 3px,rgba(255,255,255,.06) 3px,rgba(255,255,255,.06) 4px)}
+  .thumb.retro .rh{font-family:'Fraunces';font-size:36px;font-weight:900;font-style:italic;color:#2b1810;text-shadow:2px 2px 0 #f5c26b;line-height:0.9;position:relative;z-index:1}
+  .thumb.retro .pump{align-self:flex-end;background:#2b1810;color:#f5c26b;font-family:'JetBrains Mono',monospace;padding:6px 10px;font-size:10px;border-radius:2px;z-index:1}
+
+  .thumb.luxe{background:radial-gradient(ellipse at 30% 20%,#1a2b2a 0%,#0a1514 70%);padding:18px;display:flex;flex-direction:column;justify-content:space-between;color:#d4b979}
+  .thumb.luxe .lh{font-family:'Fraunces';font-size:32px;font-weight:300;letter-spacing:0.02em;line-height:1}
+  .thumb.luxe .lh em{font-style:italic;color:#d4b979;border-bottom:1px solid #d4b979;padding-bottom:2px}
+  .thumb.luxe .lmeta{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:#8a7751}
+
+  .thumb.terminal{background:#0b0b0b;padding:14px;color:#e8c547;font-family:'JetBrains Mono',monospace;font-size:10px;line-height:1.5;display:flex;flex-direction:column;gap:6px}
+  .thumb.terminal .row{display:flex;justify-content:space-between;border-bottom:1px dashed #3a340f;padding-bottom:4px}
+  .thumb.terminal .red{color:#ff5c4d}
+  .thumb.terminal .green{color:#7af0a8}
+  .thumb.terminal .hdr{border-bottom:1px solid #e8c547;padding-bottom:4px;margin-bottom:4px;display:flex;justify-content:space-between}
+
+  footer{margin-top:120px;padding-top:32px;border-top:1px solid #d9d2c5;font-family:'JetBrains Mono',monospace;font-size:11px;color:#8a6a3a;display:flex;justify-content:space-between}
+
+  @media (max-width:720px){
+    body{padding:40px 20px 80px}
+    h1{font-size:52px}
+  }
+</style>
+</head>
+<body>
+  <div class="eyebrow">Design Gallery · 05 Directions</div>
+  <h1>Pick the <em>aesthetic</em> that fits your story.</h1>
+  <p class="lede">Five distinct visual directions for the EV savings calculator. Each treats the same information — fuel costs, charging, break-even math — through a different lens. Click through, spend a minute in each, then tell me which one to take to production.</p>
+
+  <div class="grid">
+
+    <a class="card" href="./editorial/">
+      <div class="thumb editorial">
+        <div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:0.25em;color:#8a2f1e">VOL. I · NO. 04 · APRIL 2026</div>
+          <div class="h" style="margin-top:10px">The <em>quiet</em><br>arithmetic<br>of a charger.</div>
+        </div>
+        <div class="col">
+          <div><strong>$1,240</strong><br>annual fuel saved</div>
+          <div><strong>4.3 yrs</strong><br>to break even</div>
+        </div>
+      </div>
+      <div class="card-body">
+        <span class="tag">01 — Editorial</span>
+        <h2>Longform, considered, serif.</h2>
+        <p>Magazine-column restraint. Drop caps, pull quotes, a single signal color. For readers who trust institutions that trust serifs.</p>
+        <div class="meta"><span>fraunces · cream · maroon</span><span>→</span></div>
+      </div>
+    </a>
+
+    <a class="card" href="./brutalist/">
+      <div class="thumb brutalist">
+        <div class="bh">EV<br>OR<br>GAS?</div>
+        <div>
+          <div class="bstat">BREAK EVEN: 4.3 YRS</div>
+        </div>
+      </div>
+      <div class="card-body">
+        <span class="tag">02 — Brutalist</span>
+        <h2>Loud, blocky, uncompromised.</h2>
+        <p>Hazard yellow. Black ink. Mono type. Every number shouts. No decoration, no apology, maximum signal.</p>
+        <div class="meta"><span>jetbrains · yellow · black</span><span>→</span></div>
+      </div>
+    </a>
+
+    <a class="card" href="./retro/">
+      <div class="thumb retro">
+        <div>
+          <div class="rh">FILL 'ER<br>UP<span style="color:#c94c2e;text-shadow:2px 2px 0 #2b1810">.</span></div>
+        </div>
+        <div class="pump">⛽ $3.47/gal · ⚡ $1.12/eGal</div>
+      </div>
+      <div class="card-body">
+        <span class="tag">03 — Service Station</span>
+        <h2>1972 highway, 2026 math.</h2>
+        <p>A roadside diner sign meets a spreadsheet. Warm orange, cream, espresso. Earnest typography. Unabashedly fun.</p>
+        <div class="meta"><span>fraunces italic · sunset</span><span>→</span></div>
+      </div>
+    </a>
+
+    <a class="card" href="./luxe/">
+      <div class="thumb luxe">
+        <div>
+          <div class="lmeta">Ownership · quarterly</div>
+          <div class="lh" style="margin-top:10px">A better <em>return</em><br>on every mile.</div>
+        </div>
+        <div class="lmeta">$12,420 · five-year delta</div>
+      </div>
+      <div class="card-body">
+        <span class="tag">04 — Concierge</span>
+        <h2>Dark, refined, almost still.</h2>
+        <p>Forest and brass. Slow fades. The calculator as a private wealth statement. For buyers who already know they can afford either.</p>
+        <div class="meta"><span>fraunces light · forest · brass</span><span>→</span></div>
+      </div>
+    </a>
+
+    <a class="card" href="./terminal/">
+      <div class="thumb terminal">
+        <div class="hdr"><span>EV/GAS MON</span><span style="color:#7af0a8">● LIVE</span></div>
+        <div class="row"><span>US REG GAL</span><span class="red">3.47 ▲</span></div>
+        <div class="row"><span>E-GAL AVG</span><span class="green">1.12 ▼</span></div>
+        <div class="row"><span>BEV SHARE</span><span class="green">11.8%</span></div>
+        <div class="row"><span>MAINT 5Y</span><span class="green">-1,840</span></div>
+        <div class="row" style="border:none"><span>BRKEVN Y</span><span>4.3</span></div>
+      </div>
+      <div class="card-body">
+        <span class="tag">05 — Terminal</span>
+        <h2>Bloomberg for the driveway.</h2>
+        <p>Amber on black. Dense tables, live tickers, four-letter commodity codes. Ugly in the best possible way — the aesthetic of people who read numbers for a living.</p>
+        <div class="meta"><span>jetbrains mono · amber · coal</span><span>→</span></div>
+      </div>
+    </a>
+
+  </div>
+
+  <footer>
+    <span>evsavings.pages.dev/sample</span>
+    <span>pick one → deploy to prod</span>
+  </footer>
+</body>
+</html>

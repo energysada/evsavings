@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EV OR GAS? — Brutalist Calculator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=JetBrains+Mono:wght@400;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://d3js.org/d3.v7.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/topojson-client@3"></script>
+<script src="../shared.js"></script>
+<style>
+  :root{--y:#ffe900;--y2:#f0d500;--k:#0a0a0a;--k2:#1a1a1a;--r:#ff2d1e;--g:#00a86b;--w:#fafafa;}
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{background:var(--y);color:var(--k);font-family:'Space Mono',monospace;overflow-x:hidden}
+
+  body::before{
+    content:"";position:fixed;inset:0;pointer-events:none;z-index:1000;opacity:0.07;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence baseFrequency='0.9' numOctaves='3' seed='4'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+    mix-blend-mode:multiply;
+  }
+
+  .bar{position:sticky;top:0;background:var(--k);color:var(--y);z-index:50;border-bottom:4px solid var(--y);padding:12px 24px;display:flex;justify-content:space-between;align-items:center;font-family:'JetBrains Mono',monospace;font-size:12px;text-transform:uppercase;letter-spacing:0.15em;gap:20px;flex-wrap:wrap}
+  .bar a{color:var(--y);text-decoration:none;border-bottom:2px solid var(--y)}
+  .bar nav{display:flex;gap:16px;flex-wrap:wrap}
+  .bar nav a{font-weight:700}
+  .bar .blink{display:inline-block;width:10px;height:10px;background:var(--r);border-radius:50%;animation:blink 1.2s infinite;margin-right:8px;vertical-align:middle}
+  @keyframes blink{50%{opacity:0.2}}
+
+  .hero{padding:40px 24px 20px;border-bottom:6px solid var(--k)}
+  h1.mega{font-family:'Archivo Black',sans-serif;font-size:clamp(80px,20vw,280px);line-height:0.85;letter-spacing:-0.05em;color:var(--k);text-transform:uppercase}
+  h1.mega span{display:block}
+  h1.mega .or{color:var(--y);-webkit-text-stroke:4px var(--k)}
+  .hero-sub{font-family:'JetBrains Mono',monospace;font-size:14px;text-transform:uppercase;letter-spacing:0.2em;max-width:70ch;margin-top:16px}
+  .hero-sub strong{background:var(--k);color:var(--y);padding:2px 8px}
+
+  .ctrl-panel{background:var(--k);color:var(--y);padding:24px;border-bottom:6px solid var(--k)}
+  .ctrl-panel h3{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:0.3em;text-transform:uppercase;color:var(--y2);margin-bottom:14px}
+  .ctrl-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:2px;background:var(--y);border:2px solid var(--y)}
+  .ctrl-grid .cc{background:var(--k);padding:14px 16px;display:flex;flex-direction:column;gap:8px}
+  .ctrl-grid .lbl{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.25em;text-transform:uppercase;color:var(--y2)}
+  .ctrl-grid select,.ctrl-grid input[type=range]{background:var(--y);color:var(--k);border:2px solid var(--y);padding:6px 8px;font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;width:100%;cursor:pointer}
+  .ctrl-grid input[type=range]{padding:0;height:28px;-webkit-appearance:none;appearance:none}
+  .ctrl-grid input[type=range]::-webkit-slider-runnable-track{height:6px;background:var(--y2)}
+  .ctrl-grid input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:18px;height:18px;background:var(--r);border:2px solid var(--k);margin-top:-7px;cursor:pointer}
+  .ctrl-grid .val{font-family:'Archivo Black',sans-serif;font-size:24px;color:var(--y);letter-spacing:-0.02em}
+  .scenario{display:flex;gap:2px;margin-top:16px;background:var(--y);padding:2px}
+  .scenario button{flex:1;background:var(--k);color:var(--y2);border:none;padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;cursor:pointer;transition:background .15s}
+  .scenario button.active{background:var(--r);color:var(--k)}
+  .scenario button:hover:not(.active){background:var(--k2)}
+
+  .section-head{border-bottom:6px solid var(--k);padding:32px 24px 24px}
+  .section-head .num{font-family:'JetBrains Mono',monospace;font-size:13px;letter-spacing:0.3em;text-transform:uppercase;background:var(--k);color:var(--y);padding:5px 14px;display:inline-block;margin-bottom:18px}
+  .section-head h2{font-family:'Archivo Black',sans-serif;font-size:clamp(44px,8vw,96px);line-height:0.88;letter-spacing:-0.04em;text-transform:uppercase;max-width:20ch}
+  .section-head p{font-family:'JetBrains Mono',monospace;font-size:13px;text-transform:uppercase;letter-spacing:0.15em;margin-top:14px;max-width:80ch}
+
+  /* E-gallon map */
+  .egal-map-wrap{padding:24px;border-bottom:6px solid var(--k);position:relative}
+  #egallon-map{background:var(--w);border:4px solid var(--k);min-height:520px}
+  #egallon-map svg path{transition:stroke-width .1s}
+  .egal-legend{display:flex;gap:16px;font-family:'JetBrains Mono',monospace;font-size:12px;text-transform:uppercase;letter-spacing:0.2em;align-items:center;flex-wrap:wrap;margin-top:16px}
+  .egal-legend .chip{width:24px;height:18px;border:2px solid var(--k);display:inline-block}
+  .egal-popover{position:fixed;background:var(--k);color:var(--y);padding:14px 18px;min-width:260px;border:4px solid var(--y);font-family:'JetBrains Mono',monospace;z-index:200;display:none;box-shadow:8px 8px 0 var(--r)}
+  .egal-popover .st{font-family:'Archivo Black',sans-serif;font-size:22px;color:var(--y);margin-bottom:10px;letter-spacing:-0.02em;text-transform:uppercase}
+  .egal-popover .row{display:flex;justify-content:space-between;padding:4px 0;font-size:12px;text-transform:uppercase;letter-spacing:0.1em}
+  .egal-popover .row .v{font-family:'Archivo Black',sans-serif;font-size:18px;letter-spacing:-0.02em}
+  .egal-popover .row .v.r{color:var(--r)}
+  .egal-popover .row .v.g{color:var(--g)}
+
+  /* Calculator results */
+  .calc-results{padding:0;border-bottom:6px solid var(--k)}
+  .cr-numbers{display:grid;grid-template-columns:repeat(4,1fr);border-bottom:6px solid var(--k)}
+  .cr-numbers .cell{padding:24px 20px;border-right:4px solid var(--k);font-family:'JetBrains Mono',monospace}
+  .cr-numbers .cell:last-child{border-right:none}
+  .cr-numbers .cell .k{font-size:10px;letter-spacing:0.3em;text-transform:uppercase;margin-bottom:14px;font-weight:700}
+  .cr-numbers .cell .v{font-family:'Archivo Black',sans-serif;font-size:48px;line-height:0.9;letter-spacing:-0.03em}
+  .cr-numbers .cell .d{font-size:11px;letter-spacing:0.2em;text-transform:uppercase;margin-top:10px}
+  .cr-numbers .cell.inv{background:var(--k);color:var(--y)}
+  .cr-numbers .cell.red{background:var(--r);color:var(--k)}
+  .cr-numbers .cell.green{background:var(--g);color:var(--k)}
+
+  .cr-chart{background:var(--k);color:var(--y);padding:24px;min-height:380px;display:grid;grid-template-columns:2fr 1fr;gap:24px}
+  .cr-chart .chart-box{background:var(--k2);padding:16px;border:2px solid var(--y2);position:relative}
+  .cr-chart canvas{max-height:320px}
+  .cr-chart .breakdown{font-family:'JetBrains Mono',monospace;font-size:12px}
+  .cr-chart .breakdown h4{font-size:11px;letter-spacing:0.3em;text-transform:uppercase;color:var(--y2);margin-bottom:12px;border-bottom:1px solid var(--y2);padding-bottom:8px}
+  .cr-chart .breakdown table{width:100%;border-collapse:collapse}
+  .cr-chart .breakdown td{padding:6px 4px;border-bottom:1px dotted #333;font-size:12px;font-variant-numeric:tabular-nums}
+  .cr-chart .breakdown td.r{text-align:right}
+  .cr-chart .breakdown td.lbl{color:var(--y2);text-transform:uppercase;letter-spacing:0.1em;font-size:10px}
+  .cr-chart .breakdown td.g{color:var(--g);font-weight:700}
+
+  /* Matrices */
+  .matrix-wrap{padding:24px;border-bottom:6px solid var(--k);background:var(--w)}
+  .matrix-wrap h3{font-family:'Archivo Black',sans-serif;font-size:28px;letter-spacing:-0.02em;margin-bottom:14px;text-transform:uppercase}
+  .matrix-wrap .matrix-sub{font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:0.15em;text-transform:uppercase;margin-bottom:20px;color:#555}
+  .mx{display:grid;border:4px solid var(--k);background:var(--k);gap:2px}
+  .mx .mx-corner{background:var(--y);padding:14px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:0.2em;text-transform:uppercase;color:var(--k);font-weight:700;display:flex;align-items:center}
+  .mx .mx-col-h{background:var(--y);padding:14px 12px;font-family:'Archivo Black',sans-serif;font-size:13px;letter-spacing:0.04em;text-transform:uppercase;text-align:center;color:var(--k)}
+  .mx .mx-col-h.hl{background:var(--r);color:var(--k)}
+  .mx .mx-row-h{background:var(--y2);padding:14px 12px;font-family:'Archivo Black',sans-serif;font-size:14px;letter-spacing:0.04em;text-transform:uppercase;color:var(--k);display:flex;align-items:center}
+  .mx .mx-row-h.hl{background:var(--r)}
+  .mx .mx-cell{background:var(--w);padding:12px;min-height:90px;font-family:'JetBrains Mono',monospace}
+  .mx .mx-cell.empty{background:#eee}
+  .mx .mx-cell.empty::before{content:"—";font-family:'Archivo Black',sans-serif;font-size:20px;color:#aaa;display:block;text-align:center;margin-top:18px}
+  .mx .mx-cell .pair{padding:8px;border:2px solid var(--k);margin-bottom:6px;cursor:pointer;transition:background .1s}
+  .mx .mx-cell .pair:last-child{margin-bottom:0}
+  .mx .mx-cell .pair:hover{background:var(--y)}
+  .mx .mx-cell .gas-name{font-family:'Archivo Black',sans-serif;font-size:12px;line-height:1.1;color:var(--k);text-transform:uppercase;letter-spacing:0.02em}
+  .mx .mx-cell .ev-name{font-size:11px;color:var(--g);margin-top:4px;font-weight:700}
+  .mx .mx-cell .save-num{font-family:'Archivo Black',sans-serif;font-size:16px;color:var(--k);margin-top:6px;letter-spacing:-0.02em}
+  .mx .mx-cell .save-num.neg{color:var(--r)}
+
+  .yr-tabs{display:flex;gap:4px;margin-bottom:16px}
+  .yr-tabs button{background:var(--w);color:var(--k);border:3px solid var(--k);padding:8px 16px;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;cursor:pointer}
+  .yr-tabs button.active{background:var(--k);color:var(--y)}
+
+  /* Maintenance */
+  .maint{padding:24px;background:var(--r);color:var(--k);border-bottom:6px solid var(--k)}
+  .maint h3{font-family:'Archivo Black',sans-serif;font-size:28px;margin-bottom:20px;text-transform:uppercase}
+  .maint-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:2px;background:var(--k);border:6px solid var(--k)}
+  .maint-grid .mc{background:var(--y);padding:24px 20px;font-family:'JetBrains Mono',monospace}
+  .maint-grid .mc .k{font-size:11px;letter-spacing:0.3em;text-transform:uppercase;margin-bottom:14px;font-weight:700}
+  .maint-grid .mc .v{font-family:'Archivo Black',sans-serif;font-size:56px;line-height:0.9;letter-spacing:-0.03em}
+  .maint-grid .mc .d{font-size:11px;letter-spacing:0.15em;text-transform:uppercase;margin-top:12px;max-width:28ch}
+  .maint-grid .mc.neg .v{color:var(--r)}
+  .maint-table{margin-top:20px;background:var(--k);color:var(--y);padding:20px;font-family:'JetBrains Mono',monospace;font-size:12px;border:4px solid var(--k)}
+  .maint-table table{width:100%;border-collapse:collapse}
+  .maint-table th{text-align:left;padding:8px;border-bottom:2px solid var(--y2);font-size:10px;text-transform:uppercase;letter-spacing:0.2em;color:var(--y2)}
+  .maint-table th.r{text-align:right}
+  .maint-table td{padding:8px;border-bottom:1px dotted #333;font-variant-numeric:tabular-nums}
+  .maint-table td.r{text-align:right}
+  .maint-table td.total{font-family:'Archivo Black',sans-serif;font-size:16px;color:var(--y);border-top:2px solid var(--y)}
+
+  /* Charging */
+  .chrg{padding:24px;border-bottom:6px solid var(--k);background:var(--k);color:var(--y)}
+  .chrg h3{font-family:'Archivo Black',sans-serif;font-size:28px;text-transform:uppercase;margin-bottom:16px;color:var(--y)}
+  .chrg-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:2px;background:var(--y);border:2px solid var(--y)}
+  .chrg-grid .ch{background:var(--k);padding:20px;font-family:'JetBrains Mono',monospace}
+  .chrg-grid .ch .icon{font-family:'Archivo Black',sans-serif;font-size:30px;color:var(--y);margin-bottom:8px}
+  .chrg-grid .ch .k{font-size:11px;letter-spacing:0.25em;text-transform:uppercase;color:var(--y2);margin-bottom:10px}
+  .chrg-grid .ch .v{font-family:'Archivo Black',sans-serif;font-size:36px;color:var(--y);line-height:0.9;letter-spacing:-0.02em}
+  .chrg-grid .ch .d{font-size:11px;letter-spacing:0.1em;text-transform:uppercase;margin-top:8px;color:var(--y2)}
+
+  /* Trips per charge */
+  .trips{padding:24px;border-bottom:6px solid var(--k);background:var(--w)}
+  .trips h3{font-family:'Archivo Black',sans-serif;font-size:28px;margin-bottom:14px;text-transform:uppercase}
+  .trips-sub{font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:0.15em;text-transform:uppercase;margin-bottom:20px;color:#555}
+  .trips-list{display:grid;grid-template-columns:1fr 1fr;gap:0;border:4px solid var(--k);background:var(--k)}
+  .trips-list .trip{background:var(--w);padding:16px 18px;border-bottom:3px solid var(--k);border-right:3px solid var(--k);display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center}
+  .trips-list .trip:nth-child(2n){border-right:none}
+  .trips-list .trip .from-to{font-family:'Archivo Black',sans-serif;font-size:14px;letter-spacing:0.02em;text-transform:uppercase}
+  .trips-list .trip .from-to small{display:block;font-family:'JetBrains Mono',monospace;font-size:10px;color:#555;letter-spacing:0.15em;margin-top:4px;font-weight:400}
+  .trips-list .trip .stops{background:var(--k);color:var(--y);padding:8px 12px;font-family:'Archivo Black',sans-serif;font-size:18px;min-width:60px;text-align:center;letter-spacing:-0.02em}
+  .trips-list .trip .stops.zero{background:var(--g);color:var(--k)}
+  .trips-list .trip .stops.two{background:var(--r);color:var(--k)}
+
+  /* CTA */
+  .cta{padding:80px 24px;text-align:center;background:var(--k);color:var(--y);border-bottom:6px solid var(--y)}
+  .cta h2{font-family:'Archivo Black',sans-serif;font-size:clamp(50px,10vw,128px);line-height:0.9;letter-spacing:-0.04em;margin-bottom:20px;text-transform:uppercase}
+  .cta h2 em{font-style:normal;color:var(--r)}
+  .cta p{font-family:'JetBrains Mono',monospace;font-size:14px;text-transform:uppercase;letter-spacing:0.2em;margin-bottom:36px;max-width:60ch;margin-left:auto;margin-right:auto}
+  .cta-btn{display:inline-block;background:var(--y);color:var(--k);padding:22px 48px;font-family:'Archivo Black',sans-serif;font-size:20px;letter-spacing:0.08em;text-transform:uppercase;text-decoration:none;border:6px solid var(--y);transition:all .15s}
+  .cta-btn:hover{background:var(--k);color:var(--y);transform:translate(-4px,-4px);box-shadow:8px 8px 0 var(--y)}
+
+  footer{padding:20px 24px;background:var(--y);color:var(--k);font-family:'JetBrains Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:0.25em;display:flex;justify-content:space-between;border-top:6px solid var(--k);flex-wrap:wrap;gap:12px}
+
+  @media (max-width:860px){
+    h1.mega{font-size:22vw}
+    .cr-numbers{grid-template-columns:1fr 1fr}
+    .cr-numbers .cell{border-right:4px solid var(--k);border-bottom:4px solid var(--k)}
+    .cr-numbers .cell:nth-child(2n){border-right:none}
+    .cr-chart{grid-template-columns:1fr}
+    .maint-grid{grid-template-columns:1fr}
+    .trips-list{grid-template-columns:1fr}
+    .trips-list .trip{border-right:none}
+  }
+</style>
+</head>
+<body>
+
+<div class="bar">
+  <a href="../">← GALLERY</a>
+  <nav>
+    <a href="#calc">CALC</a>
+    <a href="#egal">E-GAL</a>
+    <a href="#matrix">SWAP</a>
+    <a href="#maint">MAINT</a>
+    <a href="#chrg">CHARGE</a>
+  </nav>
+  <div><span class="blink"></span>APR 2026 · LIVE</div>
+</div>
+
+<section class="hero">
+  <h1 class="mega">
+    <span>EV</span>
+    <span class="or">OR</span>
+    <span>GAS?</span>
+  </h1>
+  <p class="hero-sub">Pick a state. Pick a car. Get the number. <strong>NO EMAIL. NO NEWSLETTER. NO MERCY.</strong></p>
+</section>
+
+<!-- ============ CONTROLS ============ -->
+<section class="ctrl-panel" id="calc">
+  <h3>▚ CONTROL PANEL · ADJUST AND WATCH THE NUMBERS MOVE</h3>
+  <div class="ctrl-grid">
+    <div class="cc">
+      <label class="lbl">STATE</label>
+      <select id="stateSel"></select>
+    </div>
+    <div class="cc">
+      <label class="lbl">ELECTRIC VEHICLE</label>
+      <select id="evSel"></select>
+    </div>
+    <div class="cc">
+      <label class="lbl">GAS VEHICLE</label>
+      <select id="gasSel"></select>
+    </div>
+    <div class="cc">
+      <label class="lbl">ANNUAL MILES</label>
+      <input type="range" id="milesSel" min="5000" max="30000" step="500" value="13500">
+      <div class="val" id="milesVal">13.5k</div>
+    </div>
+    <div class="cc">
+      <label class="lbl">CITY / HIGHWAY MIX</label>
+      <input type="range" id="chSel" min="0" max="100" step="5" value="55">
+      <div class="val" id="chVal">55% CITY</div>
+    </div>
+    <div class="cc">
+      <label class="lbl">HOLD PERIOD (YRS)</label>
+      <select id="yrSel">
+        <option value="1">1 YR</option><option value="5" selected>5 YR</option><option value="10">10 YR</option>
+      </select>
+    </div>
+  </div>
+  <div class="scenario">
+    <button class="sc-btn active" data-scenario="current">⛽ CURRENT · $4.12/GAL</button>
+    <button class="sc-btn" data-scenario="peak2022">🔥 2022 PEAK · $5.03/GAL</button>
+  </div>
+</section>
+
+<!-- ============ RESULTS BIG NUMBERS ============ -->
+<section class="calc-results">
+  <div class="cr-numbers">
+    <div class="cell"><div class="k">100 MILES · GAS</div><div class="v r" id="num-gas100">$11.42</div><div class="d" id="num-gas-note">AT CURRENT PRICES</div></div>
+    <div class="cell inv"><div class="k">100 MILES · EV</div><div class="v" id="num-ev100">$3.88</div><div class="d" id="num-ev-note">HOME CHARGE</div></div>
+    <div class="cell green"><div class="k">ANNUAL FUEL SAVED</div><div class="v" id="num-annual">$1,240</div><div class="d" id="num-annual-note">EV WINS</div></div>
+    <div class="cell red"><div class="k" id="num-multi-k">5-YR TOTAL SAVED</div><div class="v" id="num-multi">$7,740</div><div class="d">INCL. MAINT DELTA</div></div>
+  </div>
+
+  <div class="cr-chart">
+    <div class="chart-box">
+      <canvas id="costChart"></canvas>
+    </div>
+    <div class="breakdown">
+      <h4>BREAKDOWN ▹</h4>
+      <table id="breakdown-table">
+        <tr><td class="lbl">STATE</td><td class="r" id="bd-state">CA</td></tr>
+        <tr><td class="lbl">EV PICK</td><td class="r" id="bd-ev">MODEL Y</td></tr>
+        <tr><td class="lbl">GAS PICK</td><td class="r" id="bd-gas">RAV4</td></tr>
+        <tr><td class="lbl">ELEC ¢/KWH</td><td class="r" id="bd-elec">31.9</td></tr>
+        <tr><td class="lbl">GAS $/GAL</td><td class="r" id="bd-gasp">5.93</td></tr>
+        <tr><td class="lbl">EV KWH/100</td><td class="r" id="bd-evEff">28</td></tr>
+        <tr><td class="lbl">GAS GAL/100</td><td class="r" id="bd-gasEff">3.3</td></tr>
+        <tr><td class="lbl">FUEL SAVED / YR</td><td class="r g" id="bd-fs">$1,240</td></tr>
+        <tr><td class="lbl">MAINT SAVED / YR</td><td class="r g" id="bd-ms">$368</td></tr>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ============ E-GALLON MAP ============ -->
+<section class="section-head" id="egal">
+  <div class="num">01 / E-GALLON MAP</div>
+  <h2>HOW MUCH DOES THE OUTLET "PUMP"?</h2>
+  <p>CLICK A STATE. WE CALCULATE WHAT AN EV WOULD COST PER GALLON-EQUIVALENT AT YOUR LOCAL UTILITY RATE.</p>
+</section>
+
+<section class="egal-map-wrap">
+  <div id="egallon-map"></div>
+  <div id="egal-popover" class="egal-popover">
+    <div class="st" id="pop-state">STATE</div>
+    <div class="row"><span>E-GALLON</span><span class="v g" id="pop-egal">$0.00</span></div>
+    <div class="row"><span>GAS / GAL</span><span class="v r" id="pop-gas">$0.00</span></div>
+    <div class="row"><span>PER GAL SAVED</span><span class="v" id="pop-save">$0.00</span></div>
+    <div class="row"><span>% CHEAPER</span><span class="v" id="pop-pct">0%</span></div>
+  </div>
+  <div class="egal-legend">
+    <span class="chip" style="background:#00a86b"></span><span>&lt; $1.20 CHEAP</span>
+    <span class="chip" style="background:#ffe900"></span><span>$1.20–2.00 AVG</span>
+    <span class="chip" style="background:#ff2d1e"></span><span>&gt; $2.00 PRICEY</span>
+  </div>
+</section>
+
+<!-- ============ BRAND MATRIX ============ -->
+<section class="section-head" id="matrix">
+  <div class="num">02 / BRAND → EV</div>
+  <h2>YOU DRIVE A TOYOTA. WHICH EV MATCHES?</h2>
+  <p>THE ICE BRAND IS IN BLACK. THE EV ALTERNATIVE IS IN GREEN. THE NUMBER IS WHAT YOU POCKET.</p>
+</section>
+
+<section class="matrix-wrap">
+  <h3>BY BRAND &amp; PRICE TIER</h3>
+  <p class="matrix-sub">SAVINGS = GAS COST − EV COST · OVER SELECTED HOLD PERIOD</p>
+  <div class="yr-tabs"><span style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:0.2em;margin-right:10px;align-self:center">HORIZON →</span>
+    <button class="yr-tab" data-years="1">1 YR</button>
+    <button class="yr-tab active" data-years="5">5 YR</button>
+    <button class="yr-tab" data-years="10">10 YR</button>
+  </div>
+  <div class="mx" id="brandMatrix"></div>
+</section>
+
+<section class="matrix-wrap" style="background:var(--y)">
+  <h3>BY SEGMENT &amp; PRICE TIER</h3>
+  <p class="matrix-sub">MATCHED PAIRS CURATED BY SIZE AND MSRP BRACKET · NOT ALL CELLS FILLED</p>
+  <div class="mx" id="segmentMatrix"></div>
+</section>
+
+<!-- ============ MAINTENANCE ============ -->
+<section class="section-head" id="maint" style="background:var(--y)">
+  <div class="num" style="background:var(--r);color:var(--k)">03 / MAINT</div>
+  <h2>FEWER MOVING PARTS. FEWER BILLS.</h2>
+  <p>5-YEAR AVERAGES. TIRES COST A BIT MORE ON EVS. EVERYTHING ELSE EVAPORATES.</p>
+</section>
+
+<section class="maint">
+  <div class="maint-grid">
+    <div class="mc"><div class="k">ICE 5-YR</div><div class="v" id="maint-ice">$3,410</div><div class="d">OIL, PLUGS, BELTS, FILTERS, FLUIDS</div></div>
+    <div class="mc"><div class="k">EV 5-YR</div><div class="v" id="maint-ev">$1,570</div><div class="d">TIRES, BRAKE FLUID, CABIN FILTER</div></div>
+    <div class="mc neg"><div class="k">DELTA</div><div class="v" id="maint-delta">−$1,840</div><div class="d">DIVIDEND OF MECHANICAL SIMPLICITY</div></div>
+  </div>
+  <div class="maint-table">
+    <table>
+      <thead><tr><th>ITEM</th><th>INTERVAL</th><th class="r">ICE ($)</th><th class="r">EV ($)</th><th class="r">Δ</th></tr></thead>
+      <tbody>
+        <tr><td>OIL &amp; FILTER</td><td>7.5K MI</td><td class="r">810</td><td class="r">0</td><td class="r">−810</td></tr>
+        <tr><td>AIR FILTER</td><td>30K MI</td><td class="r">140</td><td class="r">0</td><td class="r">−140</td></tr>
+        <tr><td>SPARK PLUGS</td><td>60K MI</td><td class="r">320</td><td class="r">0</td><td class="r">−320</td></tr>
+        <tr><td>TRANSMISSION</td><td>60K MI</td><td class="r">240</td><td class="r">0</td><td class="r">−240</td></tr>
+        <tr><td>COOLANT</td><td>50K MI</td><td class="r">180</td><td class="r">80</td><td class="r">−100</td></tr>
+        <tr><td>BRAKE PADS</td><td>35–90K MI</td><td class="r">720</td><td class="r">360</td><td class="r">−360</td></tr>
+        <tr><td>BRAKE FLUID</td><td>36K MI</td><td class="r">280</td><td class="r">280</td><td class="r">0</td></tr>
+        <tr><td>TIRES</td><td>50K MI</td><td class="r">720</td><td class="r">850</td><td class="r">+130</td></tr>
+        <tr><td class="total">TOTAL 5YR</td><td></td><td class="r total">3,410</td><td class="r total">1,570</td><td class="r total">−1,840</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ============ CHARGING ============ -->
+<section class="section-head" id="chrg" style="background:var(--k);color:var(--y);border-bottom-color:var(--y)">
+  <div class="num" style="background:var(--y);color:var(--k)">04 / CHARGING</div>
+  <h2 style="color:var(--y)">YOU ALREADY HAVE A CHARGER. IT'S CALLED "AN OUTLET."</h2>
+  <p style="color:var(--y2)">MOST CHARGING HAPPENS AT HOME, OVERNIGHT. THE REST OF THE INFRASTRUCTURE IS BACKUP.</p>
+</section>
+
+<section class="chrg">
+  <div class="chrg-grid">
+    <div class="ch"><div class="icon">⚡</div><div class="k">L2 HOME CHARGE</div><div class="v">8 HR</div><div class="d">0 → 100% OVERNIGHT</div></div>
+    <div class="ch"><div class="icon">🔌</div><div class="k">L1 STANDARD PLUG</div><div class="v">40 HR</div><div class="d">ADDS 40MI / 10HR</div></div>
+    <div class="ch"><div class="icon">⚡⚡</div><div class="k">DC FAST CHARGE</div><div class="v">30 MIN</div><div class="d">10 → 80% ON ROAD TRIPS</div></div>
+    <div class="ch"><div class="icon">🏠</div><div class="k">% HOME CHARGING</div><div class="v">80%</div><div class="d">TYPICAL US EV OWNER</div></div>
+    <div class="ch"><div class="icon">🛣️</div><div class="k">US DC FAST STATIONS</div><div class="v">12K+</div><div class="d">NEVIXP GROWING FAST</div></div>
+    <div class="ch"><div class="icon">💵</div><div class="k">L2 INSTALL COST</div><div class="v">$1.2K</div><div class="d">HOMEOWNER · ONE-TIME</div></div>
+  </div>
+</section>
+
+<!-- ============ TRIPS PER CHARGE ============ -->
+<section class="section-head" style="background:var(--w)">
+  <div class="num">05 / ROAD TRIPS</div>
+  <h2>HOW MANY STOPS TO GET THERE?</h2>
+  <p>A 300-MI EV CAN DO MOST COMMON US ROAD TRIPS WITH 0–1 FAST CHARGES.</p>
+</section>
+
+<section class="trips">
+  <div class="trips-list" id="trips-list">
+    <!-- populated -->
+  </div>
+</section>
+
+<!-- ============ CTA ============ -->
+<section class="cta">
+  <h2>CAN AN EV <em>SAVE</em><br>YOU MONEY?</h2>
+  <p>SCROLL UP, MOVE THE SLIDERS. IF YOU CAN'T SEE YOUR ANSWER IN 30 SECONDS, YOUR CASE IS WEIRD — EMAIL US.</p>
+  <a href="#calc" class="cta-btn">▲ BACK TO CALCULATOR</a>
+</section>
+
+<footer>
+  <span>EV OR GAS? · DESIGN SAMPLE 02 · BRUTALIST</span>
+  <span>DATA · AAA · EIA · DOE · APR 2026</span>
+  <a href="../">← GALLERY</a>
+</footer>
+
+<!-- ======================= JS ======================= -->
+<script>
+const S = SHARED;
+const state = {
+  scenario:'current',
+  years:5,
+  miles:13500,
+  cityPct:55,
+  state:'California',
+  evModel:'Tesla Model Y',
+  gasModel:'Toyota RAV4'
+};
+
+// --- initial setup ---
+document.addEventListener('DOMContentLoaded', () => {
+  // Populate selects
+  S.populateStateSelect(document.getElementById('stateSel'), state.state);
+  S.populateSelect(document.getElementById('evSel'), S.electricVehicles, state.evModel, false);
+  S.populateSelect(document.getElementById('gasSel'), S.gasVehicles, state.gasModel, true);
+
+  // Load persisted
+  const saved = S.load();
+  if (saved.state) { state.state = saved.state; document.getElementById('stateSel').value = saved.state; }
+  if (saved.evModel) { state.evModel = saved.evModel; document.getElementById('evSel').value = saved.evModel; }
+  if (saved.gasModel) { state.gasModel = saved.gasModel; document.getElementById('gasSel').value = saved.gasModel; }
+  if (saved.miles) { state.miles = saved.miles; document.getElementById('milesSel').value = saved.miles; }
+  if (saved.cityPct != null) { state.cityPct = saved.cityPct; document.getElementById('chSel').value = saved.cityPct; }
+  if (saved.years) { state.years = saved.years; document.getElementById('yrSel').value = saved.years; }
+  if (saved.scenario) { state.scenario = saved.scenario;
+    document.querySelectorAll('.sc-btn').forEach(b => b.classList.toggle('active', b.dataset.scenario===saved.scenario)); }
+
+  updateLabels(); initChart(); recalc(); renderBrandMatrix(); renderSegmentMatrix(); renderTrips(); drawEGalMap();
+
+  // Listeners
+  document.getElementById('stateSel').addEventListener('change', e => { state.state = e.target.value; persist(); recalc(); renderBrandMatrix(); renderSegmentMatrix(); refreshEGalColors(); });
+  document.getElementById('evSel').addEventListener('change', e => { state.evModel = e.target.value; persist(); recalc(); renderTrips(); });
+  document.getElementById('gasSel').addEventListener('change', e => { state.gasModel = e.target.value; persist(); recalc(); });
+  document.getElementById('milesSel').addEventListener('input', e => { state.miles = parseInt(e.target.value); updateLabels(); persist(); recalc(); renderBrandMatrix(); renderSegmentMatrix(); });
+  document.getElementById('chSel').addEventListener('input', e => { state.cityPct = parseInt(e.target.value); updateLabels(); persist(); recalc(); renderBrandMatrix(); renderSegmentMatrix(); });
+  document.getElementById('yrSel').addEventListener('change', e => { state.years = parseInt(e.target.value); persist(); recalc(); });
+  document.querySelectorAll('.sc-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.sc-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      state.scenario = btn.dataset.scenario; persist(); recalc(); renderBrandMatrix(); renderSegmentMatrix(); refreshEGalColors();
+    });
+  });
+  document.querySelectorAll('.yr-tab').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.yr-tab').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      renderBrandMatrix(); renderSegmentMatrix();
+    });
+  });
+
+  // Close popover
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('#egallon-map') && !e.target.closest('#egal-popover')) {
+      document.getElementById('egal-popover').style.display = 'none';
+    }
+  });
+});
+
+function persist(){ S.save({state:state.state, evModel:state.evModel, gasModel:state.gasModel, miles:state.miles, cityPct:state.cityPct, years:state.years, scenario:state.scenario}); }
+
+function updateLabels(){
+  document.getElementById('milesVal').textContent = (state.miles/1000) + 'K';
+  document.getElementById('chVal').textContent = state.cityPct + '% CITY';
+}
+
+// --- Calculator math ---
+let chart;
+function initChart(){
+  const ctx = document.getElementById('costChart').getContext('2d');
+  chart = new Chart(ctx, {
+    type:'line',
+    data:{labels:[],datasets:[]},
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{
+        legend:{labels:{color:'#ffe900',font:{family:'JetBrains Mono',weight:'700',size:11}}},
+        tooltip:{callbacks:{label:(c)=> c.dataset.label+': $'+Math.round(c.parsed.y).toLocaleString()}}
+      },
+      scales:{
+        x:{ticks:{color:'#ffe900',font:{family:'JetBrains Mono',size:10}},grid:{color:'#333'}},
+        y:{ticks:{color:'#ffe900',font:{family:'JetBrains Mono',size:10},callback:v=>'$'+v.toLocaleString()},grid:{color:'#333'}}
+      }
+    }
+  });
+}
+
+function recalc(){
+  const c = S.costPer100(state.evModel, state.gasModel, state.state, state.scenario, state.cityPct);
+  if (!c) return;
+  const evAnn = c.evAnnual(state.miles);
+  const gasAnn = c.gasAnnual(state.miles);
+  const annualSave = gasAnn - evAnn;
+
+  const ev = S.findEV(state.evModel), gas = S.findGas(state.gasModel);
+  const maintSeg = ev.segment === 'Pickup' ? 'Pickup' : ev.segment === 'Luxury' ? 'Luxury' : (ev.segment === 'Sedan' ? 'Sedan' : 'Small SUV');
+  const m = S.maintCost(maintSeg, state.years);
+
+  // Big numbers
+  document.getElementById('num-gas100').textContent = S.fmt$2(c.gasCost);
+  document.getElementById('num-ev100').textContent  = S.fmt$2(c.evCost);
+  document.getElementById('num-annual').textContent = S.fmt$(annualSave);
+  document.getElementById('num-multi-k').textContent = state.years + '-YR TOTAL SAVED';
+  document.getElementById('num-multi').textContent   = S.fmt$(annualSave * state.years + m.delta);
+
+  document.getElementById('num-gas-note').textContent = state.scenario==='peak2022' ? '2022 PEAK PRICES' : 'AT CURRENT PRICES';
+  document.getElementById('num-ev-note').textContent  = 'HOME CHARGE · ' + state.cityPct + '% CITY';
+  document.getElementById('num-annual-note').textContent = annualSave >= 0 ? 'EV WINS' : 'GAS WINS';
+
+  // Breakdown
+  document.getElementById('bd-state').textContent = S.stateAbbr[state.state] || state.state;
+  document.getElementById('bd-ev').textContent    = state.evModel;
+  document.getElementById('bd-gas').textContent   = state.gasModel;
+  document.getElementById('bd-elec').textContent  = (S.getElecPrice(state.state)||0).toFixed(1);
+  document.getElementById('bd-gasp').textContent  = (S.getGasPrice(state.state, state.scenario)||0).toFixed(2);
+  document.getElementById('bd-evEff').textContent = ev.kwh100;
+  document.getElementById('bd-gasEff').textContent= gas.gal100;
+  document.getElementById('bd-fs').textContent    = S.fmt$(annualSave);
+  document.getElementById('bd-ms').textContent    = S.fmt$(m.delta / state.years);
+
+  // Maintenance section
+  document.getElementById('maint-ice').textContent   = S.fmt$(m.ice);
+  document.getElementById('maint-ev').textContent    = S.fmt$(m.ev);
+  document.getElementById('maint-delta').textContent = '−' + S.fmt$(m.delta);
+
+  // Chart: cumulative cost over hold period
+  const years = Array.from({length: state.years + 1}, (_, i) => 'Y'+i);
+  const gasCum = years.map((_, i) => Math.round(gasAnn * i));
+  const evCum  = years.map((_, i) => Math.round((evAnn + m.ev/state.years) * i));
+  const gasWithMaint = years.map((_, i) => Math.round((gasAnn + m.ice/state.years) * i));
+  chart.data.labels = years;
+  chart.data.datasets = [
+    {label:'GAS FUEL+MAINT', data:gasWithMaint, borderColor:'#ff2d1e', backgroundColor:'rgba(255,45,30,0.1)', borderWidth:3, tension:0, pointRadius:0, fill:true},
+    {label:'EV FUEL+MAINT',  data:evCum,        borderColor:'#00a86b', backgroundColor:'rgba(0,168,107,0.1)', borderWidth:3, tension:0, pointRadius:0, fill:true}
+  ];
+  chart.update();
+}
+
+// --- E-Gallon map ---
+function eGalColor(v){
+  if (v == null) return '#ddd';
+  if (v < 1.20) return '#00a86b';
+  if (v < 1.60) return '#66bb6a';
+  if (v < 2.00) return '#ffe900';
+  if (v < 2.60) return '#f0a020';
+  return '#ff2d1e';
+}
+function drawEGalMap(){
+  S.drawMap('egallon-map', {
+    height:520, strokeColor:'#0a0a0a', strokeWidth:2,
+    colorFn: n => eGalColor(S.eGallon(n)),
+    labelFn: n => { const v = S.eGallon(n); return v ? '$' + v.toFixed(2) : ''; },
+    labelColor: n => { const v = S.eGallon(n); return v && v < 1.60 ? '#0a0a0a' : '#0a0a0a'; },
+    labelSize: '12px', labelFont: 'Archivo Black',
+    onHover:(name, ev, node, over) => {
+      d3.select(node).attr('stroke-width', over ? 4 : 2).attr('stroke', over ? '#ff2d1e' : '#0a0a0a');
+    },
+    onClick:(name, ev) => {
+      const v = S.eGallon(name); const g = S.getGasPrice(name, state.scenario);
+      if (v == null || g == null) return;
+      const pct = Math.round((1 - v/g) * 100);
+      const pop = document.getElementById('egal-popover');
+      pop.style.display = 'block';
+      pop.style.left = Math.min(ev.clientX + 15, window.innerWidth - 300) + 'px';
+      pop.style.top  = Math.min(ev.clientY - 40, window.innerHeight - 220) + 'px';
+      document.getElementById('pop-state').textContent = name.toUpperCase();
+      document.getElementById('pop-egal').textContent = '$' + v.toFixed(2);
+      document.getElementById('pop-gas').textContent  = '$' + g.toFixed(2);
+      document.getElementById('pop-save').textContent = '$' + (g-v).toFixed(2);
+      document.getElementById('pop-pct').textContent  = pct + '%';
+      // Sync state select
+      state.state = name; document.getElementById('stateSel').value = name; persist(); recalc(); renderBrandMatrix(); renderSegmentMatrix();
+    }
+  });
+}
+function refreshEGalColors(){
+  d3.select('#egallon-map svg').selectAll('path')
+    .attr('fill', d => eGalColor(S.eGallon(d.properties.name)));
+}
+
+// --- Brand matrix ---
+function activeYears(){
+  const b = document.querySelector('.yr-tab.active');
+  return b ? parseInt(b.dataset.years) : 5;
+}
+function renderBrandMatrix(){
+  const grid = document.getElementById('brandMatrix');
+  const brands = ['Toyota','Honda','Ford','Chevy','HMG','Nissan','VW','BMW','Mercedes'];
+  const tiers = ['Under $35k','$35–50k','$50–75k','$75k+'];
+  grid.style.gridTemplateColumns = '140px repeat(' + tiers.length + ', 1fr)';
+  grid.innerHTML = '';
+  const yrs = activeYears();
+
+  const corner = document.createElement('div');
+  corner.className = 'mx-corner'; corner.textContent = 'BRAND ↓ / TIER →';
+  grid.appendChild(corner);
+  tiers.forEach(t => { const h = document.createElement('div'); h.className = 'mx-col-h'; h.textContent = t.toUpperCase(); grid.appendChild(h); });
+  brands.forEach(b => {
+    const rh = document.createElement('div'); rh.className = 'mx-row-h'; rh.textContent = b.toUpperCase(); grid.appendChild(rh);
+    tiers.forEach(t => {
+      const cell = document.createElement('div');
+      const pairs = S.brandPairs.filter(p => p.brand === b && p.tier === t);
+      if (pairs.length === 0) { cell.className = 'mx-cell empty'; grid.appendChild(cell); return; }
+      cell.className = 'mx-cell';
+      cell.innerHTML = pairs.map(p => {
+        const evV = S.findEV(p.ev), gasV = S.findGas(p.gas);
+        if (!evV || !gasV) return '';
+        const c = S.costPer100(p.ev, p.gas, state.state, state.scenario, state.cityPct);
+        if (!c) return '';
+        const sav = (c.gasAnnual(state.miles) - c.evAnnual(state.miles)) * yrs;
+        return `<div class="pair">
+          <div class="gas-name">${p.gas}</div>
+          <div class="ev-name">→ ${p.ev}</div>
+          <div class="save-num ${sav<0?'neg':''}">${sav>=0?'+':''}${S.fmt$(sav)}</div>
+        </div>`;
+      }).join('');
+      grid.appendChild(cell);
+    });
+  });
+}
+
+function renderSegmentMatrix(){
+  const grid = document.getElementById('segmentMatrix');
+  const segs = ['Sedan','Small SUV','Large SUV','Pickup'];
+  const tiers = ['Under $35k','$35–50k','$50–75k','$75k+'];
+  grid.style.gridTemplateColumns = '140px repeat(' + tiers.length + ', 1fr)';
+  grid.innerHTML = '';
+  const yrs = activeYears();
+
+  const corner = document.createElement('div');
+  corner.className = 'mx-corner'; corner.textContent = 'SEGMENT ↓ / TIER →';
+  grid.appendChild(corner);
+  tiers.forEach(t => { const h = document.createElement('div'); h.className = 'mx-col-h'; h.textContent = t.toUpperCase(); grid.appendChild(h); });
+  segs.forEach(seg => {
+    const rh = document.createElement('div'); rh.className = 'mx-row-h'; rh.textContent = seg.toUpperCase(); grid.appendChild(rh);
+    tiers.forEach(t => {
+      const cell = document.createElement('div');
+      const pairs = S.matchedPairs.filter(p => p.segment === seg && p.tier === t);
+      if (pairs.length === 0) { cell.className = 'mx-cell empty'; grid.appendChild(cell); return; }
+      cell.className = 'mx-cell';
+      cell.innerHTML = pairs.map(p => {
+        const c = S.costPer100(p.ev, p.gas, state.state, state.scenario, state.cityPct);
+        if (!c) return '';
+        const sav = (c.gasAnnual(state.miles) - c.evAnnual(state.miles)) * yrs;
+        return `<div class="pair">
+          <div class="gas-name">${p.gas}</div>
+          <div class="ev-name">→ ${p.ev}</div>
+          <div class="save-num ${sav<0?'neg':''}">${sav>=0?'+':''}${S.fmt$(sav)}</div>
+        </div>`;
+      }).join('');
+      grid.appendChild(cell);
+    });
+  });
+}
+
+// --- Trips per charge ---
+function renderTrips(){
+  const ev = S.findEV(state.evModel);
+  if (!ev) return;
+  const range = ev.range * 0.85; // real-world highway
+  const trips = [
+    {a:'LA → LAS VEGAS', d:270},
+    {a:'NYC → BOSTON', d:215},
+    {a:'SF → TAHOE', d:195},
+    {a:'SEATTLE → PORTLAND', d:175},
+    {a:'ATL → NASHVILLE', d:250},
+    {a:'DENVER → ASPEN', d:160},
+    {a:'DALLAS → HOUSTON', d:240},
+    {a:'CHICAGO → DETROIT', d:285},
+    {a:'DC → NYC', d:225},
+    {a:'MIAMI → ORLANDO', d:235},
+    {a:'PHOENIX → TUCSON', d:115},
+    {a:'AUSTIN → SAN ANTONIO', d:80}
+  ];
+  const list = document.getElementById('trips-list');
+  list.innerHTML = trips.map(t => {
+    const stops = Math.max(0, Math.floor((t.d - 50) / range));
+    const cls = stops === 0 ? 'zero' : stops >= 2 ? 'two' : '';
+    return `<div class="trip">
+      <div class="from-to">${t.a}<small>${t.d} MI · ${ev.model.toUpperCase()} · ${Math.round(range)}MI REAL RANGE</small></div>
+      <div class="stops ${cls}">${stops === 0 ? '✓' : stops}</div>
+    </div>`;
+  }).join('');
+}
+</script>
+
+</body>
+</html>

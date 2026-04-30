@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FILL 'ER UP — Service Station Calculator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Alfa+Slab+One&family=DM+Serif+Display:ital@0;1&family=IBM+Plex+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://d3js.org/d3.v7.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/topojson-client@3"></script>
+<script src="../shared.js"></script>
+<style>
+  :root{
+    --cream:#f6ead1;--cream-2:#ead6a8;--sun:#f4b04e;--orange:#e17a3a;
+    --rust:#b24620;--brick:#842814;--espresso:#2b1810;--ink:#1a0d06;
+    --mint:#3d8b6e;--turq:#4aa4a0;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  html,body{background:var(--cream);color:var(--ink);font-family:'IBM Plex Mono',monospace;overflow-x:hidden}
+
+  body::before{
+    content:"";position:fixed;inset:0;pointer-events:none;z-index:500;opacity:0.12;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='n'><feTurbulence baseFrequency='0.85' numOctaves='2' seed='3'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+    mix-blend-mode:multiply;
+  }
+
+  .nav{background:var(--espresso);color:var(--cream);padding:12px 24px;display:flex;justify-content:space-between;align-items:center;font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.2em;text-transform:uppercase;position:sticky;top:0;z-index:60;border-bottom:4px solid var(--sun);gap:14px;flex-wrap:wrap}
+  .nav a{color:var(--cream);text-decoration:none;transition:color .2s}
+  .nav a:hover{color:var(--sun)}
+  .nav .logo{font-family:'Alfa Slab One',serif;font-size:16px;color:var(--sun);text-transform:none;letter-spacing:0}
+  .nav .logo em{font-style:italic;color:var(--cream)}
+  .nav-links{display:flex;gap:18px;flex-wrap:wrap}
+
+  .hero{background:linear-gradient(170deg,var(--sun) 0%,var(--orange) 45%,var(--rust) 100%);padding:56px 24px 80px;position:relative;overflow:hidden;border-bottom:6px solid var(--espresso)}
+  .hero::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent 0,transparent 3px,rgba(43,24,16,0.04) 3px,rgba(43,24,16,0.04) 4px);pointer-events:none}
+  .hero-inner{max-width:1200px;margin:0 auto;position:relative;display:grid;grid-template-columns:1.4fr 1fr;gap:40px;align-items:center}
+
+  .badge{display:inline-block;background:var(--espresso);color:var(--sun);padding:6px 16px;font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.3em;text-transform:uppercase;margin-bottom:24px;border:2px solid var(--sun);box-shadow:4px 4px 0 var(--espresso)}
+  h1.sign{font-family:'Alfa Slab One',serif;font-size:clamp(68px,12vw,168px);line-height:0.85;letter-spacing:-0.02em;color:var(--cream);text-shadow:5px 5px 0 var(--espresso),10px 10px 0 var(--brick);transform:rotate(-2deg);margin-bottom:20px}
+  h1.sign .amp{font-family:'DM Serif Display',serif;font-style:italic;color:var(--sun);text-shadow:5px 5px 0 var(--espresso)}
+  h1.sign .dot{color:var(--brick);text-shadow:5px 5px 0 var(--espresso)}
+  .sub{font-family:'DM Serif Display',serif;font-style:italic;font-size:clamp(22px,3vw,32px);line-height:1.2;color:var(--espresso);max-width:24ch;margin-bottom:28px}
+  .sub em{font-style:normal;background:var(--cream);padding:0 10px}
+
+  /* Pump on hero */
+  .pump{background:var(--espresso);border:6px solid var(--espresso);border-radius:10px;padding:4px;position:relative;transform:rotate(1.5deg);box-shadow:10px 10px 0 rgba(26,13,6,0.3)}
+  .pump-screen{background:var(--cream);padding:18px 22px;border-radius:6px;font-family:'IBM Plex Mono',monospace}
+  .pump-row{display:flex;justify-content:space-between;align-items:baseline;padding:8px 0;border-bottom:1px dashed var(--espresso);gap:12px}
+  .pump-row:last-child{border-bottom:none}
+  .pump-row .l{font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:var(--rust)}
+  .pump-row .v{font-family:'Alfa Slab One',serif;font-size:28px;letter-spacing:-0.02em;color:var(--espresso);font-variant-numeric:tabular-nums}
+  .pump-row .v.red{color:var(--brick)}
+  .pump-row .v.mint{color:var(--mint)}
+  .pump-head{background:var(--sun);padding:10px 22px;border-radius:6px 6px 0 0;color:var(--espresso);font-family:'Alfa Slab One',serif;font-size:16px;display:flex;justify-content:space-between;align-items:center;text-transform:uppercase;letter-spacing:0.04em}
+  .pump-led{width:10px;height:10px;background:var(--mint);border-radius:50%;box-shadow:0 0 8px var(--mint);animation:pulse 1.6s infinite}
+  @keyframes pulse{50%{opacity:.4}}
+
+  .road{height:20px;background:var(--espresso);position:relative;overflow:hidden}
+  .road::after{content:"";position:absolute;top:50%;left:0;right:0;height:4px;background:repeating-linear-gradient(90deg,var(--sun) 0 40px,transparent 40px 80px);animation:drive 1.2s linear infinite;transform:translateY(-50%)}
+  @keyframes drive{to{background-position:-80px 0}}
+
+  /* Calculator controls — "dashboard" */
+  .dash{background:var(--cream-2);padding:48px 24px;border-bottom:6px solid var(--espresso)}
+  .dash-head{text-align:center;margin-bottom:32px}
+  .dash-head .ribbon{display:inline-block;background:var(--brick);color:var(--cream);padding:4px 18px;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.3em;text-transform:uppercase;margin-bottom:12px}
+  .dash-head h2{font-family:'Alfa Slab One',serif;font-size:clamp(34px,5vw,58px);color:var(--espresso);line-height:0.95}
+  .dash-head h2 em{font-family:'DM Serif Display',serif;font-style:italic;color:var(--rust);font-weight:400}
+
+  .control-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px;max-width:1200px;margin:0 auto}
+  .cc{background:var(--cream);border:3px solid var(--espresso);padding:14px 16px;box-shadow:4px 4px 0 var(--espresso);display:flex;flex-direction:column;gap:8px}
+  .cc .lbl{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:0.3em;text-transform:uppercase;color:var(--rust);font-weight:700}
+  .cc select,.cc input[type=range]{background:var(--cream);color:var(--espresso);border:2px solid var(--espresso);padding:6px 8px;font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:500;cursor:pointer;width:100%}
+  .cc input[type=range]{padding:0;height:24px;-webkit-appearance:none;appearance:none;background:transparent}
+  .cc input[type=range]::-webkit-slider-runnable-track{height:4px;background:var(--espresso)}
+  .cc input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:18px;height:18px;background:var(--orange);border:2px solid var(--espresso);border-radius:50%;margin-top:-8px;cursor:pointer}
+  .cc .val{font-family:'Alfa Slab One',serif;font-size:22px;color:var(--brick);letter-spacing:-0.02em;line-height:1}
+
+  .scenario{display:flex;gap:6px;margin-top:24px;max-width:1200px;margin-left:auto;margin-right:auto;justify-content:center}
+  .scenario button{background:var(--cream);color:var(--espresso);border:3px solid var(--espresso);padding:10px 20px;font-family:'Alfa Slab One',serif;font-size:14px;letter-spacing:0.03em;cursor:pointer;text-transform:uppercase;transition:all .15s}
+  .scenario button.active{background:var(--rust);color:var(--cream);transform:translate(-2px,-2px);box-shadow:4px 4px 0 var(--espresso)}
+  .scenario button:not(.active):hover{background:var(--sun)}
+
+  /* Results — three big pumps */
+  .results-triple{padding:48px 24px;background:var(--cream);border-bottom:6px solid var(--espresso)}
+  .triple{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;max-width:1100px;margin:0 auto}
+  .mini-pump{background:var(--espresso);padding:4px;border-radius:8px;transform:rotate(-1deg);box-shadow:6px 6px 0 rgba(26,13,6,0.25);transition:transform .25s}
+  .mini-pump:hover{transform:rotate(0deg) translateY(-4px)}
+  .mini-pump:nth-child(2){transform:rotate(1deg)}
+  .mini-pump:nth-child(2):hover{transform:rotate(0deg) translateY(-4px)}
+  .mini-pump:nth-child(3){transform:rotate(-0.5deg)}
+  .mini-pump .head{background:var(--orange);color:var(--cream);padding:8px 14px;font-family:'Alfa Slab One',serif;font-size:13px;text-transform:uppercase;letter-spacing:0.06em;border-radius:5px 5px 0 0;display:flex;justify-content:space-between;align-items:center}
+  .mini-pump:nth-child(2) .head{background:var(--mint)}
+  .mini-pump:nth-child(3) .head{background:var(--brick)}
+  .mini-pump .scr{background:var(--cream);padding:18px;border-radius:4px;text-align:center;font-family:'IBM Plex Mono',monospace}
+  .mini-pump .n{font-family:'Alfa Slab One',serif;font-size:44px;color:var(--espresso);line-height:1;margin:10px 0;letter-spacing:-0.02em}
+  .mini-pump .n.m{color:var(--mint)}
+  .mini-pump .n.r{color:var(--brick)}
+  .mini-pump .lbl{font-size:10px;letter-spacing:0.25em;text-transform:uppercase;color:var(--rust)}
+  .mini-pump .foot{font-family:'DM Serif Display',serif;font-style:italic;font-size:14px;color:var(--espresso);margin-top:8px}
+
+  /* Chart panel */
+  .chart-panel{padding:48px 24px;background:var(--cream-2);border-bottom:6px solid var(--espresso)}
+  .chart-card{max-width:1100px;margin:0 auto;background:var(--cream);border:3px solid var(--espresso);padding:28px;box-shadow:10px 10px 0 var(--sun);display:grid;grid-template-columns:2fr 1fr;gap:28px}
+  .chart-card h3{font-family:'Alfa Slab One',serif;font-size:26px;color:var(--espresso);margin-bottom:6px;letter-spacing:-0.02em}
+  .chart-card h3 em{font-family:'DM Serif Display',serif;font-style:italic;font-weight:400;color:var(--rust)}
+  .chart-card .sub{font-family:'DM Serif Display',serif;font-style:italic;font-size:15px;color:var(--espresso);margin-bottom:16px;background:transparent;padding:0;max-width:none}
+  .chart-wrap{background:var(--espresso);padding:16px;border-radius:6px;height:280px;position:relative}
+  .receipt{background:var(--cream);font-family:'IBM Plex Mono',monospace;padding:16px;border:2px dashed var(--rust);font-size:12px;line-height:1.6}
+  .receipt h4{font-family:'Alfa Slab One',serif;font-size:16px;color:var(--brick);text-align:center;margin-bottom:10px;letter-spacing:0.02em;text-transform:uppercase;border-bottom:2px solid var(--espresso);padding-bottom:8px}
+  .receipt .rr{display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px dotted var(--rust)}
+  .receipt .rr .k{color:var(--rust)}
+  .receipt .rr .v{color:var(--espresso);font-weight:700}
+  .receipt .rr.total{border-top:2px solid var(--espresso);border-bottom:none;padding-top:10px;margin-top:10px;font-family:'Alfa Slab One',serif;font-size:18px}
+  .receipt .rr.total .v{color:var(--mint)}
+
+  /* E-gallon map */
+  .egal-wrap{padding:56px 24px;background:var(--cream);border-bottom:6px solid var(--espresso)}
+  .egal-head{text-align:center;max-width:800px;margin:0 auto 36px}
+  .egal-head .ribbon{display:inline-block;background:var(--mint);color:var(--cream);padding:4px 18px;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.3em;text-transform:uppercase;margin-bottom:12px}
+  .egal-head h2{font-family:'Alfa Slab One',serif;font-size:clamp(36px,6vw,72px);line-height:0.95;color:var(--espresso);letter-spacing:-0.02em}
+  .egal-head h2 em{font-family:'DM Serif Display',serif;font-style:italic;font-weight:400;color:var(--brick);text-decoration:underline;text-decoration-color:var(--sun);text-decoration-thickness:4px;text-underline-offset:6px}
+  .egal-head p{font-family:'DM Serif Display',serif;font-style:italic;font-size:18px;color:var(--espresso);margin-top:14px}
+
+  .egal-frame{max-width:1200px;margin:0 auto;background:var(--cream);border:4px solid var(--espresso);padding:18px;box-shadow:14px 14px 0 var(--orange);position:relative}
+  #egallon-map{min-height:540px;background:var(--cream)}
+  .egal-popover{position:fixed;background:var(--cream);color:var(--espresso);padding:16px 18px;min-width:260px;border:3px solid var(--espresso);font-family:'IBM Plex Mono',monospace;z-index:200;display:none;box-shadow:6px 6px 0 var(--orange)}
+  .egal-popover .st{font-family:'Alfa Slab One',serif;font-size:22px;color:var(--brick);margin-bottom:10px;letter-spacing:-0.02em;text-transform:uppercase;border-bottom:2px dashed var(--rust);padding-bottom:6px}
+  .egal-popover .row{display:flex;justify-content:space-between;padding:5px 0;font-size:12px;letter-spacing:0.05em}
+  .egal-popover .row .k{color:var(--rust);text-transform:uppercase;letter-spacing:0.15em;font-size:10px}
+  .egal-popover .row .v{font-family:'Alfa Slab One',serif;font-size:17px;letter-spacing:-0.02em;color:var(--espresso)}
+  .egal-popover .row .v.mint{color:var(--mint)}
+  .egal-legend{display:flex;gap:16px;font-family:'IBM Plex Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:0.15em;color:var(--espresso);align-items:center;flex-wrap:wrap;margin-top:16px;justify-content:center}
+  .egal-legend .chip{width:22px;height:16px;border:2px solid var(--espresso)}
+
+  /* Postcards (brand matrix) */
+  .postcards{padding:56px 24px;background:var(--orange);border-bottom:6px solid var(--espresso);position:relative;overflow:hidden}
+  .postcards::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(45deg,transparent 0,transparent 20px,rgba(43,24,16,0.04) 20px,rgba(43,24,16,0.04) 21px)}
+  .postcards-inner{max-width:1280px;margin:0 auto;position:relative}
+  .postcards h2{font-family:'Alfa Slab One',serif;font-size:clamp(36px,5.5vw,66px);color:var(--cream);text-shadow:4px 4px 0 var(--espresso);margin-bottom:8px;line-height:0.95}
+  .postcards h2 em{font-family:'DM Serif Display',serif;font-style:italic;color:var(--sun);text-shadow:4px 4px 0 var(--espresso)}
+  .postcards .deck{font-family:'DM Serif Display',serif;font-style:italic;color:var(--cream);font-size:18px;margin-bottom:24px;max-width:56ch}
+  .hz-pick{display:flex;gap:10px;margin-bottom:28px;align-items:center;flex-wrap:wrap}
+  .hz-pick .hlbl{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--cream);letter-spacing:0.25em;text-transform:uppercase}
+  .hz-pick button{background:var(--cream);color:var(--espresso);border:3px solid var(--espresso);padding:6px 14px;font-family:'Alfa Slab One',serif;font-size:13px;letter-spacing:0.03em;cursor:pointer;text-transform:uppercase}
+  .hz-pick button.active{background:var(--brick);color:var(--cream);box-shadow:3px 3px 0 var(--cream)}
+
+  .cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:20px}
+  .pcard{background:var(--cream);padding:4px;border:3px solid var(--espresso);transition:transform .2s}
+  .pcard:nth-child(odd){transform:rotate(-1.2deg)}
+  .pcard:nth-child(even){transform:rotate(1deg)}
+  .pcard:hover{transform:rotate(0deg) translateY(-6px);box-shadow:10px 10px 0 var(--espresso);z-index:5;position:relative}
+  .pcard .inner{border:2px dashed var(--rust);padding:18px}
+  .pcard .stamp{float:right;width:52px;height:60px;border:2px solid var(--rust);background:var(--cream);padding:4px;font-family:'Alfa Slab One',serif;color:var(--brick);font-size:8px;text-align:center;line-height:1.1;text-transform:uppercase;margin-left:10px;transform:rotate(6deg)}
+  .pcard .stamp strong{font-size:14px;display:block;margin:4px 0 2px;color:var(--mint);line-height:1}
+  .pcard .stamp.neg strong{color:var(--brick)}
+  .pcard .from{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:var(--rust);margin-bottom:6px}
+  .pcard .ice{font-family:'Alfa Slab One',serif;font-size:22px;color:var(--espresso);line-height:1;letter-spacing:0.02em}
+  .pcard .arrow{font-family:'DM Serif Display',serif;font-style:italic;font-size:26px;color:var(--rust);margin:8px 0 2px}
+  .pcard .ev{font-family:'Alfa Slab One',serif;font-size:18px;color:var(--mint);line-height:1}
+  .pcard .footer{clear:both;margin-top:14px;padding-top:10px;border-top:2px dashed var(--rust);display:flex;justify-content:space-between;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--espresso)}
+
+  /* Segment matrix — "menu card" */
+  .menu{padding:56px 24px;background:var(--cream-2);border-bottom:6px solid var(--espresso)}
+  .menu-head{text-align:center;margin-bottom:36px}
+  .menu-head .ribbon{display:inline-block;background:var(--sun);color:var(--espresso);padding:4px 18px;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.3em;text-transform:uppercase;margin-bottom:12px}
+  .menu-head h2{font-family:'Alfa Slab One',serif;font-size:clamp(36px,5.5vw,64px);color:var(--espresso);line-height:0.95}
+  .menu-head h2 em{font-family:'DM Serif Display',serif;font-style:italic;color:var(--rust);font-weight:400}
+  .menu-card{background:var(--cream);border:3px solid var(--espresso);padding:30px;box-shadow:12px 12px 0 var(--mint);max-width:1200px;margin:0 auto}
+  .seg-grid{display:grid;grid-template-columns:140px repeat(4, 1fr);gap:1px;background:var(--espresso);border:2px solid var(--espresso)}
+  .seg-corner{background:var(--cream);padding:12px;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:var(--rust);display:flex;align-items:flex-end;font-weight:700}
+  .seg-col-h{background:var(--sun);padding:12px 8px;text-align:center;font-family:'Alfa Slab One',serif;font-size:13px;color:var(--espresso);text-transform:uppercase;letter-spacing:0.04em}
+  .seg-row-h{background:var(--cream-2);padding:14px 12px;font-family:'Alfa Slab One',serif;font-size:15px;color:var(--espresso);text-transform:uppercase;display:flex;align-items:center}
+  .seg-cell{background:var(--cream);padding:10px;min-height:96px;font-family:'IBM Plex Mono',monospace;font-size:11px}
+  .seg-cell.empty{background:#f5ead1}
+  .seg-cell.empty::before{content:"—";font-family:'Alfa Slab One',serif;font-size:20px;color:#c8b687;display:block;text-align:center;margin-top:24px}
+  .seg-cell .pair{padding:7px;margin-bottom:5px;border-left:3px solid var(--mint);cursor:pointer;transition:background .15s}
+  .seg-cell .pair:hover{background:var(--sun)}
+  .seg-cell .pair:last-child{margin-bottom:0}
+  .seg-cell .gas-name{font-family:'Alfa Slab One',serif;font-size:12px;color:var(--espresso);line-height:1.1;letter-spacing:0.02em;text-transform:uppercase}
+  .seg-cell .ev-name{color:var(--mint);font-size:11px;margin-top:3px;font-style:italic;font-family:'DM Serif Display',serif}
+  .seg-cell .save{font-family:'Alfa Slab One',serif;font-size:15px;color:var(--brick);margin-top:5px;letter-spacing:-0.02em}
+
+  /* Maintenance */
+  .maint-section{padding:56px 24px;background:var(--mint);color:var(--cream);border-bottom:6px solid var(--espresso)}
+  .maint-head{text-align:center;margin-bottom:36px}
+  .maint-head h2{font-family:'Alfa Slab One',serif;font-size:clamp(36px,5.5vw,64px);color:var(--cream);text-shadow:4px 4px 0 var(--espresso);line-height:0.95}
+  .maint-head h2 em{font-family:'DM Serif Display',serif;font-style:italic;color:var(--sun);text-shadow:4px 4px 0 var(--espresso)}
+  .maint-head p{font-family:'DM Serif Display',serif;font-style:italic;color:var(--cream);font-size:18px;margin-top:14px;max-width:56ch;margin-left:auto;margin-right:auto}
+  .maint-boards{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;max-width:1100px;margin:0 auto 32px}
+  .mboard{background:var(--cream);color:var(--espresso);border:3px solid var(--espresso);padding:20px;text-align:center;box-shadow:6px 6px 0 var(--sun);transform:rotate(-0.5deg)}
+  .mboard:nth-child(2){transform:rotate(0.5deg);box-shadow:6px 6px 0 var(--orange)}
+  .mboard:nth-child(3){transform:rotate(-1deg);box-shadow:6px 6px 0 var(--brick)}
+  .mboard .k{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.3em;text-transform:uppercase;color:var(--rust);margin-bottom:12px}
+  .mboard .v{font-family:'Alfa Slab One',serif;font-size:56px;line-height:1;letter-spacing:-0.03em}
+  .mboard .v.mint{color:var(--mint)}
+  .mboard .v.brick{color:var(--brick)}
+  .mboard .d{font-family:'DM Serif Display',serif;font-style:italic;font-size:14px;margin-top:10px}
+  .maint-table-retro{max-width:1100px;margin:0 auto;background:var(--cream);color:var(--espresso);padding:20px;border:3px solid var(--espresso)}
+  .maint-table-retro table{width:100%;border-collapse:collapse;font-family:'IBM Plex Mono',monospace;font-size:12px}
+  .maint-table-retro th{text-align:left;padding:8px;border-bottom:2px solid var(--espresso);font-size:10px;text-transform:uppercase;letter-spacing:0.2em;color:var(--rust)}
+  .maint-table-retro th.r{text-align:right}
+  .maint-table-retro td{padding:7px 8px;border-bottom:1px dotted var(--rust);font-variant-numeric:tabular-nums}
+  .maint-table-retro td.r{text-align:right}
+  .maint-table-retro td.total{font-family:'Alfa Slab One',serif;font-size:15px;color:var(--brick);border-top:2px solid var(--espresso)}
+
+  /* Charging */
+  .chrg-section{padding:56px 24px;background:var(--cream);border-bottom:6px solid var(--espresso)}
+  .chrg-head{text-align:center;margin-bottom:36px}
+  .chrg-head h2{font-family:'Alfa Slab One',serif;font-size:clamp(34px,5.5vw,60px);color:var(--espresso);line-height:0.95}
+  .chrg-head h2 em{font-family:'DM Serif Display',serif;font-style:italic;color:var(--rust);font-weight:400}
+  .chrg-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:18px;max-width:1200px;margin:0 auto}
+  .chrg-card{background:var(--cream-2);padding:20px;border:3px solid var(--espresso);box-shadow:5px 5px 0 var(--espresso);text-align:center}
+  .chrg-card .ico{font-size:30px;margin-bottom:6px}
+  .chrg-card .k{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.25em;text-transform:uppercase;color:var(--rust);margin-bottom:8px}
+  .chrg-card .v{font-family:'Alfa Slab One',serif;font-size:30px;color:var(--espresso);line-height:1;letter-spacing:-0.02em}
+  .chrg-card .d{font-family:'DM Serif Display',serif;font-style:italic;font-size:13px;color:var(--espresso);margin-top:8px}
+
+  /* Trips */
+  .trips-section{padding:56px 24px;background:var(--sun);border-bottom:6px solid var(--espresso);position:relative;overflow:hidden}
+  .trips-section::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent 0,transparent 4px,rgba(43,24,16,0.04) 4px,rgba(43,24,16,0.04) 5px);pointer-events:none}
+  .trips-head{text-align:center;margin-bottom:36px;position:relative}
+  .trips-head h2{font-family:'Alfa Slab One',serif;font-size:clamp(34px,5.5vw,60px);color:var(--espresso);line-height:0.95}
+  .trips-head h2 em{font-family:'DM Serif Display',serif;font-style:italic;color:var(--brick);font-weight:400}
+  .trips-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;max-width:1200px;margin:0 auto;position:relative}
+  .trip-card{background:var(--cream);padding:16px 18px;border:3px solid var(--espresso);display:flex;justify-content:space-between;align-items:center;box-shadow:4px 4px 0 var(--espresso);gap:12px}
+  .trip-card .ft{font-family:'Alfa Slab One',serif;font-size:14px;color:var(--espresso);letter-spacing:0.02em;text-transform:uppercase}
+  .trip-card .ft small{display:block;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--rust);margin-top:4px;letter-spacing:0.15em;font-weight:500}
+  .trip-card .stops{background:var(--espresso);color:var(--cream);padding:8px 14px;font-family:'Alfa Slab One',serif;font-size:18px;min-width:50px;text-align:center;letter-spacing:-0.02em}
+  .trip-card .stops.zero{background:var(--mint)}
+  .trip-card .stops.two{background:var(--brick)}
+
+  /* CTA */
+  .cta{padding:80px 24px;background:var(--espresso);color:var(--cream);text-align:center;border-top:6px solid var(--sun)}
+  .cta h2{font-family:'Alfa Slab One',serif;font-size:clamp(44px,7vw,96px);color:var(--sun);text-shadow:4px 4px 0 var(--brick);line-height:0.9;margin-bottom:18px}
+  .cta h2 em{font-family:'DM Serif Display',serif;font-style:italic;color:var(--cream);text-shadow:4px 4px 0 var(--brick)}
+  .cta p{font-family:'DM Serif Display',serif;font-style:italic;font-size:20px;max-width:42ch;margin:0 auto 32px;color:var(--cream-2)}
+  .cta-btn{display:inline-block;background:var(--sun);color:var(--espresso);padding:22px 48px;font-family:'Alfa Slab One',serif;font-size:20px;letter-spacing:0.04em;text-decoration:none;border:3px solid var(--cream);box-shadow:6px 6px 0 var(--brick);transition:all .2s;text-transform:uppercase}
+  .cta-btn:hover{transform:translate(-3px,-3px);box-shadow:9px 9px 0 var(--brick)}
+
+  footer{background:var(--cream-2);padding:18px 24px;display:flex;justify-content:space-between;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:var(--espresso);flex-wrap:wrap;gap:10px}
+
+  @media (max-width:900px){
+    .hero-inner,.chart-card{grid-template-columns:1fr}
+    .triple,.maint-boards{grid-template-columns:1fr}
+    .seg-grid{grid-template-columns:110px repeat(4,1fr);font-size:10px}
+  }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <a href="../">← GALLERY</a>
+  <div class="logo">FILL 'ER <em>UP</em></div>
+  <div class="nav-links">
+    <a href="#calc">PUMP</a>
+    <a href="#egal">MAP</a>
+    <a href="#swap">SWAP</a>
+    <a href="#maint">MAINT</a>
+    <a href="#chrg">PLUG</a>
+  </div>
+</nav>
+
+<section class="hero">
+  <div class="hero-inner">
+    <div>
+      <div class="badge">⛽ OPEN 24/7 · SINCE 2026</div>
+      <h1 class="sign">Fill<br>'Er <span class="amp">Up</span><span class="dot">.</span></h1>
+      <p class="sub">The <em>pump</em> is 1972. The <em>math</em> is 2026. The outlet wins either way.</p>
+    </div>
+    <div class="pump">
+      <div class="pump-head">TODAY'S QUOTE <span class="pump-led"></span></div>
+      <div class="pump-screen">
+        <div class="pump-row"><span class="l">Regular · per gal</span><span class="v red" id="hero-gas">$5.93</span></div>
+        <div class="pump-row"><span class="l">E-Gallon · local</span><span class="v mint" id="hero-egal">$2.69</span></div>
+        <div class="pump-row"><span class="l">Annual fuel saved</span><span class="v" id="hero-annual">$1,240</span></div>
+        <div class="pump-row"><span class="l">5-yr maint saved</span><span class="v mint">$1,840</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="road"></div>
+
+<!-- ============ CONTROLS ============ -->
+<section class="dash" id="calc">
+  <div class="dash-head">
+    <div class="ribbon">⛽ PUMP PANEL</div>
+    <h2>Set your <em>ride</em> &amp; your <em>route</em>.</h2>
+  </div>
+  <div class="control-cards">
+    <div class="cc"><label class="lbl">📍 State</label><select id="stateSel"></select></div>
+    <div class="cc"><label class="lbl">⚡ Electric Vehicle</label><select id="evSel"></select></div>
+    <div class="cc"><label class="lbl">⛽ Gas Vehicle</label><select id="gasSel"></select></div>
+    <div class="cc"><label class="lbl">🛣️ Annual Miles</label><input type="range" id="milesSel" min="5000" max="30000" step="500" value="13500"><div class="val" id="milesVal">13.5k</div></div>
+    <div class="cc"><label class="lbl">🏙️ City / Highway</label><input type="range" id="chSel" min="0" max="100" step="5" value="55"><div class="val" id="chVal">55% city</div></div>
+    <div class="cc"><label class="lbl">📅 Hold Period</label><select id="yrSel"><option value="1">1 yr</option><option value="5" selected>5 yr</option><option value="10">10 yr</option></select></div>
+  </div>
+  <div class="scenario">
+    <button class="sc-btn active" data-scenario="current">⛽ Current Prices · Apr '26</button>
+    <button class="sc-btn" data-scenario="peak2022">🔥 If '22 Crisis Returns</button>
+  </div>
+</section>
+
+<!-- ============ RESULTS ============ -->
+<section class="results-triple">
+  <div class="triple">
+    <div class="mini-pump">
+      <div class="head">⛽ GAS · 100 MI <span style="font-size:10px" id="p1-ctx">SELECTED STATE</span></div>
+      <div class="scr">
+        <div class="lbl">You pay at the pump</div>
+        <div class="n r" id="p1-val">$11.42</div>
+        <div class="foot" id="p1-note">toyota rav4 · nat'l avg</div>
+      </div>
+    </div>
+    <div class="mini-pump">
+      <div class="head">⚡ EV · 100 MI <span style="font-size:10px">HOME OUTLET</span></div>
+      <div class="scr">
+        <div class="lbl">You pay the utility</div>
+        <div class="n m" id="p2-val">$3.88</div>
+        <div class="foot" id="p2-note">model y · off-peak</div>
+      </div>
+    </div>
+    <div class="mini-pump">
+      <div class="head">💰 KEEP <span style="font-size:10px" id="p3-ctx">5 YEARS</span></div>
+      <div class="scr">
+        <div class="lbl">Cash in your pocket</div>
+        <div class="n" id="p3-val">$7,740</div>
+        <div class="foot">fuel + maint combined</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ CHART ============ -->
+<section class="chart-panel">
+  <div class="chart-card">
+    <div>
+      <h3>Cumulative <em>pocket cost</em>.</h3>
+      <p class="sub">Red is the pump. Green is the outlet. The gap is yours to keep.</p>
+      <div class="chart-wrap"><canvas id="costChart"></canvas></div>
+    </div>
+    <div class="receipt">
+      <h4>★ Receipt ★</h4>
+      <div class="rr"><span class="k">State</span><span class="v" id="r-state">CA</span></div>
+      <div class="rr"><span class="k">EV</span><span class="v" id="r-ev">Model Y</span></div>
+      <div class="rr"><span class="k">Gas</span><span class="v" id="r-gas">RAV4</span></div>
+      <div class="rr"><span class="k">Elec (¢/kWh)</span><span class="v" id="r-elec">31.9</span></div>
+      <div class="rr"><span class="k">Gas ($/gal)</span><span class="v" id="r-gasp">5.93</span></div>
+      <div class="rr"><span class="k">EV kWh/100</span><span class="v" id="r-evEff">28</span></div>
+      <div class="rr"><span class="k">Gas gal/100</span><span class="v" id="r-gasEff">3.3</span></div>
+      <div class="rr"><span class="k">Annual fuel save</span><span class="v" id="r-fs">$1,240</span></div>
+      <div class="rr"><span class="k">Annual maint save</span><span class="v" id="r-ms">$368</span></div>
+      <div class="rr total"><span class="k">Grand total</span><span class="v" id="r-total">$7,740</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ E-GALLON MAP ============ -->
+<section class="egal-wrap" id="egal">
+  <div class="egal-head">
+    <div class="ribbon">⚡ THE E-GALLON SPECIAL</div>
+    <h2>Priced at the <em>outlet</em>, state by state.</h2>
+    <p>Pick your corner of the country. We pour the number.</p>
+  </div>
+  <div class="egal-frame">
+    <div id="egallon-map"></div>
+  </div>
+  <div id="egal-popover" class="egal-popover">
+    <div class="st" id="pop-state">STATE</div>
+    <div class="row"><span class="k">E-Gallon</span><span class="v mint" id="pop-egal">$0.00</span></div>
+    <div class="row"><span class="k">Regular</span><span class="v" id="pop-gas">$0.00</span></div>
+    <div class="row"><span class="k">Per gal saved</span><span class="v" id="pop-save">$0.00</span></div>
+    <div class="row"><span class="k">% cheaper</span><span class="v" id="pop-pct">0%</span></div>
+  </div>
+  <div class="egal-legend">
+    <span class="chip" style="background:#3d8b6e"></span><span>&lt; $1.20 Cheap</span>
+    <span class="chip" style="background:#f4b04e"></span><span>$1.20–2.00 Average</span>
+    <span class="chip" style="background:#b24620"></span><span>&gt; $2.00 Pricey</span>
+  </div>
+</section>
+
+<!-- ============ BRAND POSTCARDS ============ -->
+<section class="postcards" id="swap">
+  <div class="postcards-inner">
+    <h2>Postcards from the <em>Trade-In</em> Lane.</h2>
+    <p class="deck">You already know what you drive. We wrote a little card for each one, with the closest EV on the other side.</p>
+    <div class="hz-pick">
+      <span class="hlbl">Horizon →</span>
+      <button class="yr-tab" data-years="1">1 year</button>
+      <button class="yr-tab active" data-years="5">5 years</button>
+      <button class="yr-tab" data-years="10">10 years</button>
+    </div>
+    <div class="cards-grid" id="cards-grid"></div>
+  </div>
+</section>
+
+<!-- ============ SEGMENT MATRIX ============ -->
+<section class="menu">
+  <div class="menu-head">
+    <div class="ribbon">📜 MATCHED PAIRS · BY SEGMENT</div>
+    <h2>Size × <em>price tier</em>.</h2>
+  </div>
+  <div class="menu-card">
+    <div class="seg-grid" id="segMatrix"></div>
+  </div>
+</section>
+
+<!-- ============ MAINTENANCE ============ -->
+<section class="maint-section" id="maint">
+  <div class="maint-head">
+    <h2>Fewer <em>parts</em>, fewer bills.</h2>
+    <p>An engine has two thousand moving parts. A motor has one. The service book shows it.</p>
+  </div>
+  <div class="maint-boards">
+    <div class="mboard"><div class="k">Gas · 5 Yr</div><div class="v brick" id="m-ice">$3,410</div><div class="d">oil, plugs, belts, filters, fluids</div></div>
+    <div class="mboard"><div class="k">Electric · 5 Yr</div><div class="v mint" id="m-ev">$1,570</div><div class="d">tires, brake fluid, cabin filter</div></div>
+    <div class="mboard"><div class="k">You Pocket</div><div class="v mint" id="m-delta">$1,840</div><div class="d">the quiet dividend of simplicity</div></div>
+  </div>
+  <div class="maint-table-retro">
+    <table>
+      <thead><tr><th>Item</th><th>Interval</th><th class="r">Gas ($)</th><th class="r">EV ($)</th><th class="r">Δ</th></tr></thead>
+      <tbody>
+        <tr><td>Oil &amp; filter</td><td>7.5k mi</td><td class="r">810</td><td class="r">0</td><td class="r">−810</td></tr>
+        <tr><td>Air filter</td><td>30k mi</td><td class="r">140</td><td class="r">0</td><td class="r">−140</td></tr>
+        <tr><td>Spark plugs</td><td>60k mi</td><td class="r">320</td><td class="r">0</td><td class="r">−320</td></tr>
+        <tr><td>Transmission</td><td>60k mi</td><td class="r">240</td><td class="r">0</td><td class="r">−240</td></tr>
+        <tr><td>Coolant flush</td><td>50k mi</td><td class="r">180</td><td class="r">80</td><td class="r">−100</td></tr>
+        <tr><td>Brake pads</td><td>35–90k mi</td><td class="r">720</td><td class="r">360</td><td class="r">−360</td></tr>
+        <tr><td>Brake fluid</td><td>36k mi</td><td class="r">280</td><td class="r">280</td><td class="r">0</td></tr>
+        <tr><td>Tires</td><td>50k mi</td><td class="r">720</td><td class="r">850</td><td class="r">+130</td></tr>
+        <tr><td class="total">Total · 5 yr</td><td></td><td class="r total">3,410</td><td class="r total">1,570</td><td class="r total">−1,840</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ============ CHARGING ============ -->
+<section class="chrg-section" id="chrg">
+  <div class="chrg-head">
+    <h2>The <em>plug</em> in your garage.</h2>
+  </div>
+  <div class="chrg-grid">
+    <div class="chrg-card"><div class="ico">⚡</div><div class="k">L2 Home · 240V</div><div class="v">8 hr</div><div class="d">0 → 100 % overnight</div></div>
+    <div class="chrg-card"><div class="ico">🔌</div><div class="k">L1 Standard Plug</div><div class="v">40 hr</div><div class="d">adds 40 mi / 10 hr</div></div>
+    <div class="chrg-card"><div class="ico">⚡⚡</div><div class="k">DC Fast · Road</div><div class="v">30 min</div><div class="d">10 → 80 % on road trips</div></div>
+    <div class="chrg-card"><div class="ico">🏠</div><div class="k">% Home Charge</div><div class="v">80 %</div><div class="d">typical US EV owner</div></div>
+    <div class="chrg-card"><div class="ico">🛣️</div><div class="k">US DC-Fast Stns</div><div class="v">12k+</div><div class="d">NEVI program growing</div></div>
+    <div class="chrg-card"><div class="ico">💵</div><div class="k">L2 Install Cost</div><div class="v">$1.2k</div><div class="d">homeowner · one-time</div></div>
+  </div>
+</section>
+
+<!-- ============ TRIPS ============ -->
+<section class="trips-section">
+  <div class="trips-head">
+    <h2>How many <em>stops</em> to get there?</h2>
+  </div>
+  <div class="trips-grid" id="trips-grid"></div>
+</section>
+
+<!-- ============ CTA ============ -->
+<section class="cta">
+  <h2>Your <em>mileage</em><br>may vary.</h2>
+  <p>So run it yourself. Three questions, thirty seconds, no clipboard.</p>
+  <a href="#calc" class="cta-btn">↑ Back to the Pump</a>
+</section>
+
+<footer>
+  <span>★ FILL 'ER UP · EST. 2026 ★</span>
+  <span>DATA · AAA · EIA · DOE</span>
+  <a href="../">← GALLERY</a>
+</footer>
+
+<!-- ============ JS ============ -->
+<script>
+const S = SHARED;
+const state = {scenario:'current',years:5,miles:13500,cityPct:55,state:'California',evModel:'Tesla Model Y',gasModel:'Toyota RAV4'};
+
+document.addEventListener('DOMContentLoaded', () => {
+  S.populateStateSelect(document.getElementById('stateSel'), state.state);
+  S.populateSelect(document.getElementById('evSel'), S.electricVehicles, state.evModel, false);
+  S.populateSelect(document.getElementById('gasSel'), S.gasVehicles, state.gasModel, true);
+
+  const saved = S.load();
+  ['state','evModel','gasModel','miles','cityPct','years','scenario'].forEach(k => { if (saved[k] != null) state[k] = saved[k]; });
+  syncControls();
+
+  updateLabels(); initChart(); recalc(); renderCards(); renderSeg(); renderTrips(); drawEGalMap();
+
+  document.getElementById('stateSel').addEventListener('change', e => { state.state = e.target.value; persist(); recalc(); renderCards(); renderSeg(); refreshEGal(); });
+  document.getElementById('evSel').addEventListener('change', e => { state.evModel = e.target.value; persist(); recalc(); renderTrips(); });
+  document.getElementById('gasSel').addEventListener('change', e => { state.gasModel = e.target.value; persist(); recalc(); });
+  document.getElementById('milesSel').addEventListener('input', e => { state.miles = parseInt(e.target.value); updateLabels(); persist(); recalc(); renderCards(); renderSeg(); });
+  document.getElementById('chSel').addEventListener('input', e => { state.cityPct = parseInt(e.target.value); updateLabels(); persist(); recalc(); renderCards(); renderSeg(); });
+  document.getElementById('yrSel').addEventListener('change', e => { state.years = parseInt(e.target.value); persist(); recalc(); });
+  document.querySelectorAll('.sc-btn').forEach(b => b.addEventListener('click', () => {
+    document.querySelectorAll('.sc-btn').forEach(x => x.classList.remove('active')); b.classList.add('active');
+    state.scenario = b.dataset.scenario; persist(); recalc(); renderCards(); renderSeg(); refreshEGal();
+  }));
+  document.querySelectorAll('.yr-tab').forEach(b => b.addEventListener('click', () => {
+    document.querySelectorAll('.yr-tab').forEach(x => x.classList.remove('active')); b.classList.add('active');
+    renderCards(); renderSeg();
+  }));
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('#egallon-map') && !e.target.closest('#egal-popover')) {
+      document.getElementById('egal-popover').style.display = 'none';
+    }
+  });
+});
+
+function syncControls(){
+  document.getElementById('stateSel').value = state.state;
+  document.getElementById('evSel').value = state.evModel;
+  document.getElementById('gasSel').value = state.gasModel;
+  document.getElementById('milesSel').value = state.miles;
+  document.getElementById('chSel').value = state.cityPct;
+  document.getElementById('yrSel').value = state.years;
+  document.querySelectorAll('.sc-btn').forEach(b => b.classList.toggle('active', b.dataset.scenario === state.scenario));
+}
+function persist(){ S.save(state); }
+function updateLabels(){
+  document.getElementById('milesVal').textContent = (state.miles/1000) + 'k';
+  document.getElementById('chVal').textContent = state.cityPct + '% city';
+}
+
+let chart;
+function initChart(){
+  const ctx = document.getElementById('costChart').getContext('2d');
+  chart = new Chart(ctx, {
+    type:'line',
+    data:{labels:[],datasets:[]},
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{labels:{color:'#f6ead1',font:{family:'IBM Plex Mono',weight:'700',size:11}}},
+        tooltip:{callbacks:{label:c=>c.dataset.label+': $'+Math.round(c.parsed.y).toLocaleString()}}},
+      scales:{
+        x:{ticks:{color:'#ead6a8',font:{family:'IBM Plex Mono',size:10}},grid:{color:'#5a3a2a'}},
+        y:{ticks:{color:'#ead6a8',font:{family:'IBM Plex Mono',size:10},callback:v=>'$'+v.toLocaleString()},grid:{color:'#5a3a2a'}}
+      }
+    }
+  });
+}
+
+function recalc(){
+  const c = S.costPer100(state.evModel, state.gasModel, state.state, state.scenario, state.cityPct);
+  if (!c) return;
+  const ev = S.findEV(state.evModel), gas = S.findGas(state.gasModel);
+  const evAnn = c.evAnnual(state.miles), gasAnn = c.gasAnnual(state.miles);
+  const annualSave = gasAnn - evAnn;
+  const maintSeg = ev.segment === 'Pickup' ? 'Pickup' : ev.segment === 'Luxury' ? 'Luxury' : (ev.segment === 'Sedan' ? 'Sedan' : 'Small SUV');
+  const m = S.maintCost(maintSeg, state.years);
+
+  document.getElementById('p1-val').textContent = S.fmt$2(c.gasCost);
+  document.getElementById('p2-val').textContent = S.fmt$2(c.evCost);
+  document.getElementById('p3-val').textContent = S.fmt$(annualSave * state.years + m.delta);
+  document.getElementById('p1-ctx').textContent = (S.stateAbbr[state.state]||'US');
+  document.getElementById('p1-note').textContent = state.gasModel.toLowerCase() + ' · ' + (state.scenario==='peak2022'?"'22 peak":"current");
+  document.getElementById('p2-note').textContent = state.evModel.toLowerCase() + ' · home charge';
+  document.getElementById('p3-ctx').textContent = state.years + ' YEARS';
+
+  // Hero pump
+  document.getElementById('hero-gas').textContent = S.fmt$2(S.getGasPrice(state.state, state.scenario)||0);
+  document.getElementById('hero-egal').textContent = S.fmt$2(S.eGallon(state.state)||0);
+  document.getElementById('hero-annual').textContent = S.fmt$(annualSave);
+
+  // Receipt
+  document.getElementById('r-state').textContent = S.stateAbbr[state.state] || state.state;
+  document.getElementById('r-ev').textContent = state.evModel;
+  document.getElementById('r-gas').textContent = state.gasModel;
+  document.getElementById('r-elec').textContent = (S.getElecPrice(state.state)||0).toFixed(1);
+  document.getElementById('r-gasp').textContent = (S.getGasPrice(state.state, state.scenario)||0).toFixed(2);
+  document.getElementById('r-evEff').textContent = ev.kwh100;
+  document.getElementById('r-gasEff').textContent = gas.gal100;
+  document.getElementById('r-fs').textContent = S.fmt$(annualSave);
+  document.getElementById('r-ms').textContent = S.fmt$(m.delta / state.years);
+  document.getElementById('r-total').textContent = S.fmt$(annualSave * state.years + m.delta);
+
+  // Maint boards
+  document.getElementById('m-ice').textContent = S.fmt$(m.ice);
+  document.getElementById('m-ev').textContent = S.fmt$(m.ev);
+  document.getElementById('m-delta').textContent = S.fmt$(m.delta);
+
+  // Chart
+  const years = Array.from({length: state.years + 1}, (_, i) => 'Y'+i);
+  const evCum  = years.map((_, i) => Math.round((evAnn + m.ev/state.years) * i));
+  const gasCum = years.map((_, i) => Math.round((gasAnn + m.ice/state.years) * i));
+  chart.data.labels = years;
+  chart.data.datasets = [
+    {label:'Gas · fuel+maint', data:gasCum, borderColor:'#b24620', backgroundColor:'rgba(178,70,32,0.15)', borderWidth:3, tension:0.2, pointRadius:0, fill:true},
+    {label:'Electric · fuel+maint', data:evCum, borderColor:'#3d8b6e', backgroundColor:'rgba(61,139,110,0.15)', borderWidth:3, tension:0.2, pointRadius:0, fill:true}
+  ];
+  chart.update();
+}
+
+// --- E-Gallon ---
+function eColor(v){
+  if (v == null) return '#ddd';
+  if (v < 1.20) return '#3d8b6e';
+  if (v < 1.60) return '#5fae88';
+  if (v < 2.00) return '#f4b04e';
+  if (v < 2.60) return '#e17a3a';
+  return '#b24620';
+}
+function drawEGalMap(){
+  S.drawMap('egallon-map', {
+    height:540, strokeColor:'#2b1810', strokeWidth:1.5,
+    colorFn: n => eColor(S.eGallon(n)),
+    labelFn: n => { const v = S.eGallon(n); return v ? '$' + v.toFixed(2) : ''; },
+    labelColor: n => { const v = S.eGallon(n); return v && v >= 2.00 ? '#f6ead1' : '#2b1810'; },
+    labelSize: '12px', labelFont: 'Alfa Slab One',
+    onHover:(n, ev, node, over) => d3.select(node).attr('stroke', over ? '#b24620' : '#2b1810').attr('stroke-width', over ? 3 : 1.5),
+    onClick:(name, ev) => {
+      const v = S.eGallon(name), g = S.getGasPrice(name, state.scenario);
+      if (v == null || g == null) return;
+      const pop = document.getElementById('egal-popover');
+      pop.style.display = 'block';
+      pop.style.left = Math.min(ev.clientX + 15, window.innerWidth - 300) + 'px';
+      pop.style.top  = Math.min(ev.clientY - 40, window.innerHeight - 220) + 'px';
+      document.getElementById('pop-state').textContent = name;
+      document.getElementById('pop-egal').textContent = '$' + v.toFixed(2);
+      document.getElementById('pop-gas').textContent  = '$' + g.toFixed(2);
+      document.getElementById('pop-save').textContent = '$' + (g-v).toFixed(2);
+      document.getElementById('pop-pct').textContent  = Math.round((1 - v/g) * 100) + '%';
+      state.state = name; document.getElementById('stateSel').value = name; persist(); recalc(); renderCards(); renderSeg();
+    }
+  });
+}
+function refreshEGal(){
+  d3.select('#egallon-map svg').selectAll('path').attr('fill', d => eColor(S.eGallon(d.properties.name)));
+}
+
+// --- Postcards (brand) ---
+function activeYears(){ const b = document.querySelector('.yr-tab.active'); return b ? parseInt(b.dataset.years) : 5; }
+function renderCards(){
+  const wrap = document.getElementById('cards-grid');
+  const yrs = activeYears();
+  // Sample a representative set — one per brand × tier combo we have
+  const selected = S.brandPairs.slice(0, 18);
+  wrap.innerHTML = selected.map(p => {
+    const ev = S.findEV(p.ev), gas = S.findGas(p.gas);
+    const c = S.costPer100(p.ev, p.gas, state.state, state.scenario, state.cityPct);
+    if (!c) return '';
+    const sav = (c.gasAnnual(state.miles) - c.evAnnual(state.miles)) * yrs;
+    return `<article class="pcard">
+      <div class="inner">
+        <div class="stamp ${sav<0?'neg':''}">Save<strong>${sav>=0?'':'−'}$${(Math.abs(sav)/1000).toFixed(1)}K</strong>${yrs}&nbsp;yrs</div>
+        <div class="from">From: ${p.brand} country</div>
+        <div class="ice">${p.gas}</div>
+        <div class="arrow">— swaps for —</div>
+        <div class="ev">${p.ev}</div>
+        <div class="footer"><span>${ev.segment}</span><span>${ev.range} mi range</span></div>
+      </div>
+    </article>`;
+  }).join('');
+}
+
+// --- Segment matrix ---
+function renderSeg(){
+  const grid = document.getElementById('segMatrix');
+  const segs = ['Sedan','Small SUV','Large SUV','Pickup'];
+  const tiers = ['Under $35k','$35–50k','$50–75k','$75k+'];
+  const yrs = activeYears();
+  grid.innerHTML = '';
+  const corner = document.createElement('div'); corner.className = 'seg-corner'; corner.innerHTML = 'Segment ↓<br>Tier →'; grid.appendChild(corner);
+  tiers.forEach(t => { const h = document.createElement('div'); h.className = 'seg-col-h'; h.textContent = t; grid.appendChild(h); });
+  segs.forEach(seg => {
+    const rh = document.createElement('div'); rh.className = 'seg-row-h'; rh.textContent = seg; grid.appendChild(rh);
+    tiers.forEach(t => {
+      const cell = document.createElement('div');
+      const pairs = S.matchedPairs.filter(p => p.segment === seg && p.tier === t);
+      if (pairs.length === 0) { cell.className = 'seg-cell empty'; grid.appendChild(cell); return; }
+      cell.className = 'seg-cell';
+      cell.innerHTML = pairs.map(p => {
+        const c = S.costPer100(p.ev, p.gas, state.state, state.scenario, state.cityPct);
+        if (!c) return '';
+        const sav = (c.gasAnnual(state.miles) - c.evAnnual(state.miles)) * yrs;
+        return `<div class="pair">
+          <div class="gas-name">${p.gas}</div>
+          <div class="ev-name">→ ${p.ev}</div>
+          <div class="save">${sav>=0?'+':''}${S.fmt$(sav)}</div>
+        </div>`;
+      }).join('');
+      grid.appendChild(cell);
+    });
+  });
+}
+
+// --- Trips ---
+function renderTrips(){
+  const ev = S.findEV(state.evModel); if (!ev) return;
+  const range = ev.range * 0.85;
+  const trips = [
+    {a:'LA → Las Vegas', d:270},{a:'NYC → Boston', d:215},{a:'SF → Tahoe', d:195},
+    {a:'Seattle → Portland', d:175},{a:'Atlanta → Nashville', d:250},
+    {a:'Denver → Aspen', d:160},{a:'Dallas → Houston', d:240},
+    {a:'Chicago → Detroit', d:285},{a:'DC → NYC', d:225},
+    {a:'Miami → Orlando', d:235},{a:'Phoenix → Tucson', d:115},
+    {a:'Austin → San Antonio', d:80}
+  ];
+  document.getElementById('trips-grid').innerHTML = trips.map(t => {
+    const stops = Math.max(0, Math.floor((t.d - 50) / range));
+    const cls = stops === 0 ? 'zero' : stops >= 2 ? 'two' : '';
+    return `<div class="trip-card">
+      <div class="ft">${t.a}<small>${t.d} mi · ${ev.model} · ${Math.round(range)}mi real</small></div>
+      <div class="stops ${cls}">${stops === 0 ? '✓' : stops}</div>
+    </div>`;
+  }).join('');
+}
+</script>
+
+</body>
+</html>

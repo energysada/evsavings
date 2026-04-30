@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EVSV&lt;GO&gt; — EV/GAS Monitor</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://d3js.org/d3.v7.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/topojson-client@3"></script>
+<script src="../shared.js"></script>
+<style>
+  :root{
+    --bg:#0a0a0a;--bg-2:#121212;--bg-3:#1a1a1a;
+    --amber:#e8c547;--amber-dim:#9c8432;--amber-bg:#2a2210;
+    --green:#7af0a8;--green-dim:#3a9660;--red:#ff5c4d;--red-dim:#8c2e24;
+    --blue:#6ab5ff;--white:#e8e8e8;--gray:#6a6a6a;--hair:#2a2a2a;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  html,body{background:var(--bg);color:var(--amber);font-family:'IBM Plex Mono',monospace;font-size:13px;line-height:1.5;font-weight:400;overflow-x:hidden}
+
+  body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:500;opacity:0.04;background-image:repeating-linear-gradient(0deg,transparent 0,transparent 2px,#fff 2px,#fff 3px);mix-blend-mode:overlay}
+  body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:499;background:radial-gradient(ellipse at center,transparent 30%,rgba(0,0,0,0.5) 100%)}
+  main,section,aside,nav,footer{position:relative;z-index:10}
+
+  .banner{background:var(--amber);color:var(--bg);padding:3px 12px;display:flex;justify-content:space-between;font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;gap:16px;flex-wrap:wrap}
+  .banner .l,.banner .r{display:flex;gap:14px;flex-wrap:wrap}
+  .banner a{color:var(--bg);text-decoration:none;border-right:1px solid var(--bg);padding-right:10px}
+
+  .cmd{background:var(--bg-2);border-bottom:1px solid var(--hair);padding:8px 12px;display:flex;gap:18px;align-items:center;font-size:12px;flex-wrap:wrap}
+  .cmd .prompt{color:var(--green)}
+  .cmd .code{color:var(--amber);font-weight:700}
+  .cmd input{background:transparent;border:none;color:var(--amber);font-family:inherit;font-size:12px;outline:none;caret-color:var(--amber);flex:1;min-width:220px}
+  .cmd .blink{animation:bl 1s steps(2) infinite;color:var(--amber)}
+  @keyframes bl{50%{opacity:0}}
+
+  .ticker{background:var(--bg);border-bottom:1px solid var(--hair);overflow:hidden;padding:5px 0;white-space:nowrap}
+  .ticker-track{display:inline-block;animation:tk 60s linear infinite}
+  .ticker-track span{display:inline-block;padding:0 20px;font-size:12px;font-weight:500;border-right:1px solid var(--hair)}
+  .ticker .sym{color:var(--amber);font-weight:700}
+  .ticker .up{color:var(--green)}.ticker .dn{color:var(--red)}.ticker .flat{color:var(--gray)}
+  @keyframes tk{to{transform:translateX(-50%)}}
+
+  .grid{display:grid;grid-template-columns:200px 1fr 300px;gap:1px;background:var(--hair);min-height:calc(100vh - 100px)}
+  .pane{background:var(--bg);padding:12px}
+
+  /* Side */
+  .side .fn{border:1px solid var(--amber-dim);padding:5px 10px;margin-bottom:3px;cursor:pointer;display:flex;justify-content:space-between;font-size:12px;align-items:center;text-decoration:none;color:inherit;transition:all .1s}
+  .side .fn:hover{background:var(--amber-bg);border-color:var(--amber)}
+  .side .fn.active{background:var(--amber);color:var(--bg);border-color:var(--amber);font-weight:700}
+  .side .fn .kbd{font-size:10px;color:var(--gray);letter-spacing:0.1em}
+  .side .fn.active .kbd{color:var(--bg)}
+  .side h4{font-size:10px;text-transform:uppercase;letter-spacing:0.25em;color:var(--amber-dim);margin:16px 0 6px;border-top:1px solid var(--hair);padding-top:12px}
+  .side h4:first-child{margin-top:0;border-top:none;padding-top:0}
+
+  .main h1{color:var(--amber);font-size:30px;font-weight:700;line-height:1;letter-spacing:-0.02em;margin:4px 0 4px;text-shadow:0 0 20px rgba(232,197,71,0.3)}
+  .main h1 .prompt{color:var(--green)}
+  .main .subtitle{color:var(--white);font-size:13px;margin-bottom:16px;font-weight:300}
+  .main .subtitle em{font-style:normal;color:var(--amber);font-weight:500}
+
+  .panel{border:1px solid var(--amber-dim);margin-bottom:12px;background:var(--bg)}
+  .panel-h{background:var(--amber-bg);padding:5px 10px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--amber-dim);font-size:11px;letter-spacing:0.15em;text-transform:uppercase;flex-wrap:wrap;gap:8px}
+  .panel-h .code{color:var(--amber);font-weight:700}
+  .panel-h .live{color:var(--green);display:flex;align-items:center;gap:6px}
+  .panel-h .live::before{content:"●";animation:bl 1s steps(2) infinite}
+  .panel-b{padding:10px}
+
+  /* Control panel (input grid) */
+  .inputs{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:10px}
+  .inp{border:1px solid var(--hair);padding:8px 10px}
+  .inp .k{font-size:9px;color:var(--amber-dim);text-transform:uppercase;letter-spacing:0.2em;margin-bottom:6px}
+  .inp select,.inp input[type=range]{width:100%;background:transparent;color:var(--amber);border:none;font-family:inherit;font-size:13px;font-weight:700;padding:4px 0;cursor:pointer;outline:none}
+  .inp select option,.inp select optgroup{background:var(--bg-2);color:var(--amber)}
+  .inp input[type=range]{padding:0;height:24px;-webkit-appearance:none;appearance:none;background:transparent}
+  .inp input[type=range]::-webkit-slider-runnable-track{height:2px;background:var(--amber-dim)}
+  .inp input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:14px;height:14px;background:var(--amber);border:none;margin-top:-6px;cursor:pointer}
+  .inp .val{font-size:16px;font-weight:700;color:var(--amber);font-variant-numeric:tabular-nums;margin-top:4px}
+  .scen{padding:0 10px 10px;display:flex;gap:4px}
+  .scen button{flex:1;background:var(--bg);color:var(--amber-dim);border:1px solid var(--amber-dim);padding:8px 10px;font-family:inherit;font-size:11px;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;cursor:pointer}
+  .scen button.active{background:var(--amber);color:var(--bg);border-color:var(--amber)}
+  .scen button.red.active{background:var(--red);color:var(--bg);border-color:var(--red)}
+
+  /* Big numbers */
+  .bignums{display:grid;grid-template-columns:repeat(4,1fr);gap:0;border:1px solid var(--hair)}
+  .bignums .bn{padding:14px 16px;border-right:1px solid var(--hair)}
+  .bignums .bn:last-child{border-right:none}
+  .bignums .bn .k{font-size:10px;text-transform:uppercase;color:var(--amber-dim);letter-spacing:0.2em;margin-bottom:8px}
+  .bignums .bn .v{font-size:30px;color:var(--amber);font-weight:700;letter-spacing:-0.02em;line-height:1;font-variant-numeric:tabular-nums}
+  .bignums .bn .v.g{color:var(--green)}
+  .bignums .bn .v.r{color:var(--red)}
+  .bignums .bn .d{font-size:11px;margin-top:6px;color:var(--gray)}
+  .bignums .bn .d.g{color:var(--green-dim)}
+  .bignums .bn .d.r{color:var(--red-dim)}
+
+  table.dt{width:100%;border-collapse:collapse;font-size:12px}
+  table.dt th{text-align:left;padding:5px 10px;background:var(--bg-2);color:var(--amber-dim);font-weight:500;font-size:10px;text-transform:uppercase;letter-spacing:0.15em;border-bottom:1px solid var(--hair)}
+  table.dt th.r{text-align:right}
+  table.dt td{padding:5px 10px;border-bottom:1px dotted var(--hair);vertical-align:baseline}
+  table.dt td.r{text-align:right;font-variant-numeric:tabular-nums}
+  table.dt tr:hover td{background:var(--amber-bg)}
+  table.dt td.g{color:var(--green)}
+  table.dt td.r-c{color:var(--red)}
+  table.dt td.amb{color:var(--amber);font-weight:700}
+  table.dt td.w{color:var(--white)}
+  table.dt td.gray{color:var(--gray)}
+
+  /* Chart + breakdown area */
+  .hero-block{display:grid;grid-template-columns:2fr 1fr;gap:12px;margin-bottom:12px}
+  .hero-block .chart-box{border:1px solid var(--amber-dim);padding:12px;background:var(--bg);position:relative;min-height:200px}
+  .hero-block .chart-box .lbl{font-size:11px;color:var(--amber-dim);text-transform:uppercase;letter-spacing:0.15em;margin-bottom:8px;display:flex;justify-content:space-between}
+  .hero-block .chart-box .lbl .g{color:var(--green)}
+  .hero-block .chart-box .lbl .r{color:var(--red)}
+  .hero-block .chart-box canvas{max-height:220px}
+  .position-box{border:1px solid var(--amber-dim);padding:14px}
+  .position-box .lbl{font-size:11px;color:var(--amber-dim);text-transform:uppercase;letter-spacing:0.15em;margin-bottom:12px}
+  .position-box .prow{margin-bottom:12px}
+  .position-box .prow .k{font-size:10px;color:var(--gray);letter-spacing:0.15em;text-transform:uppercase}
+  .position-box .prow .v{font-size:22px;font-weight:700;letter-spacing:-0.02em;line-height:1.1;font-variant-numeric:tabular-nums}
+  .position-box .prow .v.g{color:var(--green)}
+  .position-box .prow .v.r{color:var(--red)}
+  .position-box .prow .v.amb{color:var(--amber)}
+  .position-box .prow .bar{height:3px;background:var(--bg-2);margin-top:4px}
+  .position-box .prow .bar .fill{height:100%;background:var(--green)}
+  .position-box .prow.neg .bar .fill{background:var(--red)}
+  .position-box .total{border-top:1px solid var(--amber-dim);padding-top:10px;margin-top:4px}
+
+  /* E-gallon map */
+  #egallon-map{background:var(--bg);min-height:500px}
+  #egallon-map svg path{cursor:pointer}
+  .egal-popover{position:fixed;background:var(--bg-2);color:var(--amber);padding:12px 14px;min-width:260px;border:1px solid var(--amber);font-family:'IBM Plex Mono',monospace;z-index:200;display:none;box-shadow:0 0 0 1px var(--amber-bg),0 20px 40px rgba(0,0,0,0.9)}
+  .egal-popover .st{font-size:16px;font-weight:700;color:var(--amber);margin-bottom:10px;padding-bottom:8px;border-bottom:1px dashed var(--amber-dim);text-transform:uppercase;letter-spacing:0.1em}
+  .egal-popover .row{display:flex;justify-content:space-between;padding:4px 0;font-size:12px}
+  .egal-popover .row .k{color:var(--gray);font-size:10px;text-transform:uppercase;letter-spacing:0.2em}
+  .egal-popover .row .v{font-weight:700;font-variant-numeric:tabular-nums}
+  .egal-popover .row .v.g{color:var(--green)}
+  .egal-popover .row .v.r{color:var(--red)}
+
+  /* Matrix */
+  .mx-wrap{padding:0}
+  .mx{display:grid;font-size:11px}
+  .mx-corner,.mx-col-h{background:var(--amber-bg);padding:6px 10px;font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:var(--amber);font-weight:700;border-right:1px solid var(--hair);border-bottom:1px solid var(--amber-dim)}
+  .mx-corner{color:var(--amber-dim)}
+  .mx-col-h{text-align:center}
+  .mx-col-h:last-child{border-right:none}
+  .mx-row-h{background:var(--bg-2);padding:10px;font-size:12px;color:var(--white);font-weight:700;border-right:1px solid var(--hair);border-bottom:1px solid var(--hair);display:flex;align-items:center;text-transform:uppercase;letter-spacing:0.05em}
+  .mx-cell{padding:6px;border-right:1px solid var(--hair);border-bottom:1px solid var(--hair);min-height:78px;cursor:pointer;transition:background .1s}
+  .mx-cell:last-child{border-right:none}
+  .mx-cell:hover{background:var(--amber-bg)}
+  .mx-cell.empty{background:var(--bg-2)}
+  .mx-cell.empty::before{content:"·";color:var(--gray);font-size:16px;display:block;text-align:center;opacity:0.5;margin-top:24px}
+  .mx-cell .pair{padding:4px 6px;border-left:2px solid var(--green);margin-bottom:4px}
+  .mx-cell .pair:last-child{margin-bottom:0}
+  .mx-cell .gas{color:var(--white);font-weight:700;font-size:11px;line-height:1.2}
+  .mx-cell .ev{color:var(--amber);font-size:10px;margin-top:2px;font-weight:500}
+  .mx-cell .sv{font-weight:700;font-size:13px;color:var(--green);margin-top:3px;letter-spacing:-0.01em;font-variant-numeric:tabular-nums}
+  .mx-cell .sv.neg{color:var(--red)}
+
+  .yr-tabs{display:flex;gap:2px;padding:6px 10px}
+  .yr-tabs button{background:transparent;color:var(--amber-dim);border:1px solid var(--amber-dim);padding:4px 10px;font-family:inherit;font-size:10px;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;cursor:pointer}
+  .yr-tabs button.active{background:var(--amber);color:var(--bg);border-color:var(--amber)}
+
+  /* Trips */
+  .trips-list{padding:6px 0}
+  .trips-list .tr{display:grid;grid-template-columns:1fr auto auto;gap:10px;padding:5px 10px;border-bottom:1px dotted var(--hair);align-items:baseline;font-size:12px}
+  .trips-list .tr:hover{background:var(--amber-bg)}
+  .trips-list .tr .f{color:var(--white);font-weight:500}
+  .trips-list .tr .m{color:var(--gray);font-size:11px}
+  .trips-list .tr .s{color:var(--green);font-weight:700;min-width:30px;text-align:right}
+  .trips-list .tr .s.red{color:var(--red)}
+
+  /* Right pane */
+  .right h3{font-size:11px;text-transform:uppercase;letter-spacing:0.2em;color:var(--amber-dim);margin-bottom:8px;border-bottom:1px solid var(--hair);padding-bottom:6px}
+  .right .news{font-size:12px;line-height:1.5;margin-bottom:8px;padding-bottom:8px;border-bottom:1px dotted var(--hair)}
+  .right .news .t{color:var(--gray);font-size:10px}
+  .right .news .h{color:var(--white);font-weight:500}
+  .right .news .h em{font-style:normal;color:var(--amber)}
+  .right .news .src{color:var(--amber-dim);font-size:10px;margin-top:3px}
+
+  .statusbar{position:fixed;bottom:0;left:0;right:0;background:var(--amber);color:var(--bg);padding:4px 12px;display:flex;justify-content:space-between;font-size:11px;font-weight:700;letter-spacing:0.08em;z-index:100;gap:12px;flex-wrap:wrap}
+  .statusbar .keys{display:flex;gap:10px;flex-wrap:wrap}
+  .statusbar .keys span strong{background:var(--bg);color:var(--amber);padding:1px 5px;margin-right:4px}
+  body{padding-bottom:32px}
+
+  @media (max-width:1100px){
+    .grid{grid-template-columns:1fr}
+    .side,.right{display:none}
+    .bignums{grid-template-columns:1fr 1fr}
+    .bignums .bn{border-right:none;border-bottom:1px solid var(--hair)}
+    .hero-block{grid-template-columns:1fr}
+    .inputs{grid-template-columns:1fr 1fr}
+  }
+</style>
+</head>
+<body>
+
+<div class="banner">
+  <div class="l">
+    <a href="../">←GALLERY</a>
+    <span>EVSV&lt;GO&gt;</span>
+    <span>EV/GAS MONITOR</span>
+  </div>
+  <div class="r">
+    <span id="banner-date">APR 16 2026</span>
+    <span id="banner-time">08:42:19 ET</span>
+    <span style="color:#00a86b">● LIVE</span>
+  </div>
+</div>
+
+<div class="cmd">
+  <span class="prompt">EVSV&gt;</span>
+  <span class="code">EV/GAS&lt;CMDTY&gt;</span>
+  <input id="cmd-line" value="fuel cost delta -- 13500mi/yr -- model y vs rav4 -- CA" readonly />
+  <span class="blink">█</span>
+</div>
+
+<div class="ticker">
+  <div class="ticker-track" id="ticker-track"></div>
+</div>
+
+<div class="grid">
+
+  <aside class="pane side">
+    <h4>Functions</h4>
+    <a class="fn active" href="#calc"><span>EVSV</span><span class="kbd">F1</span></a>
+    <a class="fn" href="#egal"><span>EGAL</span><span class="kbd">F2</span></a>
+    <a class="fn" href="#maint"><span>MAINT</span><span class="kbd">F3</span></a>
+    <a class="fn" href="#brand"><span>BRAND</span><span class="kbd">F4</span></a>
+    <a class="fn" href="#seg"><span>MATRIX</span><span class="kbd">F5</span></a>
+    <a class="fn" href="#chrg"><span>CHRG</span><span class="kbd">F6</span></a>
+
+    <h4>Inputs</h4>
+    <div class="fn"><span>STATE</span><span class="kbd" id="side-state">CA</span></div>
+    <div class="fn"><span>MILES/Y</span><span class="kbd" id="side-miles">13,500</span></div>
+    <div class="fn"><span>EV</span><span class="kbd" id="side-ev">M-Y</span></div>
+    <div class="fn"><span>ICE</span><span class="kbd" id="side-gas">RAV4</span></div>
+    <div class="fn"><span>CH%</span><span class="kbd" id="side-ch">55</span></div>
+    <div class="fn"><span>HOLD</span><span class="kbd" id="side-yrs">5YR</span></div>
+    <div class="fn"><span>SCEN</span><span class="kbd" id="side-scen">BASE</span></div>
+
+    <h4>Watchlist · 5Y</h4>
+    <div id="watchlist"></div>
+  </aside>
+
+  <section class="pane main">
+    <h1><span class="prompt">&gt;_</span> EV/GAS Monitor</h1>
+    <div class="subtitle">U.S. comparative fuel &amp; ownership. <em>All quotes USD · electricity rates residential home-charge weighted</em>.</div>
+
+    <!-- Input control -->
+    <div class="panel" id="calc">
+      <div class="panel-h"><span class="code">INP&lt;USER&gt; · PARAMETERS</span><span class="live">READY</span></div>
+      <div class="inputs">
+        <div class="inp"><div class="k">STATE</div><select id="stateSel"></select></div>
+        <div class="inp"><div class="k">EV · ELECTRIC</div><select id="evSel"></select></div>
+        <div class="inp"><div class="k">ICE · GAS</div><select id="gasSel"></select></div>
+        <div class="inp"><div class="k">ANNUAL MI</div><input type="range" id="milesSel" min="5000" max="30000" step="500" value="13500"><div class="val" id="milesVal">13,500</div></div>
+        <div class="inp"><div class="k">CITY / HWY %</div><input type="range" id="chSel" min="0" max="100" step="5" value="55"><div class="val" id="chVal">55 / 45</div></div>
+        <div class="inp"><div class="k">HOLD YRS</div><select id="yrSel"><option value="1">1YR</option><option value="5" selected>5YR</option><option value="10">10YR</option></select></div>
+      </div>
+      <div class="scen">
+        <button class="sc-btn active" data-scenario="current">BASE · APR 2026</button>
+        <button class="sc-btn red" data-scenario="peak2022">STRESS · 2022 PEAK</button>
+      </div>
+    </div>
+
+    <div class="bignums">
+      <div class="bn"><div class="k">USREG · GAL</div><div class="v r" id="n-gas">$5.93</div><div class="d r" id="n-gas-d">▲ CA · APR '26</div></div>
+      <div class="bn"><div class="k">EGAL · 100MI</div><div class="v g" id="n-egal">$2.69</div><div class="d g">▼ VS PUMP</div></div>
+      <div class="bn"><div class="k">ANNUAL Δ</div><div class="v g" id="n-ann">+$1,240</div><div class="d g" id="n-ann-d">FAV EV · 13.5K MI</div></div>
+      <div class="bn"><div class="k" id="n-hold-k">5Y NET</div><div class="v" id="n-hold">$7,740</div><div class="d" id="n-hold-d">INCL MNT</div></div>
+    </div>
+
+    <div class="hero-block">
+      <div class="chart-box">
+        <div class="lbl"><span>CUMULATIVE $ · HOLD PERIOD · <span id="chart-ctx">CALIF · M-Y VS RAV4</span></span><span><span class="r">◆ ICE</span>&nbsp;&nbsp;<span class="g">◆ EV</span></span></div>
+        <canvas id="costChart"></canvas>
+      </div>
+      <div class="position-box">
+        <div class="lbl">POSITION BREAKDOWN</div>
+        <div class="prow"><div class="k">Fuel</div><div class="v g" id="b-fuel">−$5,900</div><div class="bar"><div class="fill" style="width:80%"></div></div></div>
+        <div class="prow"><div class="k">Maintenance</div><div class="v g" id="b-maint">−$1,840</div><div class="bar"><div class="fill" style="width:30%"></div></div></div>
+        <div class="prow neg"><div class="k">MSRP premium</div><div class="v r" id="b-msrp">+$6,400</div><div class="bar"><div class="fill" style="width:85%"></div></div></div>
+        <div class="prow total"><div class="k">Net position · year <span id="b-yr">5</span></div><div class="v amb" id="b-net">+$1,340</div></div>
+      </div>
+    </div>
+
+    <!-- Breakdown table -->
+    <div class="panel">
+      <div class="panel-h"><span class="code">DETL&lt;GO&gt; · FULL INPUTS &amp; OUTPUTS</span><span class="live">SYNC</span></div>
+      <div class="panel-b" style="padding:0">
+        <table class="dt">
+          <tbody id="detl-body">
+            <tr><td class="gray">STATE</td><td class="amb" id="d-state">California</td>
+                <td class="gray">EV EFFICIENCY</td><td class="r amb" id="d-evEff">28 kWh/100mi</td></tr>
+            <tr><td class="gray">ELECTRIC ¢/KWH</td><td class="amb" id="d-elec">31.9</td>
+                <td class="gray">ICE EFFICIENCY</td><td class="r amb" id="d-gasEff">3.3 gal/100mi</td></tr>
+            <tr><td class="gray">REGULAR $/GAL</td><td class="amb" id="d-gasp">5.93</td>
+                <td class="gray">EV · 100 MI</td><td class="r g" id="d-ev100">$8.93</td></tr>
+            <tr><td class="gray">EV PICK</td><td class="w" id="d-ev">Tesla Model Y</td>
+                <td class="gray">GAS · 100 MI</td><td class="r r-c" id="d-gas100">$19.57</td></tr>
+            <tr><td class="gray">ICE PICK</td><td class="w" id="d-gas">Toyota RAV4</td>
+                <td class="gray">ANNUAL FUEL Δ</td><td class="r g" id="d-fuel">+$1,240</td></tr>
+            <tr><td class="gray">SEGMENT</td><td class="w" id="d-seg">Small SUV</td>
+                <td class="gray">ANNUAL MAINT Δ</td><td class="r g" id="d-maint">+$368</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- E-gallon map -->
+    <div class="panel" id="egal">
+      <div class="panel-h"><span class="code">EGAL&lt;MAP&gt; · E-GALLON BY STATE · CLICK FOR DETAIL</span><span class="live">LIVE</span></div>
+      <div class="panel-b">
+        <div id="egallon-map"></div>
+        <div style="display:flex;gap:16px;margin-top:8px;font-size:10px;color:var(--amber-dim);flex-wrap:wrap">
+          <span><span style="color:#7af0a8">●</span> &lt; $1.20 CHEAP</span>
+          <span><span style="color:#e8c547">●</span> $1.20–2.00 AVG</span>
+          <span><span style="color:#ff5c4d">●</span> &gt; $2.00 PRICEY</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Brand matrix -->
+    <div class="panel" id="brand">
+      <div class="panel-h"><span class="code">BRAND&lt;SWAP&gt; · ICE → EV MATCHED PAIRS</span><span class="live">LIVE</span></div>
+      <div class="yr-tabs">
+        <button class="yr-tab" data-years="1">1Y</button>
+        <button class="yr-tab active" data-years="5">5Y</button>
+        <button class="yr-tab" data-years="10">10Y</button>
+      </div>
+      <div class="panel-b" style="padding:0">
+        <div class="mx" id="brandMatrix" style="grid-template-columns:90px repeat(4,1fr)"></div>
+      </div>
+    </div>
+
+    <!-- Segment matrix -->
+    <div class="panel" id="seg">
+      <div class="panel-h"><span class="code">SEG&lt;MATRIX&gt; · SEGMENT × PRICE TIER</span><span class="live">LIVE</span></div>
+      <div class="panel-b" style="padding:0">
+        <div class="mx" id="segMatrix" style="grid-template-columns:100px repeat(4,1fr)"></div>
+      </div>
+    </div>
+
+    <!-- Maint -->
+    <div class="panel" id="maint">
+      <div class="panel-h"><span class="code">MAINT&lt;SCHD&gt; · 5-YEAR MAINTENANCE SCHEDULE</span><span class="live">CALC</span></div>
+      <div class="panel-b" style="padding:0">
+        <table class="dt">
+          <thead><tr><th>ITEM</th><th>INTERVAL</th><th class="r">ICE $</th><th class="r">EV $</th><th class="r">Δ</th></tr></thead>
+          <tbody>
+            <tr><td class="w">OIL &amp; FILTER</td><td class="gray">7.5K MI</td><td class="r">810</td><td class="r g">0</td><td class="r g">−810</td></tr>
+            <tr><td class="w">AIR FILTER</td><td class="gray">30K MI</td><td class="r">140</td><td class="r g">0</td><td class="r g">−140</td></tr>
+            <tr><td class="w">SPARK PLUGS</td><td class="gray">60K MI</td><td class="r">320</td><td class="r g">0</td><td class="r g">−320</td></tr>
+            <tr><td class="w">TRANSMISSION</td><td class="gray">60K MI</td><td class="r">240</td><td class="r g">0</td><td class="r g">−240</td></tr>
+            <tr><td class="w">COOLANT</td><td class="gray">50K MI</td><td class="r">180</td><td class="r">80</td><td class="r g">−100</td></tr>
+            <tr><td class="w">BRAKE PADS</td><td class="gray">35–90K MI</td><td class="r">720</td><td class="r">360</td><td class="r g">−360</td></tr>
+            <tr><td class="w">BRAKE FLUID</td><td class="gray">36K MI</td><td class="r">280</td><td class="r">280</td><td class="r gray">0</td></tr>
+            <tr><td class="w">TIRES</td><td class="gray">50K MI</td><td class="r">720</td><td class="r r-c">850</td><td class="r r-c">+130</td></tr>
+            <tr style="border-top:1px solid var(--amber-dim)"><td class="amb">TOTAL 5Y</td><td></td><td class="r amb">3,410</td><td class="r amb">1,570</td><td class="r amb g">−1,840</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Charging -->
+    <div class="panel" id="chrg">
+      <div class="panel-h"><span class="code">CHRG&lt;INFRA&gt; · CHARGING PROFILE</span><span class="live">STATIC</span></div>
+      <div class="panel-b" style="padding:0">
+        <table class="dt">
+          <tr><td class="w">L2 HOME · 240V</td><td class="r amb">8 hr</td><td class="gray">0 → 100%, overnight</td></tr>
+          <tr><td class="w">L1 WALL · 120V</td><td class="r amb">40 hr</td><td class="gray">+40 mi per 10 hr</td></tr>
+          <tr><td class="w">DC FAST · ROAD</td><td class="r amb">30 min</td><td class="gray">10 → 80% en route</td></tr>
+          <tr><td class="w">% HOME CHARGED</td><td class="r g">80%</td><td class="gray">typical US EV owner</td></tr>
+          <tr><td class="w">US DC-FAST STATIONS</td><td class="r g">12,000+</td><td class="gray">NEVI growing fast</td></tr>
+          <tr><td class="w">L2 INSTALL COST</td><td class="r">$1,200</td><td class="gray">one-time, homeowner</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- Trips -->
+    <div class="panel">
+      <div class="panel-h"><span class="code">TRIP&lt;RANGE&gt; · FAST-CHARGE STOPS TO DESTINATION</span><span class="live" id="trips-live">M-Y · 310MI</span></div>
+      <div class="panel-b" style="padding:0">
+        <div class="trips-list" id="trips-list"></div>
+      </div>
+    </div>
+
+  </section>
+
+  <aside class="pane right">
+    <h3>News · Fuel &amp; EV</h3>
+    <div class="news">
+      <div class="t">08:12 ET · BBG</div>
+      <div class="h">US Regular Settles at <em>$4.12</em>, Up 2.4% d/d on Refinery Outage</div>
+      <div class="src">source: BLMBRG</div>
+    </div>
+    <div class="news">
+      <div class="t">07:54 ET · RTR</div>
+      <div class="h">BEV Q1 Deliveries Hit <em>$8.4B</em>, Largest Single Quarter</div>
+      <div class="src">source: REUT</div>
+    </div>
+    <div class="news">
+      <div class="t">YDAY · EIA</div>
+      <div class="h">US Residential Electricity Mean Holds at <em>17.8 ¢/kWh</em></div>
+      <div class="src">source: EIA</div>
+    </div>
+    <div class="news">
+      <div class="t">YDAY · NYT</div>
+      <div class="h">Ford Lightning Maint Delta Confirmed at <em>−$2,210</em> over 5Y</div>
+      <div class="src">source: NYT</div>
+    </div>
+
+    <h3 style="margin-top:14px">Scenarios · Your ZIP</h3>
+    <div style="font-size:12px;line-height:1.7">
+      <div style="display:flex;justify-content:space-between"><span>● BASE APR 2026</span><span class="amb" id="sc-base">$5.93</span></div>
+      <div style="display:flex;justify-content:space-between;color:var(--red)"><span>● 2022 PEAK</span><span id="sc-peak">$6.44</span></div>
+      <div style="display:flex;justify-content:space-between;color:var(--gray)"><span>● 2020 LOW</span><span>$2.83</span></div>
+      <div style="display:flex;justify-content:space-between;color:var(--green)"><span>● EIA 2030F</span><span>$3.12</span></div>
+    </div>
+
+    <h3 style="margin-top:14px">EGal Top 5 · Cheapest</h3>
+    <div id="egal-top" style="font-size:12px;line-height:1.7"></div>
+
+    <h3 style="margin-top:14px">EGal Bottom 5 · Priciest</h3>
+    <div id="egal-bot" style="font-size:12px;line-height:1.7"></div>
+  </aside>
+
+</div>
+
+<div id="egal-popover" class="egal-popover">
+  <div class="st" id="pop-state">STATE</div>
+  <div class="row"><span class="k">E-Gallon</span><span class="v g" id="pop-egal">$0.00</span></div>
+  <div class="row"><span class="k">Regular / gal</span><span class="v r" id="pop-gas">$0.00</span></div>
+  <div class="row"><span class="k">Per gal saved</span><span class="v" id="pop-save">$0.00</span></div>
+  <div class="row"><span class="k">% cheaper</span><span class="v g" id="pop-pct">0%</span></div>
+  <div class="row"><span class="k">Electric ¢/kWh</span><span class="v" id="pop-elec">0</span></div>
+</div>
+
+<div class="statusbar">
+  <div class="keys">
+    <span><strong>F1</strong>EVSV</span>
+    <span><strong>F2</strong>EGAL</span>
+    <span><strong>F3</strong>MNT</span>
+    <span><strong>F4</strong>BRD</span>
+    <span><strong>F5</strong>MTX</span>
+    <span><strong>F6</strong>CHR</span>
+    <span><strong>GO</strong>ENT</span>
+    <span><strong>ESC</strong>CLR</span>
+  </div>
+  <div>EVSV&lt;GO&gt; · SAMPLE 05 · evsavings.pages.dev</div>
+</div>
+
+<script>
+const S = SHARED;
+const state = {scenario:'current',years:5,miles:13500,cityPct:55,state:'California',evModel:'Tesla Model Y',gasModel:'Toyota RAV4'};
+
+document.addEventListener('DOMContentLoaded', () => {
+  S.populateStateSelect(document.getElementById('stateSel'), state.state);
+  S.populateSelect(document.getElementById('evSel'), S.electricVehicles, state.evModel, false);
+  S.populateSelect(document.getElementById('gasSel'), S.gasVehicles, state.gasModel, true);
+
+  const saved = S.load();
+  ['state','evModel','gasModel','miles','cityPct','years','scenario'].forEach(k => { if (saved[k] != null) state[k] = saved[k]; });
+  syncControls();
+
+  initTicker(); initEGalSidebars();
+  updateLabels(); initChart(); recalc(); renderBrand(); renderSeg(); renderTrips(); drawEGalMap(); updateWatchlist();
+
+  document.getElementById('stateSel').addEventListener('change', e => { state.state = e.target.value; persist(); recalc(); renderBrand(); renderSeg(); refreshEGal(); updateWatchlist(); });
+  document.getElementById('evSel').addEventListener('change', e => { state.evModel = e.target.value; persist(); recalc(); renderTrips(); });
+  document.getElementById('gasSel').addEventListener('change', e => { state.gasModel = e.target.value; persist(); recalc(); });
+  document.getElementById('milesSel').addEventListener('input', e => { state.miles = parseInt(e.target.value); updateLabels(); persist(); recalc(); renderBrand(); renderSeg(); updateWatchlist(); });
+  document.getElementById('chSel').addEventListener('input', e => { state.cityPct = parseInt(e.target.value); updateLabels(); persist(); recalc(); renderBrand(); renderSeg(); });
+  document.getElementById('yrSel').addEventListener('change', e => { state.years = parseInt(e.target.value); persist(); recalc(); updateWatchlist(); });
+  document.querySelectorAll('.sc-btn').forEach(b => b.addEventListener('click', () => {
+    document.querySelectorAll('.sc-btn').forEach(x => x.classList.remove('active')); b.classList.add('active');
+    state.scenario = b.dataset.scenario; persist(); recalc(); renderBrand(); renderSeg(); refreshEGal(); updateWatchlist();
+  }));
+  document.querySelectorAll('.yr-tab').forEach(b => b.addEventListener('click', () => {
+    document.querySelectorAll('.yr-tab').forEach(x => x.classList.remove('active')); b.classList.add('active');
+    renderBrand(); renderSeg();
+  }));
+  document.querySelectorAll('.side .fn').forEach(a => {
+    a.addEventListener('click', () => {
+      document.querySelectorAll('.side .fn').forEach(x => x.classList.remove('active'));
+      if (a.href) a.classList.add('active');
+    });
+  });
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('#egallon-map') && !e.target.closest('#egal-popover')) {
+      document.getElementById('egal-popover').style.display = 'none';
+    }
+  });
+
+  // Live clock
+  setInterval(() => {
+    const d = new Date();
+    document.getElementById('banner-time').textContent = d.toLocaleTimeString('en-US',{hour12:false}) + ' ET';
+  }, 1000);
+});
+
+function syncControls(){
+  document.getElementById('stateSel').value = state.state;
+  document.getElementById('evSel').value = state.evModel;
+  document.getElementById('gasSel').value = state.gasModel;
+  document.getElementById('milesSel').value = state.miles;
+  document.getElementById('chSel').value = state.cityPct;
+  document.getElementById('yrSel').value = state.years;
+  document.querySelectorAll('.sc-btn').forEach(b => b.classList.toggle('active', b.dataset.scenario === state.scenario));
+}
+function persist(){ S.save(state); }
+function updateLabels(){
+  document.getElementById('milesVal').textContent = state.miles.toLocaleString();
+  document.getElementById('chVal').textContent = state.cityPct + ' / ' + (100 - state.cityPct);
+  document.getElementById('side-state').textContent = S.stateAbbr[state.state] || state.state;
+  document.getElementById('side-miles').textContent = state.miles.toLocaleString();
+  document.getElementById('side-ev').textContent = state.evModel.replace(/.*\s/, '').slice(0, 6);
+  document.getElementById('side-gas').textContent = state.gasModel.split(' ').slice(-1)[0].slice(0, 5);
+  document.getElementById('side-ch').textContent = state.cityPct;
+  document.getElementById('side-yrs').textContent = state.years + 'YR';
+  document.getElementById('side-scen').textContent = state.scenario === 'peak2022' ? 'PEAK' : 'BASE';
+  document.getElementById('cmd-line').value =
+    'fuel cost delta -- ' + state.miles + 'mi/yr -- ' +
+    state.evModel.split(' ').slice(-2).join(' ').toLowerCase() + ' vs ' + state.gasModel.split(' ').slice(-1)[0].toLowerCase() +
+    ' -- ' + (S.stateAbbr[state.state] || state.state);
+}
+
+function initTicker(){
+  const items = [
+    ['USREG', S.fmt$2(S.gasPrices.National), 'up', '+0.08 ▲'],
+    ['EGAL', S.fmt$2(S.eGallon('National')), 'dn', '−0.04 ▼'],
+    ['KWHUS', (S.electricityPrices.National).toFixed(2), 'up', '+0.2 ▲'],
+    ['CAL-E', S.fmt$2(S.eGallon('California')), 'up', 'HIGH'],
+    ['TX-E', S.fmt$2(S.eGallon('Texas')), 'flat', '═'],
+    ['WA-E', S.fmt$2(S.eGallon('Washington')), 'up', 'LOW ▼'],
+    ['HI-GAS', S.fmt$2(S.gasPrices.Hawaii), 'dn', '▲ 5.60'],
+    ['BRKEVN', '4.3Y', 'flat', '═'],
+    ['MAINT5Y', '-1,840', 'up', 'FAV EV'],
+    ['NEWBEV', '8.4B', 'up', '+12% Q1'],
+    ['BEVSH', '11.8%', 'up', '+0.4 ▲']
+  ];
+  const html = items.map(it => `<span><span class="sym">${it[0]}</span> ${it[1]} <span class="${it[2]}">${it[3]}</span></span>`).join('');
+  document.getElementById('ticker-track').innerHTML = html + html;
+}
+
+function initEGalSidebars(){
+  const names = Object.keys(S.electricityPrices).filter(n => n !== 'National');
+  const withEGal = names.map(n => ({n, v: S.eGallon(n)})).filter(x => x.v != null).sort((a,b) => a.v - b.v);
+  document.getElementById('egal-top').innerHTML = withEGal.slice(0, 5).map(x =>
+    `<div style="display:flex;justify-content:space-between"><span>${S.stateAbbr[x.n]} · ${x.n.slice(0, 10)}</span><span class="amb" style="color:#7af0a8">$${x.v.toFixed(2)}</span></div>`).join('');
+  document.getElementById('egal-bot').innerHTML = withEGal.slice(-5).reverse().map(x =>
+    `<div style="display:flex;justify-content:space-between"><span>${S.stateAbbr[x.n]} · ${x.n.slice(0, 10)}</span><span style="color:#ff5c4d">$${x.v.toFixed(2)}</span></div>`).join('');
+}
+
+let chart;
+function initChart(){
+  const ctx = document.getElementById('costChart').getContext('2d');
+  chart = new Chart(ctx, {
+    type:'line', data:{labels:[],datasets:[]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},
+        tooltip:{backgroundColor:'#121212',borderColor:'#e8c547',borderWidth:1,titleFont:{family:'IBM Plex Mono'},bodyFont:{family:'IBM Plex Mono'},
+          callbacks:{label:c=>c.dataset.label+': $'+Math.round(c.parsed.y).toLocaleString()}}},
+      scales:{x:{ticks:{color:'#9c8432',font:{family:'IBM Plex Mono',size:10}},grid:{color:'#2a2a2a'}},
+              y:{ticks:{color:'#9c8432',font:{family:'IBM Plex Mono',size:10},callback:v=>'$'+v.toLocaleString()},grid:{color:'#2a2a2a'}}}
+    }
+  });
+}
+
+function recalc(){
+  const c = S.costPer100(state.evModel, state.gasModel, state.state, state.scenario, state.cityPct);
+  if (!c) return;
+  const ev = S.findEV(state.evModel), gas = S.findGas(state.gasModel);
+  const evAnn = c.evAnnual(state.miles), gasAnn = c.gasAnnual(state.miles);
+  const annualSave = gasAnn - evAnn;
+  const maintSeg = ev.segment === 'Pickup' ? 'Pickup' : ev.segment === 'Luxury' ? 'Luxury' : (ev.segment === 'Sedan' ? 'Sedan' : 'Small SUV');
+  const m = S.maintCost(maintSeg, state.years);
+  const hold = annualSave * state.years + m.delta;
+
+  // Big numbers
+  document.getElementById('n-gas').textContent = S.fmt$2(S.getGasPrice(state.state, state.scenario)||0);
+  document.getElementById('n-gas-d').textContent = (S.stateAbbr[state.state]||'') + ' · ' + (state.scenario==='peak2022'?'2022 PEAK':"APR '26");
+  document.getElementById('n-egal').textContent = S.fmt$2(S.eGallon(state.state)||0);
+  document.getElementById('n-ann').textContent = (annualSave>=0?'+':'')+S.fmt$(annualSave);
+  document.getElementById('n-ann-d').textContent = 'FAV ' + (annualSave>=0?'EV':'ICE') + ' · ' + (state.miles/1000).toFixed(1) + 'K MI';
+  document.getElementById('n-hold-k').textContent = state.years + 'Y NET';
+  document.getElementById('n-hold').textContent = (hold>=0?'+':'')+S.fmt$(hold);
+  document.getElementById('n-hold-d').textContent = 'INCL MNT Δ ' + S.fmt$(m.delta);
+
+  // Position breakdown
+  document.getElementById('b-fuel').textContent = (annualSave*state.years>=0?'−':'+') + S.fmt$(Math.abs(annualSave*state.years));
+  document.getElementById('b-maint').textContent = '−' + S.fmt$(m.delta);
+  document.getElementById('b-msrp').textContent = '+$6,400';
+  document.getElementById('b-yr').textContent = state.years;
+  const net = hold - 6400;
+  document.getElementById('b-net').textContent = (net>=0?'+':'')+S.fmt$(net);
+
+  // Detail table
+  document.getElementById('d-state').textContent = state.state;
+  document.getElementById('d-elec').textContent = (S.getElecPrice(state.state)||0).toFixed(1);
+  document.getElementById('d-gasp').textContent = (S.getGasPrice(state.state, state.scenario)||0).toFixed(2);
+  document.getElementById('d-ev').textContent = state.evModel;
+  document.getElementById('d-gas').textContent = state.gasModel;
+  document.getElementById('d-seg').textContent = ev.segment;
+  document.getElementById('d-evEff').textContent = ev.kwh100 + ' kWh/100mi';
+  document.getElementById('d-gasEff').textContent = gas.gal100 + ' gal/100mi';
+  document.getElementById('d-ev100').textContent = S.fmt$2(c.evCost);
+  document.getElementById('d-gas100').textContent = S.fmt$2(c.gasCost);
+  document.getElementById('d-fuel').textContent = (annualSave>=0?'+':'')+S.fmt$(annualSave);
+  document.getElementById('d-maint').textContent = (m.delta/state.years>=0?'+':'')+S.fmt$(m.delta/state.years);
+
+  // Scenario display
+  document.getElementById('sc-base').textContent = S.fmt$2(S.getGasPrice(state.state, 'current')||0);
+  document.getElementById('sc-peak').textContent = S.fmt$2(S.getGasPrice(state.state, 'peak2022')||0);
+
+  // Chart
+  document.getElementById('chart-ctx').textContent = (S.stateAbbr[state.state]||state.state).toUpperCase() + ' · ' + state.evModel.split(' ').pop() + ' VS ' + state.gasModel.split(' ').pop();
+  const years = Array.from({length: state.years + 1}, (_, i) => 'Y'+i);
+  const evCum  = years.map((_, i) => Math.round((evAnn + m.ev/state.years) * i));
+  const gasCum = years.map((_, i) => Math.round((gasAnn + m.ice/state.years) * i));
+  chart.data.labels = years;
+  chart.data.datasets = [
+    {label:'ICE cum', data:gasCum, borderColor:'#ff5c4d', backgroundColor:'rgba(255,92,77,0.12)', borderWidth:2, tension:0, pointRadius:0, fill:true},
+    {label:'EV cum',  data:evCum,  borderColor:'#7af0a8', backgroundColor:'rgba(122,240,168,0.12)', borderWidth:2, tension:0, pointRadius:0, fill:true}
+  ];
+  chart.update();
+}
+
+// E-gallon map
+function eColor(v){
+  if (v == null) return '#2a2a2a';
+  if (v < 1.20) return '#7af0a8';
+  if (v < 1.60) return '#e8c547';
+  if (v < 2.00) return '#d9a520';
+  if (v < 2.60) return '#ff9040';
+  return '#ff5c4d';
+}
+function drawEGalMap(){
+  S.drawMap('egallon-map', {
+    height:480, strokeColor:'#0a0a0a', strokeWidth:0.8,
+    colorFn: n => eColor(S.eGallon(n)),
+    labelFn: n => { const v = S.eGallon(n); return v ? '$' + v.toFixed(2) : ''; },
+    labelColor: n => '#0a0a0a',
+    labelSize: '10px', labelFont: 'IBM Plex Mono',
+    onHover:(n, ev, node, over) => d3.select(node).attr('stroke', over ? '#e8c547' : '#0a0a0a').attr('stroke-width', over ? 2 : 0.8),
+    onClick:(name, ev) => {
+      const v = S.eGallon(name), g = S.getGasPrice(name, state.scenario), e = S.getElecPrice(name);
+      if (v == null || g == null) return;
+      const pop = document.getElementById('egal-popover');
+      pop.style.display = 'block';
+      pop.style.left = Math.min(ev.clientX + 15, window.innerWidth - 300) + 'px';
+      pop.style.top  = Math.min(ev.clientY - 40, window.innerHeight - 240) + 'px';
+      document.getElementById('pop-state').textContent = name + ' · ' + (S.stateAbbr[name]||'');
+      document.getElementById('pop-egal').textContent = '$' + v.toFixed(2);
+      document.getElementById('pop-gas').textContent  = '$' + g.toFixed(2);
+      document.getElementById('pop-save').textContent = '$' + (g-v).toFixed(2);
+      document.getElementById('pop-pct').textContent  = Math.round((1 - v/g) * 100) + '%';
+      document.getElementById('pop-elec').textContent = e.toFixed(2);
+      state.state = name; document.getElementById('stateSel').value = name; persist(); recalc(); renderBrand(); renderSeg(); updateWatchlist();
+    }
+  });
+}
+function refreshEGal(){
+  d3.select('#egallon-map svg').selectAll('path').attr('fill', d => eColor(S.eGallon(d.properties.name)));
+}
+
+// Brand matrix
+function activeYears(){ const b = document.querySelector('.yr-tab.active'); return b ? parseInt(b.dataset.years) : 5; }
+function renderBrand(){
+  const grid = document.getElementById('brandMatrix');
+  const brands = ['Toyota','Honda','Ford','Chevy','HMG','Nissan','VW','BMW','Mercedes'];
+  const tiers = ['Under $35k','$35–50k','$50–75k','$75k+'];
+  const yrs = activeYears();
+  grid.innerHTML = '';
+  const corner = document.createElement('div'); corner.className = 'mx-corner'; corner.textContent = 'BRAND/TIER'; grid.appendChild(corner);
+  tiers.forEach(t => { const h = document.createElement('div'); h.className = 'mx-col-h'; h.textContent = t; grid.appendChild(h); });
+  brands.forEach(b => {
+    const rh = document.createElement('div'); rh.className = 'mx-row-h'; rh.textContent = b.toUpperCase(); grid.appendChild(rh);
+    tiers.forEach(t => {
+      const cell = document.createElement('div');
+      const pairs = S.brandPairs.filter(p => p.brand === b && p.tier === t);
+      if (pairs.length === 0) { cell.className = 'mx-cell empty'; grid.appendChild(cell); return; }
+      cell.className = 'mx-cell';
+      cell.innerHTML = pairs.map(p => {
+        const c = S.costPer100(p.ev, p.gas, state.state, state.scenario, state.cityPct);
+        if (!c) return '';
+        const sav = (c.gasAnnual(state.miles) - c.evAnnual(state.miles)) * yrs;
+        return `<div class="pair">
+          <div class="gas">${p.gas.toUpperCase()}</div>
+          <div class="ev">→ ${p.ev}</div>
+          <div class="sv ${sav<0?'neg':''}">${sav>=0?'+':''}${S.fmt$(sav)}</div>
+        </div>`;
+      }).join('');
+      grid.appendChild(cell);
+    });
+  });
+}
+
+function renderSeg(){
+  const grid = document.getElementById('segMatrix');
+  const segs = ['Sedan','Small SUV','Large SUV','Pickup'];
+  const tiers = ['Under $35k','$35–50k','$50–75k','$75k+'];
+  const yrs = activeYears();
+  grid.innerHTML = '';
+  const corner = document.createElement('div'); corner.className = 'mx-corner'; corner.textContent = 'SEG/TIER'; grid.appendChild(corner);
+  tiers.forEach(t => { const h = document.createElement('div'); h.className = 'mx-col-h'; h.textContent = t; grid.appendChild(h); });
+  segs.forEach(seg => {
+    const rh = document.createElement('div'); rh.className = 'mx-row-h'; rh.textContent = seg.toUpperCase(); grid.appendChild(rh);
+    tiers.forEach(t => {
+      const cell = document.createElement('div');
+      const pairs = S.matchedPairs.filter(p => p.segment === seg && p.tier === t);
+      if (pairs.length === 0) { cell.className = 'mx-cell empty'; grid.appendChild(cell); return; }
+      cell.className = 'mx-cell';
+      cell.innerHTML = pairs.map(p => {
+        const c = S.costPer100(p.ev, p.gas, state.state, state.scenario, state.cityPct);
+        if (!c) return '';
+        const sav = (c.gasAnnual(state.miles) - c.evAnnual(state.miles)) * yrs;
+        return `<div class="pair">
+          <div class="gas">${p.gas.toUpperCase()}</div>
+          <div class="ev">→ ${p.ev}</div>
+          <div class="sv ${sav<0?'neg':''}">${sav>=0?'+':''}${S.fmt$(sav)}</div>
+        </div>`;
+      }).join('');
+      grid.appendChild(cell);
+    });
+  });
+}
+
+function renderTrips(){
+  const ev = S.findEV(state.evModel); if (!ev) return;
+  const range = ev.range * 0.85;
+  document.getElementById('trips-live').textContent = state.evModel.split(' ').slice(-2).join(' ').toUpperCase() + ' · ' + ev.range + 'MI';
+  const trips = [
+    {a:'LAX → LAS', d:270, n:'LA → Las Vegas'},{a:'JFK → BOS', d:215, n:'NYC → Boston'},
+    {a:'SFO → TVL', d:195, n:'SF → Tahoe'},{a:'SEA → PDX', d:175, n:'Seattle → Portland'},
+    {a:'ATL → BNA', d:250, n:'Atlanta → Nashville'},{a:'DEN → ASE', d:160, n:'Denver → Aspen'},
+    {a:'DFW → IAH', d:240, n:'Dallas → Houston'},{a:'ORD → DTW', d:285, n:'Chicago → Detroit'},
+    {a:'IAD → EWR', d:225, n:'DC → NYC'},{a:'MIA → MCO', d:235, n:'Miami → Orlando'},
+    {a:'PHX → TUS', d:115, n:'Phoenix → Tucson'},{a:'AUS → SAT', d:80, n:'Austin → San Antonio'}
+  ];
+  document.getElementById('trips-list').innerHTML = trips.map(t => {
+    const stops = Math.max(0, Math.floor((t.d - 50) / range));
+    const cls = stops >= 2 ? 'red' : '';
+    return `<div class="tr">
+      <div class="f">${t.n}</div>
+      <div class="m">${t.d}mi · ${Math.round(range)}mi real</div>
+      <div class="s ${cls}">${stops === 0 ? '0' : stops} stop${stops===1?'':'s'}</div>
+    </div>`;
+  }).join('');
+}
+
+function updateWatchlist(){
+  const wl = document.getElementById('watchlist');
+  const pairs = S.brandPairs.slice(0, 7);
+  const yrs = state.years;
+  wl.innerHTML = pairs.map(p => {
+    const c = S.costPer100(p.ev, p.gas, state.state, state.scenario, state.cityPct);
+    if (!c) return '';
+    const sav = (c.gasAnnual(state.miles) - c.evAnnual(state.miles)) * yrs;
+    const label = (p.gas.split(' ').slice(-1)[0] + '→' + p.ev.split(' ').slice(-2)[0]).slice(0, 10);
+    return `<div class="fn"><span>${label}</span><span class="kbd" style="color:${sav>=0?'#7af0a8':'#ff5c4d'}">${sav>=0?'+':''}${(sav/1000).toFixed(1)}K</span></div>`;
+  }).join('');
+}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 160">
+  <defs>
+    <linearGradient id="bodyGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#9e9e9e"/><stop offset="100%" stop-color="#757575"/></linearGradient>
+    <linearGradient id="windowGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#b3e5fc"/><stop offset="100%" stop-color="#81d4fa"/></linearGradient>
+  </defs>
+  <g transform="translate(400,0) scale(-1,1)"><ellipse cx="200" cy="138" rx="160" ry="8" fill="#e0e0e0"/>
+  <!-- Body: car faces RIGHT. Hood slopes down on right, trunk on left -->
+  <path d="M55 110 L55 80 Q55 75 60 73 L80 68 Q85 60 95 55 L115 50 L250 44 Q280 44 305 55 L340 68 Q350 70 353 78 L355 110" fill="url(#bodyGrad)" stroke="#424242" stroke-width="1.5"/>
+  <!-- Rear window (left, steeper) + roof + windshield (right, raked back) -->
+  <path d="M95 67 L117 52 L248 46 L298 52 L335 67 Z" fill="url(#windowGrad)" stroke="#424242" stroke-width="1"/>
+  <!-- B-pillar -->
+  <line x1="190" y1="48" x2="188" y2="67" stroke="#424242" stroke-width="1.5"/>
+  <!-- Door line -->
+  <line x1="190" y1="67" x2="188" y2="108" stroke="#424242" stroke-width="1" opacity="0.5"/>
+  <!-- Headlight (RIGHT = front) -->
+  <path d="M353 80 L360 82 L360 98 L355 100" fill="#fff9c4" stroke="#f9a825" stroke-width="1"/>
+  <!-- Taillight (LEFT = rear) -->
+  <path d="M55 78 L49 80 L49 96 L55 98" fill="#ef5350" stroke="#c62828" stroke-width="1"/>
+  <!-- Wheel wells -->
+  <path d="M90 110 Q90 88 115 88 Q140 88 140 110" fill="#333"/>
+  <path d="M270 110 Q270 88 295 88 Q320 88 320 110" fill="#333"/>
+  <!-- Wheels -->
+  <circle cx="115" cy="112" r="20" fill="#444"/><circle cx="115" cy="112" r="14" fill="#666"/><circle cx="115" cy="112" r="4" fill="#999"/>
+  <circle cx="295" cy="112" r="20" fill="#444"/><circle cx="295" cy="112" r="14" fill="#666"/><circle cx="295" cy="112" r="4" fill="#999"/>
+  <g stroke="#888" stroke-width="1.5" opacity="0.6">
+    <line x1="115" y1="98" x2="115" y2="106"/><line x1="101" y1="112" x2="109" y2="112"/><line x1="121" y1="112" x2="129" y2="112"/><line x1="115" y1="118" x2="115" y2="126"/>
+    <line x1="295" y1="98" x2="295" y2="106"/><line x1="281" y1="112" x2="289" y2="112"/><line x1="301" y1="112" x2="309" y2="112"/><line x1="295" y1="118" x2="295" y2="126"/>
+  </g>
+  <line x1="40" y1="132" x2="365" y2="132" stroke="#ccc" stroke-width="1"/>
+</g></svg>

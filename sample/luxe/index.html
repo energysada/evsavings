@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ownership Quarterly — EV Savings</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,200;0,9..144,300;0,9..144,400;1,9..144,200;1,9..144,300&family=Inter:wght@300;400;500&family=JetBrains+Mono:wght@300;400&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://d3js.org/d3.v7.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/topojson-client@3"></script>
+<script src="../shared.js"></script>
+<style>
+  :root{
+    --bg:#0a1514;--bg-2:#122220;--bg-3:#1a2b2a;--hair:#2a3d3b;
+    --ivory:#efe7d4;--ivory-2:#cdc3ae;
+    --brass:#d4b979;--brass-deep:#a88d4f;--brass-dim:#8a7751;
+    --forest:#3b5a4c;--ember:#c97d4e;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  html,body{background:var(--bg);color:var(--ivory);font-family:'Inter',sans-serif;font-weight:300;overflow-x:hidden}
+
+  body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:1;background:radial-gradient(ellipse 1400px 900px at 20% 10%,rgba(212,185,121,0.06) 0%,transparent 60%),radial-gradient(ellipse 900px 600px at 85% 80%,rgba(59,90,76,0.15) 0%,transparent 60%)}
+  body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:2;opacity:0.045;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence baseFrequency='0.7' numOctaves='2' seed='5'/></filter><rect width='100%' height='100%' filter='url(%23n)' opacity='0.5'/></svg>");mix-blend-mode:overlay}
+  main,section,.sect,nav,footer{position:relative;z-index:10}
+
+  .nav{padding:22px 40px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--hair);position:sticky;top:0;background:rgba(10,21,20,0.88);backdrop-filter:blur(10px);z-index:50;gap:20px;flex-wrap:wrap}
+  .nav a{color:var(--ivory-2);text-decoration:none;font-size:11px;letter-spacing:0.3em;text-transform:uppercase;transition:color .3s}
+  .nav a:hover{color:var(--brass)}
+  .monogram{font-family:'Fraunces',serif;font-weight:300;font-size:20px;letter-spacing:0.02em;color:var(--brass)}
+  .monogram em{font-style:italic;color:var(--ivory)}
+  .nav-links{display:flex;gap:22px;flex-wrap:wrap}
+
+  .mono{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.35em;text-transform:uppercase;color:var(--brass-dim)}
+
+  /* Hero */
+  .hero{padding:120px 40px 80px;max-width:1280px;margin:0 auto}
+  .hero .eyebrow{color:var(--brass);margin-bottom:40px;letter-spacing:0.4em}
+  h1.display{font-family:'Fraunces',serif;font-weight:200;font-size:clamp(60px,9vw,140px);line-height:0.92;letter-spacing:-0.03em;max-width:14ch;margin-bottom:48px;color:var(--ivory)}
+  h1.display em{font-style:italic;font-weight:300;color:var(--brass);position:relative}
+  h1.display em::after{content:"";position:absolute;left:0;right:0;bottom:8px;height:1px;background:var(--brass);opacity:0.5}
+  .hero-grid{display:grid;grid-template-columns:1.3fr 1fr;gap:80px;align-items:end;margin-top:64px}
+  .hero-lede{font-family:'Fraunces',serif;font-weight:300;font-style:italic;font-size:23px;line-height:1.5;color:var(--ivory-2);max-width:44ch}
+  .hero-lede em{font-style:normal;color:var(--brass)}
+
+  .cert{border:1px solid var(--hair);padding:36px 34px;background:linear-gradient(135deg,rgba(212,185,121,0.04) 0%,transparent 60%)}
+  .cert-head{display:flex;justify-content:space-between;align-items:baseline;border-bottom:1px solid var(--hair);padding-bottom:14px;margin-bottom:22px}
+  .cert-head .seal{font-family:'Fraunces',serif;font-style:italic;font-weight:300;color:var(--brass)}
+  .cert-row{display:flex;justify-content:space-between;align-items:baseline;padding:14px 0;border-bottom:1px dotted var(--hair)}
+  .cert-row:last-child{border-bottom:none}
+  .cert-row .l{font-size:11px;letter-spacing:0.3em;text-transform:uppercase;color:var(--ivory-2)}
+  .cert-row .v{font-family:'Fraunces',serif;font-weight:300;font-size:26px;color:var(--ivory);font-variant-numeric:tabular-nums}
+  .cert-row .v em{font-style:italic;color:var(--brass)}
+
+  /* Sect */
+  .sect-title{padding:100px 40px 60px;max-width:1280px;margin:0 auto;border-top:1px solid var(--hair)}
+  .sect-title .mono{margin-bottom:20px}
+  .sect-title h2{font-family:'Fraunces',serif;font-weight:200;font-size:clamp(44px,5.5vw,78px);line-height:0.98;letter-spacing:-0.025em;margin-bottom:14px;max-width:22ch}
+  .sect-title h2 em{font-style:italic;color:var(--brass)}
+  .sect-title p{font-family:'Fraunces',serif;font-weight:300;font-style:italic;font-size:19px;color:var(--ivory-2);max-width:58ch;line-height:1.6}
+
+  /* Calculator console */
+  .console{padding:0 40px 100px;max-width:1280px;margin:0 auto}
+  .console-card{border:1px solid var(--hair);background:linear-gradient(140deg,rgba(212,185,121,0.03) 0%,transparent 50%);padding:48px}
+  .console-head{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:0.3em;text-transform:uppercase;color:var(--brass-dim);margin-bottom:32px;display:flex;justify-content:space-between;align-items:center;padding-bottom:18px;border-bottom:1px solid var(--hair)}
+  .console-head .s{color:var(--brass)}
+  .ctrl-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:28px;margin-bottom:40px}
+  .ctrl{display:flex;flex-direction:column;gap:12px}
+  .ctrl label{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.3em;text-transform:uppercase;color:var(--brass-dim)}
+  .ctrl select{background:transparent;color:var(--ivory);border:none;border-bottom:1px solid var(--hair);padding:8px 0;font-family:'Fraunces',serif;font-weight:300;font-size:18px;appearance:none;cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 5 5-5' stroke='%23d4b979' stroke-width='1' fill='none'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 0 center;padding-right:20px;transition:border-color .3s}
+  .ctrl select:focus{outline:none;border-color:var(--brass)}
+  .ctrl select optgroup{background:var(--bg-2);color:var(--brass);font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.3em;text-transform:uppercase}
+  .ctrl select option{background:var(--bg-2);color:var(--ivory);font-family:'Inter',sans-serif;font-size:14px}
+  .ctrl input[type=range]{-webkit-appearance:none;appearance:none;background:transparent;width:100%;padding:0;margin-top:6px}
+  .ctrl input[type=range]::-webkit-slider-runnable-track{height:1px;background:var(--hair)}
+  .ctrl input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;background:var(--brass);border-radius:50%;margin-top:-6px;cursor:pointer;border:none;box-shadow:0 0 0 3px rgba(212,185,121,0.2)}
+  .ctrl .val{font-family:'Fraunces',serif;font-weight:300;font-size:22px;color:var(--brass);font-variant-numeric:tabular-nums;letter-spacing:-0.01em}
+
+  .scenario{display:flex;gap:2px;border:1px solid var(--hair);padding:2px}
+  .scenario button{flex:1;background:transparent;color:var(--ivory-2);border:none;padding:14px 18px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:0.3em;text-transform:uppercase;cursor:pointer;transition:all .3s}
+  .scenario button.active{background:var(--brass);color:var(--bg)}
+  .scenario button:hover:not(.active){color:var(--brass)}
+
+  /* Big results */
+  .results{margin-top:48px;display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid var(--hair)}
+  .results .cell{padding:36px 28px;border-right:1px solid var(--hair)}
+  .results .cell:last-child{border-right:none}
+  .results .cell .k{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.3em;text-transform:uppercase;color:var(--brass-dim);margin-bottom:22px}
+  .results .cell .v{font-family:'Fraunces',serif;font-weight:200;font-size:52px;line-height:0.95;letter-spacing:-0.03em;color:var(--ivory)}
+  .results .cell .v em{color:var(--brass);font-style:italic;font-weight:300}
+  .results .cell .d{font-size:12px;color:var(--ivory-2);margin-top:14px;letter-spacing:0.05em;font-weight:300}
+
+  /* Chart + ledger */
+  .console-post{margin-top:48px;display:grid;grid-template-columns:2fr 1fr;gap:56px}
+  .chart-holder{border:1px solid var(--hair);padding:28px;background:rgba(212,185,121,0.02);position:relative;min-height:360px}
+  .chart-holder .hlabel{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.3em;text-transform:uppercase;color:var(--brass-dim);margin-bottom:16px}
+  .chart-holder canvas{max-height:300px}
+  .ledger{font-family:'JetBrains Mono',monospace;font-size:12px}
+  .ledger h4{font-family:'Fraunces',serif;font-weight:300;font-style:italic;font-size:22px;color:var(--brass);margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid var(--hair);letter-spacing:-0.01em}
+  .ledger-row{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px dotted var(--hair);font-size:12px}
+  .ledger-row .k{color:var(--ivory-2);letter-spacing:0.1em;text-transform:uppercase;font-size:10px}
+  .ledger-row .v{font-family:'Fraunces',serif;font-weight:300;font-size:16px;color:var(--ivory);font-variant-numeric:tabular-nums}
+  .ledger-row .v.brass{color:var(--brass)}
+  .ledger-row .v.ember{color:var(--ember)}
+
+  /* Atlas (e-gallon map) */
+  .atlas{padding:60px 40px 100px;max-width:1280px;margin:0 auto}
+  .atlas-grid{display:grid;grid-template-columns:1fr 380px;gap:48px;align-items:start}
+  .atlas-map-frame{border:1px solid var(--hair);padding:16px;background:var(--bg-2);position:relative}
+  #egallon-map{min-height:540px}
+  .egal-popover{position:fixed;background:var(--bg-2);color:var(--ivory);padding:22px 26px;min-width:280px;border:1px solid var(--brass);font-family:'JetBrains Mono',monospace;z-index:200;display:none;box-shadow:0 24px 48px rgba(0,0,0,0.5)}
+  .egal-popover .st{font-family:'Fraunces',serif;font-weight:300;font-size:26px;color:var(--brass);margin-bottom:16px;letter-spacing:-0.01em;border-bottom:1px solid var(--hair);padding-bottom:12px}
+  .egal-popover .st em{font-style:italic}
+  .egal-popover .row{display:flex;justify-content:space-between;padding:8px 0;align-items:baseline}
+  .egal-popover .row .k{font-size:10px;letter-spacing:0.25em;text-transform:uppercase;color:var(--ivory-2)}
+  .egal-popover .row .v{font-family:'Fraunces',serif;font-weight:300;font-size:20px;color:var(--ivory);font-variant-numeric:tabular-nums}
+  .egal-popover .row .v.brass{color:var(--brass)}
+  .egal-popover .row .v.ember{color:var(--ember)}
+  .atlas-side{display:flex;flex-direction:column;gap:28px}
+  .atlas-stat{border:1px solid var(--hair);padding:28px;background:linear-gradient(135deg,rgba(212,185,121,0.04) 0%,transparent 60%)}
+  .atlas-stat .mono{margin-bottom:18px}
+  .atlas-stat .n{font-family:'Fraunces',serif;font-weight:200;font-size:72px;color:var(--brass);line-height:0.9;letter-spacing:-0.03em}
+  .atlas-stat .d{font-family:'Fraunces',serif;font-weight:300;font-style:italic;font-size:16px;color:var(--ivory-2);line-height:1.5;margin-top:14px}
+  .atlas-legend{display:flex;gap:20px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.25em;text-transform:uppercase;color:var(--ivory-2);align-items:center;flex-wrap:wrap;margin-top:20px}
+  .atlas-legend .chip{width:18px;height:18px;border:1px solid var(--hair)}
+
+  /* Roster (brand matrix) */
+  .roster{padding:60px 40px 100px;max-width:1280px;margin:0 auto}
+  .roster-head-meta{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:32px;gap:40px;flex-wrap:wrap}
+  .roster .yr-tabs{display:flex;gap:4px;border:1px solid var(--hair);padding:2px}
+  .roster .yr-tabs button{background:transparent;color:var(--ivory-2);border:none;padding:10px 18px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:0.25em;text-transform:uppercase;cursor:pointer;transition:all .3s}
+  .roster .yr-tabs button.active{background:var(--brass);color:var(--bg)}
+  .pairs-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 64px;border-top:1px solid var(--hair)}
+  .pair{padding:32px 0;border-bottom:1px solid var(--hair);display:grid;grid-template-columns:1fr auto 1fr;gap:28px;align-items:center}
+  .pair:hover{background:rgba(212,185,121,0.02)}
+  .pair .ice-brand,.pair .ev-brand{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.3em;text-transform:uppercase;color:var(--brass-dim);margin-bottom:8px}
+  .pair .ice-name{font-family:'Fraunces',serif;font-weight:300;font-size:24px;line-height:1.1;color:var(--ivory);letter-spacing:-0.01em}
+  .pair .ev-name{font-family:'Fraunces',serif;font-weight:300;font-style:italic;font-size:22px;color:var(--brass);line-height:1.1;letter-spacing:-0.01em}
+  .pair .divide{color:var(--brass);font-family:'Fraunces',serif;font-style:italic;font-size:20px;opacity:0.7}
+  .pair .return{grid-column:1/-1;display:flex;justify-content:space-between;align-items:center;margin-top:16px;padding-top:14px;border-top:1px dotted var(--hair)}
+  .pair .return .rlab{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.3em;text-transform:uppercase;color:var(--brass-dim)}
+  .pair .return .rval{font-family:'Fraunces',serif;font-weight:300;font-size:22px;color:var(--brass);font-variant-numeric:tabular-nums}
+  .pair .return .rval.neg{color:var(--ember)}
+
+  /* Segment matrix */
+  .seg-wrap{padding:60px 40px 100px;max-width:1280px;margin:0 auto;border-top:1px solid var(--hair)}
+  .seg-matrix{display:grid;grid-template-columns:160px repeat(4,1fr);border:1px solid var(--hair);background:var(--bg)}
+  .seg-corner{padding:18px 16px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.3em;text-transform:uppercase;color:var(--brass-dim);border-right:1px solid var(--hair);border-bottom:1px solid var(--hair)}
+  .seg-col-h{padding:18px 16px;font-family:'Fraunces',serif;font-weight:300;font-size:18px;color:var(--brass);border-right:1px solid var(--hair);border-bottom:1px solid var(--hair);font-style:italic;letter-spacing:-0.01em}
+  .seg-col-h:last-child{border-right:none}
+  .seg-row-h{padding:22px 16px;font-family:'Fraunces',serif;font-weight:300;font-size:20px;color:var(--ivory);border-right:1px solid var(--hair);border-bottom:1px solid var(--hair);display:flex;align-items:center;letter-spacing:-0.01em}
+  .seg-cell{padding:16px;border-right:1px solid var(--hair);border-bottom:1px solid var(--hair);min-height:110px}
+  .seg-cell:last-child{border-right:none}
+  .seg-cell.empty{background:rgba(212,185,121,0.01)}
+  .seg-cell.empty::before{content:"·";font-family:'Fraunces',serif;font-size:32px;color:var(--brass-dim);display:block;text-align:center;opacity:0.3}
+  .seg-cell .pair-sm{padding:8px 10px;margin-bottom:6px;border-left:1px solid var(--brass);cursor:pointer;transition:background .2s}
+  .seg-cell .pair-sm:hover{background:rgba(212,185,121,0.04)}
+  .seg-cell .pair-sm:last-child{margin-bottom:0}
+  .seg-cell .gas-name{font-family:'Inter',sans-serif;font-weight:500;font-size:13px;color:var(--ivory);line-height:1.2}
+  .seg-cell .ev-name{font-family:'Fraunces',serif;font-weight:300;font-style:italic;font-size:13px;color:var(--brass);margin-top:4px}
+  .seg-cell .save{font-family:'Fraunces',serif;font-weight:300;font-size:17px;color:var(--brass);margin-top:6px;font-variant-numeric:tabular-nums}
+  .seg-cell .save.neg{color:var(--ember)}
+
+  /* Maintenance */
+  .maint-sect{padding:100px 40px;border-top:1px solid var(--hair);background:var(--bg-2);position:relative;z-index:10}
+  .maint-inner{max-width:1280px;margin:0 auto}
+  .maint-boards{display:grid;grid-template-columns:repeat(3,1fr);gap:0;border-top:1px solid var(--hair);border-bottom:1px solid var(--hair);margin-bottom:40px}
+  .mboard{padding:48px 40px;border-right:1px solid var(--hair)}
+  .mboard:last-child{border-right:none}
+  .mboard .num{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:0.3em;color:var(--brass-dim);margin-bottom:36px}
+  .mboard .metric{font-family:'Fraunces',serif;font-weight:200;font-size:84px;line-height:0.95;letter-spacing:-0.03em;color:var(--ivory);margin-bottom:18px}
+  .mboard .metric em{font-style:italic;color:var(--brass);font-weight:300}
+  .mboard .label{font-size:12px;letter-spacing:0.25em;text-transform:uppercase;color:var(--brass);margin-bottom:14px}
+  .mboard .desc{font-family:'Fraunces',serif;font-weight:300;font-size:15px;line-height:1.6;color:var(--ivory-2);max-width:32ch}
+
+  .maint-table{border:1px solid var(--hair);padding:32px}
+  .maint-table table{width:100%;border-collapse:collapse;font-size:13px}
+  .maint-table th{text-align:left;padding:12px 14px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.3em;text-transform:uppercase;color:var(--brass-dim);border-bottom:1px solid var(--hair);font-weight:400}
+  .maint-table th.r{text-align:right}
+  .maint-table td{padding:14px;border-bottom:1px dotted var(--hair);color:var(--ivory);font-variant-numeric:tabular-nums;font-weight:300}
+  .maint-table td.r{text-align:right;font-family:'Fraunces',serif;font-size:16px}
+  .maint-table td.gray{color:var(--ivory-2)}
+  .maint-table td.total{font-family:'Fraunces',serif;font-style:italic;font-weight:300;color:var(--brass);font-size:18px;border-top:1px solid var(--brass)}
+
+  /* Charging */
+  .chrg{padding:100px 40px;max-width:1280px;margin:0 auto;border-top:1px solid var(--hair)}
+  .chrg-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:0;border-top:1px solid var(--hair)}
+  .chrg-card{padding:36px 30px;border-right:1px solid var(--hair);border-bottom:1px solid var(--hair)}
+  .chrg-card:last-child{border-right:none}
+  .chrg-card .mono{margin-bottom:22px}
+  .chrg-card .v{font-family:'Fraunces',serif;font-weight:200;font-size:56px;line-height:0.95;letter-spacing:-0.03em;color:var(--brass)}
+  .chrg-card .d{font-family:'Fraunces',serif;font-weight:300;font-style:italic;font-size:15px;color:var(--ivory-2);margin-top:14px;line-height:1.5}
+
+  /* Trips */
+  .trips{padding:100px 40px;max-width:1280px;margin:0 auto;border-top:1px solid var(--hair)}
+  .trips-list{display:grid;grid-template-columns:1fr 1fr;gap:0 64px;border-top:1px solid var(--hair)}
+  .trip-row{padding:20px 0;border-bottom:1px solid var(--hair);display:grid;grid-template-columns:1fr auto;gap:24px;align-items:center}
+  .trip-row .ft{font-family:'Fraunces',serif;font-weight:300;font-size:19px;color:var(--ivory);letter-spacing:-0.01em}
+  .trip-row .ft small{display:block;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--brass-dim);letter-spacing:0.2em;text-transform:uppercase;margin-top:4px;font-weight:400}
+  .trip-row .stops{font-family:'Fraunces',serif;font-weight:200;font-size:32px;color:var(--brass);min-width:70px;text-align:right;letter-spacing:-0.02em}
+  .trip-row .stops.zero{color:var(--brass)}
+  .trip-row .stops.two{color:var(--ember)}
+
+  /* Quote */
+  .quote{padding:140px 40px;text-align:center;max-width:1100px;margin:0 auto;border-top:1px solid var(--hair)}
+  .quote .orn{color:var(--brass);font-size:22px;letter-spacing:0.6em;margin-bottom:28px}
+  .quote blockquote{font-family:'Fraunces',serif;font-weight:200;font-style:italic;font-size:clamp(30px,4.2vw,50px);line-height:1.2;letter-spacing:-0.01em;color:var(--ivory);max-width:30ch;margin:0 auto 28px}
+  .quote blockquote em{font-style:normal;color:var(--brass);border-bottom:1px solid var(--brass)}
+  .quote cite{font-family:'JetBrains Mono',monospace;font-style:normal;font-size:11px;letter-spacing:0.35em;text-transform:uppercase;color:var(--ivory-2)}
+
+  /* Invite */
+  .invite{padding:120px 40px;border-top:1px solid var(--hair);background:linear-gradient(180deg,var(--bg) 0%,var(--bg-2) 100%)}
+  .invite-inner{max-width:900px;margin:0 auto;text-align:center}
+  .invite h2{font-family:'Fraunces',serif;font-weight:200;font-size:clamp(44px,6vw,82px);line-height:1;letter-spacing:-0.03em;margin-bottom:26px;color:var(--ivory)}
+  .invite h2 em{font-style:italic;color:var(--brass)}
+  .invite p{font-family:'Fraunces',serif;font-weight:300;font-size:18px;line-height:1.6;color:var(--ivory-2);max-width:52ch;margin:0 auto 44px}
+  .invite a.cta{display:inline-block;border:1px solid var(--brass);padding:20px 44px;color:var(--brass);text-decoration:none;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:0.4em;text-transform:uppercase;transition:all .4s}
+  .invite a.cta:hover{background:var(--brass);color:var(--bg)}
+
+  footer{padding:40px;border-top:1px solid var(--hair);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px}
+  footer .mono{color:var(--brass-dim)}
+  footer .seal{font-family:'Fraunces',serif;font-weight:300;font-style:italic;font-size:14px;color:var(--brass)}
+
+  @media (max-width:960px){
+    .hero{padding:80px 24px 60px}
+    .nav{padding:20px 24px}
+    .hero-grid,.console-post,.atlas-grid{grid-template-columns:1fr;gap:32px}
+    .results{grid-template-columns:1fr 1fr}
+    .results .cell{border-right:1px solid var(--hair);border-bottom:1px solid var(--hair)}
+    .results .cell:nth-child(2n){border-right:none}
+    .pairs-grid,.trips-list{grid-template-columns:1fr;gap:0}
+    .pair{grid-template-columns:1fr;gap:18px}
+    .maint-boards{grid-template-columns:1fr}
+    .mboard{border-right:none;border-bottom:1px solid var(--hair)}
+    .seg-matrix{grid-template-columns:110px repeat(4,1fr);font-size:11px}
+    .console-card{padding:30px}
+    .maint-sect,.chrg,.trips,.invite,.quote{padding:70px 24px}
+  }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <a href="../">← Gallery</a>
+  <div class="monogram">Ownership <em>Quarterly</em></div>
+  <div class="nav-links">
+    <a href="#assess">Assess</a>
+    <a href="#atlas">Atlas</a>
+    <a href="#roster">Roster</a>
+    <a href="#maint">Maintenance</a>
+    <a href="#charge">Charge</a>
+  </div>
+</nav>
+
+<section class="hero">
+  <div class="mono eyebrow">Vol. IV · Fuel &amp; Residual · Spring 2026</div>
+  <h1 class="display">A better <em>return</em><br>on every mile.</h1>
+  <div class="hero-grid">
+    <p class="hero-lede">For the driver who already knows the car can be afforded either way, the question is never <em>whether</em>. It is, quietly, <em>by how much</em>. The numbers below are yours, annualised and honest.</p>
+    <div class="cert">
+      <div class="cert-head">
+        <div class="seal">Certificate of Ownership</div>
+        <div class="mono">04 · 2026</div>
+      </div>
+      <div class="cert-row"><span class="l">Fuel · 100 mi</span><span class="v" id="c-fuel"><em>$3.88</em></span></div>
+      <div class="cert-row"><span class="l">Annual fuel Δ</span><span class="v" id="c-ann">$1,240</span></div>
+      <div class="cert-row"><span class="l">5-yr maintenance Δ</span><span class="v" id="c-maint"><em>$1,840</em></span></div>
+      <div class="cert-row"><span class="l">Hold-period position</span><span class="v" id="c-hold"><em>$7,740</em></span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ ASSESS / CALC ============ -->
+<section class="sect-title" id="assess">
+  <div class="mono">I · Assessment</div>
+  <h2>Your <em>parameters</em>,<br>the portfolio response.</h2>
+  <p>Six fields. Everything else is derived, sourced, and annualised. Inputs persist on this device.</p>
+</section>
+
+<section class="console">
+  <div class="console-card">
+    <div class="console-head"><span>Private Assessment — Editable</span><span class="s">✓ saved</span></div>
+    <div class="ctrl-grid">
+      <div class="ctrl"><label>State</label><select id="stateSel"></select></div>
+      <div class="ctrl"><label>Electric Vehicle</label><select id="evSel"></select></div>
+      <div class="ctrl"><label>Incumbent · ICE</label><select id="gasSel"></select></div>
+      <div class="ctrl"><label>Annual Miles</label><input type="range" id="milesSel" min="5000" max="30000" step="500" value="13500"><div class="val" id="milesVal">13,500</div></div>
+      <div class="ctrl"><label>City / Highway Mix</label><input type="range" id="chSel" min="0" max="100" step="5" value="55"><div class="val" id="chVal">55 / 45</div></div>
+      <div class="ctrl"><label>Hold Period</label><select id="yrSel"><option value="1">1 year</option><option value="5" selected>5 years</option><option value="10">10 years</option></select></div>
+    </div>
+    <div class="scenario">
+      <button class="sc-btn active" data-scenario="current">Prices · Apr 2026</button>
+      <button class="sc-btn" data-scenario="peak2022">Stress · 2022 Crisis Peak</button>
+    </div>
+
+    <div class="results">
+      <div class="cell"><div class="k">Per 100 mi · gas</div><div class="v" id="n-gas100"><em>$11.42</em></div><div class="d" id="n-gas100-d">Toyota RAV4 · Apr '26 prices</div></div>
+      <div class="cell"><div class="k">Per 100 mi · electric</div><div class="v" id="n-ev100">$3.88</div><div class="d" id="n-ev100-d">Tesla Model Y · local rate</div></div>
+      <div class="cell"><div class="k">Annual fuel Δ</div><div class="v" id="n-ann"><em>$1,240</em></div><div class="d" id="n-ann-d">Favours EV · 13,500 mi</div></div>
+      <div class="cell"><div class="k" id="n-hold-k">5-year position</div><div class="v" id="n-hold">$7,740</div><div class="d">Incl. maintenance delta</div></div>
+    </div>
+
+    <div class="console-post">
+      <div class="chart-holder">
+        <div class="hlabel">Cumulative cost · hold period · USD</div>
+        <canvas id="costChart"></canvas>
+      </div>
+      <div class="ledger">
+        <h4>Statement, in full.</h4>
+        <div class="ledger-row"><span class="k">State</span><span class="v" id="r-state">California</span></div>
+        <div class="ledger-row"><span class="k">Electric vehicle</span><span class="v" id="r-ev">Model Y</span></div>
+        <div class="ledger-row"><span class="k">Incumbent · ICE</span><span class="v" id="r-gas">RAV4</span></div>
+        <div class="ledger-row"><span class="k">Electricity ¢/kWh</span><span class="v" id="r-elec">31.9</span></div>
+        <div class="ledger-row"><span class="k">Regular $/gal</span><span class="v ember" id="r-gasp">5.93</span></div>
+        <div class="ledger-row"><span class="k">EV kWh/100 mi</span><span class="v" id="r-evEff">28</span></div>
+        <div class="ledger-row"><span class="k">Gas gal/100 mi</span><span class="v" id="r-gasEff">3.3</span></div>
+        <div class="ledger-row"><span class="k">Annual fuel Δ</span><span class="v brass" id="r-fs">$1,240</span></div>
+        <div class="ledger-row"><span class="k">Annual maintenance Δ</span><span class="v brass" id="r-ms">$368</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ ATLAS ============ -->
+<section class="sect-title" id="atlas">
+  <div class="mono">II · Atlas</div>
+  <h2>The <em>geography</em> of a gallon.</h2>
+  <p>Priced at your local utility, the electric gallon ranges from three dollars in the Pacific Northwest to ten dollars and change in Honolulu. In every state in the union, it undercuts the pump.</p>
+</section>
+
+<section class="atlas">
+  <div class="atlas-grid">
+    <div class="atlas-map-frame">
+      <div id="egallon-map"></div>
+      <div class="atlas-legend">
+        <span class="chip" style="background:#3b5a4c"></span><span>&lt; $1.20</span>
+        <span class="chip" style="background:#7a9d8a"></span><span>Cheap</span>
+        <span class="chip" style="background:#d4b979"></span><span>Average</span>
+        <span class="chip" style="background:#c97d4e"></span><span>Premium</span>
+      </div>
+    </div>
+    <div class="atlas-side">
+      <div class="atlas-stat">
+        <div class="mono">National mean spread</div>
+        <div class="n" id="atlas-spread">−67%</div>
+        <div class="d">Weighted by vehicle miles travelled. The spread narrows in high-tariff states, widens during peak gasoline seasons.</div>
+      </div>
+      <div class="atlas-stat">
+        <div class="mono">Selected state</div>
+        <div class="n" id="atlas-state">$2.69</div>
+        <div class="d" id="atlas-state-d">California · priced at 31.9 ¢/kWh, reflecting the Kona-Electric coefficient.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div id="egal-popover" class="egal-popover">
+  <div class="st"><em id="pop-state">State</em></div>
+  <div class="row"><span class="k">E-Gallon</span><span class="v brass" id="pop-egal">$0.00</span></div>
+  <div class="row"><span class="k">Regular · gal</span><span class="v ember" id="pop-gas">$0.00</span></div>
+  <div class="row"><span class="k">Per gal saved</span><span class="v" id="pop-save">$0.00</span></div>
+  <div class="row"><span class="k">% cheaper</span><span class="v" id="pop-pct">0%</span></div>
+</div>
+
+<!-- ============ ROSTER / BRAND ============ -->
+<section class="sect-title" id="roster">
+  <div class="mono">III · Roster</div>
+  <h2>Estates, sedans, and the <em>honest swap</em>.</h2>
+  <p>For owners anchored on a single internal-combustion marque, these are the matched pairs. Position updates with your horizon.</p>
+</section>
+
+<section class="roster">
+  <div class="roster-head-meta">
+    <div class="mono" id="roster-ctx">California · 13,500 mi/yr · Apr '26 prices</div>
+    <div class="yr-tabs">
+      <button class="yr-tab" data-years="1">1 YR</button>
+      <button class="yr-tab active" data-years="5">5 YR</button>
+      <button class="yr-tab" data-years="10">10 YR</button>
+    </div>
+  </div>
+  <div class="pairs-grid" id="pairs-grid"></div>
+</section>
+
+<!-- ============ SEGMENT MATRIX ============ -->
+<section class="sect-title">
+  <div class="mono">IV · Matrix</div>
+  <h2>By <em>segment</em>, by <em>tier</em>.</h2>
+  <p>The full matched-pairs matrix. Each cell shows curated EV-to-ICE substitutions at the appropriate size and price bracket.</p>
+</section>
+
+<section class="seg-wrap">
+  <div class="seg-matrix" id="seg-matrix"></div>
+</section>
+
+<!-- ============ MAINTENANCE ============ -->
+<section class="maint-sect" id="maint">
+  <div class="maint-inner">
+    <div style="margin-bottom:48px">
+      <div class="mono" style="margin-bottom:18px">V · Maintenance</div>
+      <h2 style="font-family:'Fraunces';font-weight:200;font-size:clamp(44px,5.5vw,76px);line-height:0.98;letter-spacing:-0.025em;margin-bottom:14px;max-width:22ch">On the <em style="font-style:italic;color:var(--brass)">quiet dividend</em><br>of moving parts.</h2>
+      <p style="font-family:'Fraunces';font-weight:300;font-style:italic;font-size:18px;color:var(--ivory-2);max-width:58ch">An internal combustion engine has roughly two thousand moving parts. A battery has one. The service book shows it.</p>
+    </div>
+    <div class="maint-boards">
+      <div class="mboard">
+        <div class="num">01 · ICE · 5 yr</div>
+        <div class="label">Median cost</div>
+        <div class="metric" id="m-ice">$3,410</div>
+        <div class="desc">Oil, filters, plugs, belts, transmission fluid, exhaust — the steady tax of mechanical complexity.</div>
+      </div>
+      <div class="mboard">
+        <div class="num">02 · EV · 5 yr</div>
+        <div class="label">Median cost</div>
+        <div class="metric" id="m-ev">$1,570</div>
+        <div class="desc">Tires, brake fluid, cabin filter, wipers. Regen does most of the slowing; pads last longer.</div>
+      </div>
+      <div class="mboard">
+        <div class="num">03 · Delta</div>
+        <div class="label">Dividend</div>
+        <div class="metric"><em id="m-delta">−$1,840</em></div>
+        <div class="desc">The quiet advantage of mechanical simplicity. Rendered in dollars, not adjectives.</div>
+      </div>
+    </div>
+    <div class="maint-table">
+      <table>
+        <thead><tr><th>Item</th><th>Interval</th><th class="r">ICE</th><th class="r">EV</th><th class="r">Δ</th></tr></thead>
+        <tbody>
+          <tr><td>Oil &amp; filter</td><td class="gray">7,500 mi</td><td class="r">810</td><td class="r gray">—</td><td class="r">−810</td></tr>
+          <tr><td>Air filter</td><td class="gray">30,000 mi</td><td class="r">140</td><td class="r gray">—</td><td class="r">−140</td></tr>
+          <tr><td>Spark plugs</td><td class="gray">60,000 mi</td><td class="r">320</td><td class="r gray">—</td><td class="r">−320</td></tr>
+          <tr><td>Transmission fluid</td><td class="gray">60,000 mi</td><td class="r">240</td><td class="r gray">—</td><td class="r">−240</td></tr>
+          <tr><td>Coolant flush</td><td class="gray">50,000 mi</td><td class="r">180</td><td class="r">80</td><td class="r">−100</td></tr>
+          <tr><td>Brake pads</td><td class="gray">35–90k mi</td><td class="r">720</td><td class="r">360</td><td class="r">−360</td></tr>
+          <tr><td>Brake fluid</td><td class="gray">36,000 mi</td><td class="r">280</td><td class="r">280</td><td class="r gray">—</td></tr>
+          <tr><td>Tires</td><td class="gray">50,000 mi</td><td class="r">720</td><td class="r">850</td><td class="r">+130</td></tr>
+          <tr><td class="total">Total · 5 yr</td><td></td><td class="r total">3,410</td><td class="r total">1,570</td><td class="r total">−1,840</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ============ CHARGE ============ -->
+<section class="sect-title" id="charge">
+  <div class="mono">VI · Infrastructure</div>
+  <h2>The <em>outlet</em> in your garage.</h2>
+  <p>Most charging happens at home, overnight. The station network is the road-trip backup, not the daily routine.</p>
+</section>
+
+<section class="chrg">
+  <div class="chrg-grid">
+    <div class="chrg-card"><div class="mono">L2 · Home</div><div class="v">8 hr</div><div class="d">0 → 100% overnight on a 240V installation.</div></div>
+    <div class="chrg-card"><div class="mono">L1 · Wall Plug</div><div class="v">40 hr</div><div class="d">+40 mi per 10 hr on standard 120V.</div></div>
+    <div class="chrg-card"><div class="mono">DC Fast · Road</div><div class="v">30 min</div><div class="d">10 → 80% at public fast-chargers.</div></div>
+    <div class="chrg-card"><div class="mono">% Home Charge</div><div class="v">80%</div><div class="d">Typical US EV owner, annual basis.</div></div>
+    <div class="chrg-card"><div class="mono">US DC-Fast</div><div class="v">12k+</div><div class="d">Stations active · growing under NEVI.</div></div>
+    <div class="chrg-card"><div class="mono">L2 Install</div><div class="v">$1.2k</div><div class="d">Homeowner cost · one-time · typical.</div></div>
+  </div>
+</section>
+
+<!-- ============ TRIPS ============ -->
+<section class="sect-title">
+  <div class="mono">VII · Range</div>
+  <h2>How many stops, to the <em>long weekend</em>?</h2>
+  <p>Measured against your selected EV's real-world range. Most common US corridor trips take zero or one fast-charge stop.</p>
+</section>
+
+<section class="trips">
+  <div class="trips-list" id="trips-list"></div>
+</section>
+
+<!-- ============ QUOTE ============ -->
+<section class="quote">
+  <div class="orn">· · ◆ · ·</div>
+  <blockquote>"An engine has two thousand moving parts. A motor <em>has one</em>. The difference shows up in the service book, and then in the statement."</blockquote>
+  <cite>— The Drivers' Quarterly, Spring 2026</cite>
+</section>
+
+<section class="invite">
+  <div class="invite-inner">
+    <h2>Calculate your <em>position</em>.</h2>
+    <p>Scroll up. Adjust three fields. The assessment updates in real time, with every assumption disclosed.</p>
+    <a href="#assess" class="cta">↑ Return to Assessment</a>
+  </div>
+</section>
+
+<footer>
+  <div class="mono">evsavings.pages.dev · sample 04 · luxe</div>
+  <div class="seal">— Ownership Quarterly —</div>
+  <a href="../" class="mono">← gallery</a>
+</footer>
+
+<!-- ============ JS ============ -->
+<script>
+const S = SHARED;
+const state = {scenario:'current',years:5,miles:13500,cityPct:55,state:'California',evModel:'Tesla Model Y',gasModel:'Toyota RAV4'};
+
+document.addEventListener('DOMContentLoaded', () => {
+  S.populateStateSelect(document.getElementById('stateSel'), state.state);
+  S.populateSelect(document.getElementById('evSel'), S.electricVehicles, state.evModel, false);
+  S.populateSelect(document.getElementById('gasSel'), S.gasVehicles, state.gasModel, true);
+
+  const saved = S.load();
+  ['state','evModel','gasModel','miles','cityPct','years','scenario'].forEach(k => { if (saved[k] != null) state[k] = saved[k]; });
+  syncControls();
+
+  updateLabels(); initChart(); recalc(); renderPairs(); renderSeg(); renderTrips(); drawEGalMap();
+
+  document.getElementById('stateSel').addEventListener('change', e => { state.state = e.target.value; persist(); recalc(); renderPairs(); renderSeg(); refreshEGal(); });
+  document.getElementById('evSel').addEventListener('change', e => { state.evModel = e.target.value; persist(); recalc(); renderTrips(); });
+  document.getElementById('gasSel').addEventListener('change', e => { state.gasModel = e.target.value; persist(); recalc(); });
+  document.getElementById('milesSel').addEventListener('input', e => { state.miles = parseInt(e.target.value); updateLabels(); persist(); recalc(); renderPairs(); renderSeg(); });
+  document.getElementById('chSel').addEventListener('input', e => { state.cityPct = parseInt(e.target.value); updateLabels(); persist(); recalc(); renderPairs(); renderSeg(); });
+  document.getElementById('yrSel').addEventListener('change', e => { state.years = parseInt(e.target.value); persist(); recalc(); });
+  document.querySelectorAll('.sc-btn').forEach(b => b.addEventListener('click', () => {
+    document.querySelectorAll('.sc-btn').forEach(x => x.classList.remove('active')); b.classList.add('active');
+    state.scenario = b.dataset.scenario; persist(); recalc(); renderPairs(); renderSeg(); refreshEGal();
+  }));
+  document.querySelectorAll('.yr-tab').forEach(b => b.addEventListener('click', () => {
+    document.querySelectorAll('.yr-tab').forEach(x => x.classList.remove('active')); b.classList.add('active');
+    renderPairs();
+  }));
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('#egallon-map') && !e.target.closest('#egal-popover')) {
+      document.getElementById('egal-popover').style.display = 'none';
+    }
+  });
+});
+
+function syncControls(){
+  document.getElementById('stateSel').value = state.state;
+  document.getElementById('evSel').value = state.evModel;
+  document.getElementById('gasSel').value = state.gasModel;
+  document.getElementById('milesSel').value = state.miles;
+  document.getElementById('chSel').value = state.cityPct;
+  document.getElementById('yrSel').value = state.years;
+  document.querySelectorAll('.sc-btn').forEach(b => b.classList.toggle('active', b.dataset.scenario === state.scenario));
+}
+function persist(){ S.save(state); }
+function updateLabels(){
+  document.getElementById('milesVal').textContent = state.miles.toLocaleString();
+  document.getElementById('chVal').textContent = state.cityPct + ' / ' + (100 - state.cityPct);
+}
+
+let chart;
+function initChart(){
+  const ctx = document.getElementById('costChart').getContext('2d');
+  chart = new Chart(ctx, {
+    type:'line', data:{labels:[],datasets:[]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{labels:{color:'#cdc3ae',font:{family:'JetBrains Mono',size:11}}},
+        tooltip:{backgroundColor:'#122220',borderColor:'#d4b979',borderWidth:1,titleFont:{family:'Fraunces'},bodyFont:{family:'JetBrains Mono'},
+          callbacks:{label:c=>c.dataset.label+': $'+Math.round(c.parsed.y).toLocaleString()}}},
+      scales:{x:{ticks:{color:'#8a7751',font:{family:'JetBrains Mono',size:10}},grid:{color:'#2a3d3b'}},
+              y:{ticks:{color:'#8a7751',font:{family:'JetBrains Mono',size:10},callback:v=>'$'+v.toLocaleString()},grid:{color:'#2a3d3b'}}}
+    }
+  });
+}
+
+function recalc(){
+  const c = S.costPer100(state.evModel, state.gasModel, state.state, state.scenario, state.cityPct);
+  if (!c) return;
+  const ev = S.findEV(state.evModel), gas = S.findGas(state.gasModel);
+  const evAnn = c.evAnnual(state.miles), gasAnn = c.gasAnnual(state.miles);
+  const annualSave = gasAnn - evAnn;
+  const maintSeg = ev.segment === 'Pickup' ? 'Pickup' : ev.segment === 'Luxury' ? 'Luxury' : (ev.segment === 'Sedan' ? 'Sedan' : 'Small SUV');
+  const m = S.maintCost(maintSeg, state.years);
+  const hold = annualSave * state.years + m.delta;
+
+  // Hero cert
+  document.getElementById('c-fuel').innerHTML = '<em>' + S.fmt$2(c.evCost) + '</em>';
+  document.getElementById('c-ann').textContent = S.fmt$(annualSave);
+  document.getElementById('c-maint').innerHTML = '<em>' + S.fmt$(m.delta) + '</em>';
+  document.getElementById('c-hold').innerHTML = '<em>' + S.fmt$(hold) + '</em>';
+
+  // Console big results
+  document.getElementById('n-gas100').innerHTML = '<em>' + S.fmt$2(c.gasCost) + '</em>';
+  document.getElementById('n-ev100').textContent = S.fmt$2(c.evCost);
+  document.getElementById('n-ann').innerHTML = '<em>' + S.fmt$(annualSave) + '</em>';
+  document.getElementById('n-hold').textContent = S.fmt$(hold);
+  document.getElementById('n-hold-k').textContent = state.years + '-year position';
+  document.getElementById('n-gas100-d').textContent = state.gasModel + ' · ' + (state.scenario==='peak2022'?"2022 peak":"Apr '26 prices");
+  document.getElementById('n-ev100-d').textContent = state.evModel + ' · local tariff';
+  document.getElementById('n-ann-d').textContent = 'Favours ' + (annualSave >= 0 ? 'EV' : 'ICE') + ' · ' + state.miles.toLocaleString() + ' mi';
+
+  // Ledger
+  document.getElementById('r-state').textContent = state.state;
+  document.getElementById('r-ev').textContent = state.evModel;
+  document.getElementById('r-gas').textContent = state.gasModel;
+  document.getElementById('r-elec').textContent = (S.getElecPrice(state.state)||0).toFixed(2);
+  document.getElementById('r-gasp').textContent = (S.getGasPrice(state.state, state.scenario)||0).toFixed(2);
+  document.getElementById('r-evEff').textContent = ev.kwh100;
+  document.getElementById('r-gasEff').textContent = gas.gal100;
+  document.getElementById('r-fs').textContent = S.fmt$(annualSave);
+  document.getElementById('r-ms').textContent = S.fmt$(m.delta / state.years);
+
+  // Roster context
+  document.getElementById('roster-ctx').textContent =
+    state.state + ' · ' + state.miles.toLocaleString() + ' mi/yr · ' + (state.scenario==='peak2022'?"2022 crisis":"Apr '26 prices");
+
+  // Maintenance boards
+  document.getElementById('m-ice').textContent = S.fmt$(m.ice);
+  document.getElementById('m-ev').textContent = S.fmt$(m.ev);
+  document.getElementById('m-delta').textContent = '−' + S.fmt$(m.delta);
+
+  // Atlas selected state
+  const eg = S.eGallon(state.state), sg = S.getGasPrice(state.state, state.scenario);
+  document.getElementById('atlas-state').textContent = eg ? '$' + eg.toFixed(2) : '—';
+  document.getElementById('atlas-state-d').textContent = state.state + ' · priced at ' + (S.getElecPrice(state.state)||0).toFixed(1) + ' ¢/kWh';
+  if (eg && sg) document.getElementById('atlas-spread').textContent = '−' + Math.round((1 - eg/sg) * 100) + '%';
+
+  // Chart
+  const years = Array.from({length: state.years + 1}, (_, i) => 'Y'+i);
+  const evCum  = years.map((_, i) => Math.round((evAnn + m.ev/state.years) * i));
+  const gasCum = years.map((_, i) => Math.round((gasAnn + m.ice/state.years) * i));
+  chart.data.labels = years;
+  chart.data.datasets = [
+    {label:'ICE · fuel+maint', data:gasCum, borderColor:'#c97d4e', backgroundColor:'rgba(201,125,78,0.12)', borderWidth:2, tension:0.25, pointRadius:0, fill:true},
+    {label:'EV · fuel+maint',  data:evCum,  borderColor:'#d4b979', backgroundColor:'rgba(212,185,121,0.08)', borderWidth:2, tension:0.25, pointRadius:0, fill:true}
+  ];
+  chart.update();
+}
+
+// --- E-gallon map ---
+function eColor(v){
+  if (v == null) return '#2a3d3b';
+  if (v < 1.20) return '#3b5a4c';
+  if (v < 1.60) return '#5d8070';
+  if (v < 2.00) return '#a88d4f';
+  if (v < 2.60) return '#c97d4e';
+  return '#9c5839';
+}
+function drawEGalMap(){
+  S.drawMap('egallon-map', {
+    height:540, strokeColor:'#0a1514', strokeWidth:1,
+    colorFn: n => eColor(S.eGallon(n)),
+    labelFn: n => { const v = S.eGallon(n); return v ? '$' + v.toFixed(2) : ''; },
+    labelColor: n => '#efe7d4',
+    labelSize: '11px', labelFont: 'JetBrains Mono',
+    onHover:(n, ev, node, over) => d3.select(node).attr('stroke', over ? '#d4b979' : '#0a1514').attr('stroke-width', over ? 2 : 1),
+    onClick:(name, ev) => {
+      const v = S.eGallon(name), g = S.getGasPrice(name, state.scenario);
+      if (v == null || g == null) return;
+      const pop = document.getElementById('egal-popover');
+      pop.style.display = 'block';
+      pop.style.left = Math.min(ev.clientX + 15, window.innerWidth - 320) + 'px';
+      pop.style.top  = Math.min(ev.clientY - 60, window.innerHeight - 260) + 'px';
+      document.getElementById('pop-state').textContent = name;
+      document.getElementById('pop-egal').textContent = '$' + v.toFixed(2);
+      document.getElementById('pop-gas').textContent  = '$' + g.toFixed(2);
+      document.getElementById('pop-save').textContent = '$' + (g-v).toFixed(2);
+      document.getElementById('pop-pct').textContent  = Math.round((1 - v/g) * 100) + '%';
+      state.state = name; document.getElementById('stateSel').value = name; persist(); recalc(); renderPairs(); renderSeg();
+    }
+  });
+}
+function refreshEGal(){
+  d3.select('#egallon-map svg').selectAll('path').attr('fill', d => eColor(S.eGallon(d.properties.name)));
+}
+
+// --- Roster pairs ---
+function activeYears(){ const b = document.querySelector('.yr-tab.active'); return b ? parseInt(b.dataset.years) : 5; }
+function renderPairs(){
+  const wrap = document.getElementById('pairs-grid');
+  const yrs = activeYears();
+  const pairs = S.brandPairs.slice(0, 14);
+  wrap.innerHTML = pairs.map(p => {
+    const ev = S.findEV(p.ev), gas = S.findGas(p.gas);
+    const c = S.costPer100(p.ev, p.gas, state.state, state.scenario, state.cityPct);
+    if (!c) return '';
+    const sav = (c.gasAnnual(state.miles) - c.evAnnual(state.miles)) * yrs;
+    return `<div class="pair">
+      <div>
+        <div class="ice-brand">${p.brand} · ICE</div>
+        <div class="ice-name">${p.gas}<small style="display:block;font-family:Inter;font-size:12px;color:#cdc3ae;font-weight:300;margin-top:4px;letter-spacing:0.03em">${gas.gal100} gal/100 mi · ${gas.segment}</small></div>
+      </div>
+      <div class="divide">→</div>
+      <div>
+        <div class="ev-brand">Electric equivalent</div>
+        <div class="ev-name">${p.ev}<small style="display:block;font-family:Inter;font-size:12px;color:#8a7751;font-weight:300;font-style:normal;margin-top:4px;letter-spacing:0.03em">${ev.kwh100} kWh/100 mi · ${ev.range} mi range</small></div>
+      </div>
+      <div class="return">
+        <span class="rlab">${yrs}-Year Position · Fuel + Maintenance</span>
+        <span class="rval ${sav<0?'neg':''}">${sav>=0?'+':''}${S.fmt$(sav + S.maintCost(ev.segment==='Pickup'?'Pickup':ev.segment==='Luxury'?'Luxury':(ev.segment==='Sedan'?'Sedan':'Small SUV'), yrs).delta)}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// --- Segment matrix ---
+function renderSeg(){
+  const grid = document.getElementById('seg-matrix');
+  const segs = ['Sedan','Small SUV','Large SUV','Pickup'];
+  const tiers = ['Under $35k','$35–50k','$50–75k','$75k+'];
+  const yrs = activeYears();
+  grid.innerHTML = '';
+  const corner = document.createElement('div'); corner.className = 'seg-corner'; corner.innerHTML = 'Segment ↓<br>Tier →'; grid.appendChild(corner);
+  tiers.forEach(t => { const h = document.createElement('div'); h.className = 'seg-col-h'; h.textContent = t; grid.appendChild(h); });
+  segs.forEach(seg => {
+    const rh = document.createElement('div'); rh.className = 'seg-row-h'; rh.textContent = seg; grid.appendChild(rh);
+    tiers.forEach(t => {
+      const cell = document.createElement('div');
+      const pairs = S.matchedPairs.filter(p => p.segment === seg && p.tier === t);
+      if (pairs.length === 0) { cell.className = 'seg-cell empty'; grid.appendChild(cell); return; }
+      cell.className = 'seg-cell';
+      cell.innerHTML = pairs.map(p => {
+        const c = S.costPer100(p.ev, p.gas, state.state, state.scenario, state.cityPct);
+        if (!c) return '';
+        const sav = (c.gasAnnual(state.miles) - c.evAnnual(state.miles)) * yrs;
+        return `<div class="pair-sm">
+          <div class="gas-name">${p.gas}</div>
+          <div class="ev-name">→ ${p.ev}</div>
+          <div class="save ${sav<0?'neg':''}">${sav>=0?'+':''}${S.fmt$(sav)}</div>
+        </div>`;
+      }).join('');
+      grid.appendChild(cell);
+    });
+  });
+}
+
+// --- Trips ---
+function renderTrips(){
+  const ev = S.findEV(state.evModel); if (!ev) return;
+  const range = ev.range * 0.85;
+  const trips = [
+    {a:'Los Angeles → Las Vegas', d:270},{a:'New York → Boston', d:215},
+    {a:'San Francisco → Tahoe', d:195},{a:'Seattle → Portland', d:175},
+    {a:'Atlanta → Nashville', d:250},{a:'Denver → Aspen', d:160},
+    {a:'Dallas → Houston', d:240},{a:'Chicago → Detroit', d:285},
+    {a:'Washington → New York', d:225},{a:'Miami → Orlando', d:235},
+    {a:'Phoenix → Tucson', d:115},{a:'Austin → San Antonio', d:80}
+  ];
+  document.getElementById('trips-list').innerHTML = trips.map(t => {
+    const stops = Math.max(0, Math.floor((t.d - 50) / range));
+    const cls = stops === 0 ? 'zero' : stops >= 2 ? 'two' : '';
+    return `<div class="trip-row">
+      <div class="ft">${t.a}<small>${t.d} mi · ${ev.model} · ${Math.round(range)} mi real-world</small></div>
+      <div class="stops ${cls}">${stops === 0 ? '·' : stops}</div>
+    </div>`;
+  }).join('');
+}
+</script>
+
+</body>
+</html>

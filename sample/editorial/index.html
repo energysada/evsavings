@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Quiet Arithmetic — EV Savings</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,700;0,9..144,900;1,9..144,300;1,9..144,400&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#f4f1ea;
+    --paper-2:#ebe5d6;
+    --ink:#151414;
+    --ink-2:#433e39;
+    --ink-3:#6b6359;
+    --signal:#8a2f1e;
+    --rule:#151414;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:var(--paper);color:var(--ink);font-family:'Fraunces',Georgia,serif;font-weight:400}
+  body{overflow-x:hidden}
+  a{color:var(--signal);text-decoration:none}
+  .mono{font-family:'JetBrains Mono',monospace;letter-spacing:0.18em;text-transform:uppercase;font-size:11px}
+
+  /* Masthead */
+  .masthead{border-bottom:3px double var(--ink);padding:14px 32px;display:flex;justify-content:space-between;align-items:baseline;gap:24px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:0.2em;text-transform:uppercase}
+  .masthead .back{color:var(--ink)}
+  .masthead .title{font-family:'Fraunces';font-weight:900;font-size:22px;letter-spacing:-0.02em;text-transform:none}
+  .masthead .title em{font-style:italic;font-weight:400;color:var(--signal)}
+  .masthead .date{color:var(--ink-3)}
+
+  /* Hero */
+  .hero{padding:80px 32px 64px;max-width:1280px;margin:0 auto;display:grid;grid-template-columns:3fr 2fr;gap:56px;border-bottom:1px solid var(--ink)}
+  .kicker{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:0.3em;text-transform:uppercase;color:var(--signal);margin-bottom:24px}
+  h1.display{font-size:clamp(52px,8.4vw,128px);font-weight:300;line-height:0.9;letter-spacing:-0.04em;margin-bottom:28px}
+  h1.display em{font-style:italic;font-weight:400}
+  h1.display .sig{color:var(--signal);font-style:italic;font-weight:400}
+  .byline{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:0.2em;text-transform:uppercase;color:var(--ink-3);padding-top:24px;border-top:1px solid var(--ink)}
+
+  .standfirst{font-size:22px;line-height:1.5;color:var(--ink-2);font-weight:400}
+  .standfirst::first-letter{font-size:86px;float:left;line-height:0.85;padding:6px 10px 0 0;font-weight:400;color:var(--signal)}
+  .standfirst .sc{font-variant:small-caps;letter-spacing:0.1em}
+
+  /* Ticker */
+  .ticker{overflow:hidden;border-top:1px solid var(--ink);border-bottom:1px solid var(--ink);background:var(--paper-2);padding:10px 0;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:0.2em;text-transform:uppercase}
+  .ticker-track{display:flex;gap:48px;white-space:nowrap;animation:tick 50s linear infinite}
+  .ticker span{color:var(--ink-2)}
+  .ticker span strong{color:var(--signal);font-weight:700}
+  @keyframes tick{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+
+  /* Feature table — e-gallon */
+  .feature{padding:80px 32px;max-width:1280px;margin:0 auto;display:grid;grid-template-columns:1fr 1.2fr;gap:64px;border-bottom:1px solid var(--ink)}
+  .feature h2{font-size:64px;font-weight:300;line-height:0.95;letter-spacing:-0.03em;margin-bottom:24px}
+  .feature h2 em{font-style:italic;color:var(--signal);font-weight:400}
+  .feature p{font-size:17px;line-height:1.65;color:var(--ink-2);max-width:42ch;margin-bottom:18px}
+  .pull{font-family:'Fraunces';font-style:italic;font-size:28px;line-height:1.3;color:var(--ink);border-left:3px solid var(--signal);padding:6px 0 6px 20px;margin:28px 0 0;max-width:44ch}
+
+  /* e-gallon table */
+  .egal-table{width:100%;border-collapse:collapse;font-family:'Fraunces'}
+  .egal-table caption{text-align:left;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:0.3em;text-transform:uppercase;color:var(--ink-3);margin-bottom:18px}
+  .egal-table th{text-align:left;font-weight:400;font-size:12px;font-family:'JetBrains Mono',monospace;letter-spacing:0.2em;text-transform:uppercase;color:var(--ink-3);padding:10px 0;border-bottom:1px solid var(--ink)}
+  .egal-table th:nth-child(2),.egal-table th:nth-child(3){text-align:right}
+  .egal-table td{padding:14px 0;border-bottom:1px dotted #c9bfa9;font-size:17px;font-variant-numeric:tabular-nums}
+  .egal-table td:nth-child(2),.egal-table td:nth-child(3){text-align:right}
+  .egal-table tr:hover td{background:var(--paper-2)}
+  .bar{display:inline-block;height:6px;background:var(--signal);vertical-align:middle;margin-right:10px}
+  .egal-table .hi{color:var(--signal);font-weight:700}
+
+  /* Three-column numbers */
+  .numbers{padding:96px 32px;max-width:1280px;margin:0 auto;border-bottom:1px solid var(--ink)}
+  .numbers-intro{font-size:20px;line-height:1.5;max-width:58ch;color:var(--ink-2);margin-bottom:64px}
+  .numbers-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:48px;border-top:1px solid var(--ink);padding-top:40px}
+  .nstat .label{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:0.3em;text-transform:uppercase;color:var(--ink-3);margin-bottom:16px}
+  .nstat .n{font-size:88px;font-weight:300;line-height:1;letter-spacing:-0.04em;margin-bottom:16px}
+  .nstat .n em{color:var(--signal);font-style:italic;font-weight:400}
+  .nstat .cap{font-size:15px;line-height:1.55;color:var(--ink-2);max-width:32ch}
+
+  /* Columnar article — maintenance */
+  .article{padding:96px 32px;max-width:1280px;margin:0 auto;border-bottom:1px solid var(--ink)}
+  .article header{display:grid;grid-template-columns:1fr 1fr;gap:64px;margin-bottom:56px;align-items:end}
+  .article h2{font-size:72px;font-weight:300;line-height:0.95;letter-spacing:-0.03em}
+  .article h2 em{font-style:italic}
+  .article h2 .sig{color:var(--signal)}
+  .article .deck{font-size:17px;line-height:1.6;color:var(--ink-2);max-width:52ch}
+  .cols{columns:3;column-gap:42px;column-rule:1px solid #c9bfa9;font-size:15px;line-height:1.7;color:var(--ink-2)}
+  .cols p{margin-bottom:1em;break-inside:avoid}
+  .cols p:first-child::first-letter{font-family:'Fraunces';font-size:62px;float:left;line-height:0.85;padding:6px 10px 0 0;color:var(--signal)}
+  .cols .sc{font-variant:small-caps;letter-spacing:0.08em;color:var(--ink)}
+
+  /* Brand matrix — editorial table */
+  .matrix{padding:96px 32px;max-width:1280px;margin:0 auto;border-bottom:1px solid var(--ink)}
+  .matrix h2{font-size:64px;font-weight:300;line-height:0.95;letter-spacing:-0.03em;margin-bottom:14px}
+  .matrix h2 em{color:var(--signal);font-style:italic}
+  .matrix p{font-size:17px;line-height:1.6;color:var(--ink-2);max-width:58ch;margin-bottom:40px}
+  .mtable{width:100%;border-collapse:collapse}
+  .mtable th,.mtable td{border-bottom:1px solid #c9bfa9;padding:22px 16px;vertical-align:top;text-align:left}
+  .mtable thead th{border-bottom:2px solid var(--ink);border-top:1px solid var(--ink);font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.3em;text-transform:uppercase;color:var(--ink-3);font-weight:400;padding:14px 16px}
+  .mtable .ice{font-size:22px;font-weight:400;letter-spacing:-0.01em}
+  .mtable .ice small{display:block;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:var(--ink-3);margin-top:4px;font-weight:400}
+  .mtable .ev{font-style:italic;color:var(--signal);font-size:19px}
+  .mtable .save{font-variant-numeric:tabular-nums;font-size:22px;color:var(--ink)}
+  .mtable tbody tr:hover{background:var(--paper-2)}
+
+  /* Closing colophon */
+  .colophon{padding:80px 32px 120px;max-width:900px;margin:0 auto;text-align:center}
+  .colophon .ornament{font-size:28px;color:var(--signal);letter-spacing:0.5em;margin-bottom:24px}
+  .colophon h2{font-size:48px;font-weight:300;line-height:1.1;letter-spacing:-0.02em;margin-bottom:20px}
+  .colophon h2 em{font-style:italic;color:var(--signal)}
+  .colophon p{font-size:17px;line-height:1.6;color:var(--ink-2);margin:0 auto 32px;max-width:52ch}
+  .cta{display:inline-block;background:var(--ink);color:var(--paper);padding:18px 36px;font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:0.3em;text-transform:uppercase;transition:background .2s}
+  .cta:hover{background:var(--signal);color:var(--paper)}
+
+  footer.mast{border-top:3px double var(--ink);padding:20px 32px;display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:var(--ink-3)}
+
+  @media (max-width:960px){
+    .hero,.feature,.article header{grid-template-columns:1fr;gap:36px}
+    .numbers-grid{grid-template-columns:1fr;gap:40px}
+    .cols{columns:1}
+    h1.display{font-size:56px}
+    .feature h2,.article h2,.matrix h2{font-size:42px}
+    .mtable thead{display:none}
+    .mtable td{display:block;border:none;padding:6px 0}
+    .mtable tr{display:block;padding:18px 0;border-bottom:1px solid var(--ink)}
+  }
+</style>
+</head>
+<body>
+
+<div class="masthead">
+  <a href="../" class="back">← Gallery</a>
+  <div class="title">The Drivers' <em>Quarterly</em></div>
+  <div class="date">Vol. I · No. 04 · Apr 2026</div>
+</div>
+
+<section class="hero">
+  <div>
+    <div class="kicker">Feature · Fuel &amp; Ownership</div>
+    <h1 class="display">The <em>quiet</em><br>arithmetic of <span class="sig">a charger</span>.</h1>
+    <div class="byline">Calculated · from AAA, EIA, and Department of Energy data · April 2026</div>
+  </div>
+  <div>
+    <p class="standfirst"><span class="sc">For two decades</span> the choice between an electric car and a gasoline one has been framed as a matter of principle. It is, in fact, a matter of arithmetic — one that the average American driver now wins by roughly <strong>$1,240</strong> a year, and accelerates as the charger outlasts the pump.</p>
+  </div>
+</section>
+
+<div class="ticker">
+  <div class="ticker-track">
+    <span>US Regular <strong>$3.47/gal</strong></span>
+    <span>E-Gallon Avg <strong>$1.12</strong></span>
+    <span>BEV Share <strong>11.8%</strong></span>
+    <span>Break-Even <strong>4.3 yrs</strong></span>
+    <span>Maint 5Y <strong>−$1,840</strong></span>
+    <span>New BEVs Q1 <strong>$8.4B</strong></span>
+    <span>US Regular <strong>$3.47/gal</strong></span>
+    <span>E-Gallon Avg <strong>$1.12</strong></span>
+    <span>BEV Share <strong>11.8%</strong></span>
+    <span>Break-Even <strong>4.3 yrs</strong></span>
+    <span>Maint 5Y <strong>−$1,840</strong></span>
+    <span>New BEVs Q1 <strong>$8.4B</strong></span>
+  </div>
+</div>
+
+<section class="feature">
+  <div>
+    <div class="kicker">I. The E-Gallon</div>
+    <h2>What the <em>outlet</em> would charge, if it pumped.</h2>
+    <p>An e-gallon is the cost of driving the same distance a gallon of gasoline covers — priced in kilowatt-hours at your local utility. In no state does it come out ahead for gas.</p>
+    <p>The spread is narrowest in Hawai'i, widest in Washington. Everywhere else it is a steady, unremarkable fact of modern arithmetic: electrons are cheaper than combustion.</p>
+    <div class="pull">"The only state where gasoline beats the grid is the one where you cannot legally drive an EV off-island."</div>
+  </div>
+  <div>
+    <table class="egal-table">
+      <caption>Figure 1 · Cost per 100 miles, ten representative states</caption>
+      <thead>
+        <tr><th>State</th><th>Gas</th><th>E-Gallon</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><span class="bar" style="width:82px"></span>California</td><td>$14.20</td><td class="hi">$4.80</td></tr>
+        <tr><td><span class="bar" style="width:76px"></span>New York</td><td>$12.90</td><td class="hi">$5.10</td></tr>
+        <tr><td><span class="bar" style="width:58px"></span>Texas</td><td>$11.10</td><td class="hi">$3.40</td></tr>
+        <tr><td><span class="bar" style="width:50px"></span>Florida</td><td>$11.80</td><td class="hi">$3.90</td></tr>
+        <tr><td><span class="bar" style="width:44px"></span>Washington</td><td>$13.40</td><td class="hi">$2.80</td></tr>
+        <tr><td><span class="bar" style="width:62px"></span>Illinois</td><td>$11.60</td><td class="hi">$4.10</td></tr>
+        <tr><td><span class="bar" style="width:40px"></span>Georgia</td><td>$10.90</td><td class="hi">$3.80</td></tr>
+        <tr><td><span class="bar" style="width:38px"></span>Colorado</td><td>$11.30</td><td class="hi">$3.70</td></tr>
+        <tr><td><span class="bar" style="width:72px"></span>Massachusetts</td><td>$12.40</td><td class="hi">$5.20</td></tr>
+        <tr><td><span class="bar" style="width:94px"></span>Hawai'i</td><td>$16.80</td><td class="hi">$10.40</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="numbers">
+  <p class="numbers-intro"><em style="font-style:italic">Three figures</em>, each of them a consequence of the first. They are the arithmetic the showroom will not perform on your behalf.</p>
+  <div class="numbers-grid">
+    <div class="nstat">
+      <div class="label">Annual fuel saved</div>
+      <div class="n"><em>$1,240</em></div>
+      <div class="cap">Median American driver, 13,500 miles, April 2026 prices. Your mileage, literally, may vary.</div>
+    </div>
+    <div class="nstat">
+      <div class="label">Five-year maintenance</div>
+      <div class="n"><em>−$1,840</em></div>
+      <div class="cap">Fewer fluids, no timing belts, no spark plugs. Brake pads last longer because regen does most of the slowing.</div>
+    </div>
+    <div class="nstat">
+      <div class="label">Break-even horizon</div>
+      <div class="n"><em>4.3</em> yrs</div>
+      <div class="cap">On a mid-trim EV priced $6,400 above its nearest gas equivalent. Federal tax credit not included.</div>
+    </div>
+  </div>
+</section>
+
+<section class="article">
+  <header>
+    <h2>On <em>the</em> <span class="sig">maintenance</span> of moving parts.</h2>
+    <p class="deck">An internal combustion engine has roughly two thousand moving parts. A battery has one. Reports of the EV's fragility have been, in the phrase, considerably exaggerated.</p>
+  </header>
+  <div class="cols">
+    <p><span class="sc">Consider the spark plug</span>, which you do not in fact consider, because you have never replaced one and do not intend to. The plug, its gap, its threading, the four to eight of them in your engine bay — they are there because gasoline will not combust on its own. Electricity will.</p>
+    <p>Over five years, the median American driver spends <strong>$3,410</strong> maintaining a gas car: oil changes, air filters, spark plugs, belts, coolant flushes, transmission services, exhaust repairs, and the steady tax of parts that wear because they move.</p>
+    <p>The same driver spends <strong>$1,570</strong> maintaining an EV. Tires, brake fluid, cabin filter, wiper blades. The difference — <em>$1,840</em> — is the invisible dividend of mechanical simplicity.</p>
+    <p>This has the odd consequence of making EVs less satisfying to their owners' mechanics, who now see them only when something goes dramatically wrong, which is almost never.</p>
+    <p>The mechanic's loss is the driver's gain. A car with fewer parts has fewer opportunities to fail, and fewer bills to mail. For families who keep a vehicle past warranty, the maintenance delta alone can equal a year of gasoline.</p>
+    <p><span class="sc">There is, of course</span>, the battery. Manufacturers guarantee the pack for eight years or a hundred thousand miles. In practice, packs built after 2020 are projected to deliver eighty percent of original capacity at the fifteen-year mark — longer than most gas engines go without a major service.</p>
+  </div>
+</section>
+
+<section class="matrix">
+  <div class="kicker" style="margin-bottom:12px">III. The Brand Matrix</div>
+  <h2>If you drive a <em>Camry</em>.</h2>
+  <p>For drivers anchored on an internal-combustion brand, the question is less <em>what is the best EV</em> than <em>what is the EV for me</em>. Six representative matches, across price tiers and segments.</p>
+  <table class="mtable">
+    <thead>
+      <tr><th style="width:28%">What you drive</th><th style="width:10%">Segment</th><th style="width:28%">Electric equivalent</th><th style="width:10%">MSRP Δ</th><th style="width:10%">5-yr fuel save</th><th style="width:14%">5-yr maint save</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="ice">Toyota Camry SE<small>2.5L · 32 MPG</small></td>
+        <td>Midsize</td>
+        <td class="ev">Tesla Model 3 RWD</td>
+        <td class="save">+$4,200</td>
+        <td class="save">−$5,900</td>
+        <td class="save">−$1,840</td>
+      </tr>
+      <tr>
+        <td class="ice">Honda CR-V EX<small>1.5T · 30 MPG</small></td>
+        <td>Compact SUV</td>
+        <td class="ev">Hyundai Ioniq 5 SE</td>
+        <td class="save">+$3,800</td>
+        <td class="save">−$5,200</td>
+        <td class="save">−$1,720</td>
+      </tr>
+      <tr>
+        <td class="ice">Ford F-150 XLT<small>2.7L · 22 MPG</small></td>
+        <td>Full-size Truck</td>
+        <td class="ev">Ford F-150 Lightning</td>
+        <td class="save">+$8,900</td>
+        <td class="save">−$8,100</td>
+        <td class="save">−$2,210</td>
+      </tr>
+      <tr>
+        <td class="ice">BMW 330i<small>2.0T · 28 MPG</small></td>
+        <td>Luxury Sedan</td>
+        <td class="ev">BMW i4 eDrive35</td>
+        <td class="save">+$2,900</td>
+        <td class="save">−$6,400</td>
+        <td class="save">−$2,580</td>
+      </tr>
+      <tr>
+        <td class="ice">Subaru Outback<small>2.5L AWD · 29 MPG</small></td>
+        <td>Wagon / AWD</td>
+        <td class="ev">Volvo EX30 Twin</td>
+        <td class="save">+$5,100</td>
+        <td class="save">−$5,700</td>
+        <td class="save">−$1,960</td>
+      </tr>
+      <tr>
+        <td class="ice">Kia Sportage LX<small>2.5L · 28 MPG</small></td>
+        <td>Compact SUV</td>
+        <td class="ev">Kia EV6 Light</td>
+        <td class="save">+$4,400</td>
+        <td class="save">−$5,600</td>
+        <td class="save">−$1,770</td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<section class="colophon">
+  <div class="ornament">❦</div>
+  <h2>Calculate it <em>for yourself</em>.</h2>
+  <p>The matrix above is an average. Your version depends on where you park, how you drive, and the price tag on the pump tomorrow morning. The calculator is two minutes.</p>
+  <a class="cta" href="../">Return to the gallery</a>
+</section>
+
+<footer class="mast">
+  <span>The Drivers' Quarterly · Fuel &amp; Ownership</span>
+  <span>evsavings.pages.dev · design sample 01</span>
+</footer>
+
+</body>
+</html>

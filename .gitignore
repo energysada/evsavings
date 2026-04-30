@@ -1,0 +1,24 @@
+# macOS
+.DS_Store
+
+# Editor / shell
+.Rhistory
+
+# Wrangler / Cloudflare local state
+.wrangler/
+
+# Claude Code local settings (per-machine, not for the repo)
+.claude/
+
+# Node (in case any tooling lands here later)
+node_modules/
+
+# Python (in case we add an AAA scraper)
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Editor scratch files
+*.swp
+*~
