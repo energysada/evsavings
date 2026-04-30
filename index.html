@@ -318,7 +318,7 @@ a{color:inherit;text-decoration:none}
       <!-- Scenario toggle -->
       <div style="display:flex;justify-content:center;gap:0;margin-bottom:20px;flex-wrap:wrap">
         <div class="ctrl-toggle" id="scenarioToggle">
-          <button class="scenario-btn active" data-scenario="current">📊 Today ($4.12 nat'l avg)</button>
+          <button class="scenario-btn active" data-scenario="current">📊 Today ($4.30 nat'l avg)</button>
           <button class="scenario-btn" data-scenario="peak2022">🚨 If Gas Hits 2022 Peak ($5.03 nat'l avg)</button>
         </div>
       </div>
@@ -356,12 +356,12 @@ a{color:inherit;text-decoration:none}
   <h2>WHY DRIVERS ARE SWITCHING</h2>
   <div class="stats-grid">
     <div class="stat-item">
-      <div class="stat-value">50–60%</div>
+      <div class="stat-value" id="stat-pctSave">50–60%</div>
       <div class="stat-label">Typical fuel cost<br>savings per year</div>
     </div>
     <div class="stat-item">
-      <div class="stat-value">$1,200+</div>
-      <div class="stat-label">Average annual savings<br>vs gas equivalent</div>
+      <div class="stat-value" id="stat-annualSave">$1,200+</div>
+      <div class="stat-label" id="stat-annualSaveLabel">Average annual savings<br>vs gas equivalent</div>
     </div>
     <div class="stat-item">
       <div class="stat-value">80%</div>
@@ -372,12 +372,12 @@ a{color:inherit;text-decoration:none}
       <div class="stat-label">Oil changes, belts,<br>exhaust repairs</div>
     </div>
     <div class="stat-item">
-      <div class="stat-value"><a href="https://recharged.com/articles/when-does-ev-break-even-vs-gas-car" target="_blank" style="color:#2e7d32;text-decoration:none">4–8 yrs</a></div>
+      <div class="stat-value" id="stat-payback"><a href="https://recharged.com/articles/when-does-ev-break-even-vs-gas-car" target="_blank" style="color:#2e7d32;text-decoration:none">4–8 yrs</a></div>
       <div class="stat-label">Typical payback period<br>for EV price premium</div>
     </div>
     <div class="stat-item">
-      <div class="stat-value">$8.4B</div>
-      <div class="stat-label">Extra fuel costs for U.S.<br>drivers since Feb 2026</div>
+      <div class="stat-value" id="stat-natlGas">$4.30</div>
+      <div class="stat-label" id="stat-natlGasLabel">U.S. national gas avg<br>(AAA · today)</div>
     </div>
   </div>
   </div>
@@ -678,7 +678,7 @@ a{color:inherit;text-decoration:none}
 <section class="methodology">
   <div class="methodology-inner">
     <h3>Data & Methodology</h3>
-    <p><strong>Gas prices:</strong> <a href="https://gasprices.aaa.com/state-gas-price-averages/" target="_blank" rel="noopener">AAA state-level averages</a>, updated April 7, 2026. National average: $4.12/gallon.</p>
+    <p><strong>Gas prices:</strong> <a href="https://gasprices.aaa.com/state-gas-price-averages/" target="_blank" rel="noopener">AAA state-level averages</a>, updated April 30, 2026. National average: $4.30/gallon.</p>
     <p><strong>Electricity rates:</strong> <a href="https://www.eia.gov/electricity/monthly/epm_table_5_6_a.html" target="_blank" rel="noopener">U.S. Energy Information Administration (EIA)</a> residential electricity prices by state.</p>
     <p><strong>Vehicle efficiency:</strong> <a href="https://www.fueleconomy.gov/" target="_blank" rel="noopener">EPA fuel economy ratings</a> (kWh/100mi for EVs, gal/100mi for gas). EPA range data from manufacturer specs.</p>
     <p><strong>E-gallon data:</strong> <a href="https://yaleclimateconnections.org/" target="_blank" rel="noopener">Yale Climate Connections</a> / EIA / FuelEconomy.gov, January 2026. Based on 2025 Hyundai Kona Electric vs 2025 Hyundai Kona gas.</p>
@@ -831,26 +831,26 @@ const electricityPrices = [
   {state:"Wyoming",price:13.91}
 ];
 
-// Gas prices: AAA state averages, updated April 7, 2026
+// Gas prices: AAA state averages, updated April 30, 2026
 const gasPrices = [
-  {state:"National",price:4.119},{state:"Alaska",price:4.623},{state:"Alabama",price:3.858},
-  {state:"Arkansas",price:3.628},{state:"Arizona",price:4.749},{state:"California",price:5.930},
-  {state:"Colorado",price:3.809},{state:"Connecticut",price:4.096},{state:"District of Columbia",price:4.289},
-  {state:"Delaware",price:3.983},{state:"Florida",price:4.181},{state:"Georgia",price:3.733},
-  {state:"Hawaii",price:5.604},{state:"Iowa",price:3.484},{state:"Idaho",price:4.300},
-  {state:"Illinois",price:4.362},{state:"Indiana",price:4.053},{state:"Kansas",price:3.390},
-  {state:"Kentucky",price:3.974},{state:"Louisiana",price:3.796},{state:"Massachusetts",price:3.956},
-  {state:"Maryland",price:4.168},{state:"Maine",price:4.031},{state:"Michigan",price:4.010},
-  {state:"Minnesota",price:3.585},{state:"Missouri",price:3.568},{state:"Mississippi",price:3.764},
-  {state:"Montana",price:3.842},{state:"North Carolina",price:3.928},{state:"North Dakota",price:3.484},
-  {state:"Nebraska",price:3.538},{state:"New Hampshire",price:3.970},{state:"New Jersey",price:4.091},
-  {state:"New Mexico",price:4.025},{state:"Nevada",price:5.009},{state:"New York",price:4.102},
-  {state:"Ohio",price:3.864},{state:"Oklahoma",price:3.347},{state:"Oregon",price:5.002},
-  {state:"Pennsylvania",price:4.185},{state:"Rhode Island",price:4.013},{state:"South Carolina",price:3.827},
-  {state:"South Dakota",price:3.586},{state:"Tennessee",price:3.887},{state:"Texas",price:3.844},
-  {state:"Utah",price:4.239},{state:"Virginia",price:4.073},{state:"Vermont",price:4.112},
-  {state:"Washington",price:5.392},{state:"Wisconsin",price:3.816},{state:"West Virginia",price:3.990},
-  {state:"Wyoming",price:3.858}
+  {state:"National",price:4.300},{state:"Alaska",price:4.921},{state:"Alabama",price:3.867},
+  {state:"Arkansas",price:3.796},{state:"Arizona",price:4.671},{state:"California",price:6.010},
+  {state:"Colorado",price:4.248},{state:"Connecticut",price:4.330},{state:"District of Columbia",price:4.386},
+  {state:"Delaware",price:4.165},{state:"Florida",price:4.163},{state:"Georgia",price:3.757},
+  {state:"Hawaii",price:5.643},{state:"Iowa",price:3.908},{state:"Idaho",price:4.414},
+  {state:"Illinois",price:4.666},{state:"Indiana",price:4.417},{state:"Kansas",price:3.756},
+  {state:"Kentucky",price:4.096},{state:"Louisiana",price:3.803},{state:"Massachusetts",price:4.156},
+  {state:"Maryland",price:4.215},{state:"Maine",price:4.242},{state:"Michigan",price:4.583},
+  {state:"Minnesota",price:3.987},{state:"Missouri",price:3.833},{state:"Mississippi",price:3.777},
+  {state:"Montana",price:4.096},{state:"North Carolina",price:4.024},{state:"North Dakota",price:3.847},
+  {state:"Nebraska",price:3.894},{state:"New Hampshire",price:4.154},{state:"New Jersey",price:4.270},
+  {state:"New Mexico",price:4.075},{state:"Nevada",price:5.129},{state:"New York",price:4.288},
+  {state:"Ohio",price:4.460},{state:"Oklahoma",price:3.708},{state:"Oregon",price:5.152},
+  {state:"Pennsylvania",price:4.335},{state:"Rhode Island",price:4.183},{state:"South Carolina",price:3.895},
+  {state:"South Dakota",price:3.945},{state:"Tennessee",price:3.930},{state:"Texas",price:3.852},
+  {state:"Utah",price:4.365},{state:"Virginia",price:4.114},{state:"Vermont",price:4.240},
+  {state:"Washington",price:5.570},{state:"Wisconsin",price:4.167},{state:"West Virginia",price:4.094},
+  {state:"Wyoming",price:4.070}
 ];
 
 const stateNames = {
@@ -1051,6 +1051,7 @@ function calculateSavings(milesRange) {
   document.querySelectorAll('.text-gas').forEach(el => el.textContent = gas);
   updateVehiclePhotos();
   if (typeof renderMaintenance === 'function') renderMaintenance();
+  if (typeof renderHeroStats === 'function') renderHeroStats();
 
   const elecPrice = electricityPrices.find(d => d.state === state);
   const adjGasPrice = (typeof getGasPrice === 'function') ? getGasPrice(state) : null;
@@ -1876,10 +1877,10 @@ if (maintCityHwyEl) {
 
 // ============== SCENARIO MULTIPLIER ==============
 // Today: actual current AAA prices
-// Peak 2022: scale all states by 5.03/4.119 = 1.221x (national peak ratio)
+// Peak 2022: scale all states by 5.03/4.30 = 1.170x (national peak ratio)
 let gasPriceScenario = 'current';
 const PEAK_2022_NATIONAL = 5.03;
-const CURRENT_NATIONAL = 4.119;
+const CURRENT_NATIONAL = 4.300;
 // Confirmed state peaks from June 2022 (where available)
 const peak2022Override = {
   'California': 6.44,
@@ -2037,8 +2038,64 @@ function initEGallon() {
       calculateSavings(parseInt(document.getElementById('milesRange').value));
       renderPairs(); renderBrandMatrix();
       renderMaintenance();
+      renderHeroStats();
     });
   });
+
+  // Initial render of the dynamic hero stats
+  renderHeroStats();
+}
+
+// Compute the "Why drivers are switching" headline stats from live data,
+// so the scenario toggle visibly moves these numbers.
+function renderHeroStats() {
+  const milesEl = document.getElementById('milesRange');
+  const miles = milesEl ? parseInt(milesEl.value) : 13500;
+  const stateEl = document.getElementById('stateSelect');
+  const stateName = stateEl ? stateEl.value : 'National';
+
+  // Use the matched-pairs default-ish vehicles (Model Y vs RAV4) for the headline number.
+  const evV  = electricVehicles.find(d => d.model === 'Tesla Model Y');
+  const gasV = gasVehicles.find(d => d.model === 'Toyota RAV4');
+  const ep   = electricityPrices.find(d => d.state === stateName) || electricityPrices.find(d => d.state === 'National');
+  const gp   = (typeof getGasPrice === 'function') ? getGasPrice(stateName) : null;
+  if (!evV || !gasV || !ep || gp == null) return;
+
+  const evCost100  = (ep.price * evV['kwh/100miles']) / 100;     // $/100 mi (EV)
+  const gasCost100 = gp * gasV['efficiency(gal/100miles)'];      // $/100 mi (gas)
+  const annualSave = (gasCost100 - evCost100) * miles / 100;
+  const pctSave    = gasCost100 > 0 ? (1 - evCost100 / gasCost100) * 100 : 0;
+
+  // Payback range, given a $6,400 sticker premium and ~$370/yr maint delta:
+  const totalAnnual = annualSave + 370;
+  const paybackLow  = totalAnnual > 0 ? Math.max(2, Math.round(6400 / (totalAnnual * 1.25))) : 8;
+  const paybackHigh = totalAnnual > 0 ? Math.min(12, Math.round(6400 / (totalAnnual * 0.75))) : 8;
+
+  const natlGas = (typeof getGasPrice === 'function') ? getGasPrice('National') : 4.30;
+
+  const setText = (id, text) => { const el = document.getElementById(id); if (el) el.textContent = text; };
+  const stateAbbrMap = {Alabama:'AL',Alaska:'AK',Arizona:'AZ',Arkansas:'AR',California:'CA',Colorado:'CO',Connecticut:'CT',Delaware:'DE','District of Columbia':'DC',Florida:'FL',Georgia:'GA',Hawaii:'HI',Idaho:'ID',Illinois:'IL',Indiana:'IN',Iowa:'IA',Kansas:'KS',Kentucky:'KY',Louisiana:'LA',Maine:'ME',Maryland:'MD',Massachusetts:'MA',Michigan:'MI',Minnesota:'MN',Mississippi:'MS',Missouri:'MO',Montana:'MT',Nebraska:'NE',Nevada:'NV','New Hampshire':'NH','New Jersey':'NJ','New Mexico':'NM','New York':'NY','North Carolina':'NC','North Dakota':'ND',Ohio:'OH',Oklahoma:'OK',Oregon:'OR',Pennsylvania:'PA','Rhode Island':'RI','South Carolina':'SC','South Dakota':'SD',Tennessee:'TN',Texas:'TX',Utah:'UT',Vermont:'VT',Virginia:'VA',Washington:'WA','West Virginia':'WV',Wisconsin:'WI',Wyoming:'WY'};
+  const abbr = stateAbbrMap[stateName] || stateName;
+
+  setText('stat-pctSave',  Math.round(Math.max(0, pctSave)) + '%');
+  setText('stat-annualSave', '$' + Math.round(Math.max(0, annualSave)).toLocaleString());
+  setText('stat-annualSaveLabel',
+    annualSave >= 0
+      ? `Annual savings · Model Y vs RAV4 · ${abbr} · ${(miles/1000).toFixed(0)}k mi`
+      : `Annual loss · Model Y vs RAV4 · ${abbr}`);
+  // payback uses an inline link, replace innerHTML to keep the anchor
+  const pay = document.getElementById('stat-payback');
+  if (pay) pay.innerHTML = `<a href="https://recharged.com/articles/when-does-ev-break-even-vs-gas-car" target="_blank" style="color:#2e7d32;text-decoration:none">${paybackLow}–${paybackHigh} yrs</a>`;
+  setText('stat-natlGas', '$' + natlGas.toFixed(2));
+  setText('stat-natlGasLabel',
+    gasPriceScenario === 'peak2022'
+      ? 'U.S. national gas avg<br>(2022 peak scenario)'
+      : 'U.S. national gas avg<br>(AAA · Apr 30, 2026)');
+  // Use innerHTML to preserve the <br>
+  const lab = document.getElementById('stat-natlGasLabel');
+  if (lab) lab.innerHTML = gasPriceScenario === 'peak2022'
+      ? 'U.S. national gas avg<br>(2022 peak scenario)'
+      : 'U.S. national gas avg<br>(AAA · Apr 30, 2026)';
 }
 
 // ============== PERSIST USER INPUTS ==============
