@@ -356,6 +356,84 @@ a{color:inherit;text-decoration:none}
   </div>
 </section>
 
+<!-- War Premium: extra paid per driver since March 1 -->
+<section class="section-wrap">
+  <div class="section-card">
+    <div class="results-header">THE WAR PREMIUM — WHAT YOUR STATE HAS PAID EXTRA</div>
+    <div class="section-card-body">
+      <p style="color:#666;text-align:center;margin-bottom:8px;font-size:15px;max-width:760px;margin-left:auto;margin-right:auto">
+        Compared to <strong>pre-war prices</strong> (late-January 2026, before geopolitical anticipation hit the pump),
+        each state's drivers have paid the extra dollars shown below — <strong>per driver, since March 1, 2026</strong>.
+      </p>
+      <p style="color:#999;text-align:center;margin-bottom:18px;font-size:12px">
+        (Today's AAA price − pre-war price) × <span id="wp-days">73</span> days × 1.46 gal/day
+        <span style="color:#bbb">· 13,500 mi/yr ÷ 25.4 MPG combined · baseline scaled from $3.40 national</span>
+      </p>
+
+      <!-- Headline total -->
+      <div style="display:flex;justify-content:center;flex-wrap:wrap;gap:24px;margin-bottom:22px">
+        <div style="text-align:center;padding:14px 22px;background:#fff5f5;border:1px solid #f0d0d0;border-radius:6px;min-width:200px">
+          <div style="font-family:'Playfair Display',serif;font-size:32px;font-weight:900;color:#c62828;line-height:1" id="wp-total">$26B</div>
+          <div style="font-size:11px;color:#888;letter-spacing:1.5px;text-transform:uppercase;margin-top:6px">U.S. drivers · extra since Mar 1</div>
+        </div>
+        <div style="text-align:center;padding:14px 22px;background:#fff5f5;border:1px solid #f0d0d0;border-radius:6px;min-width:200px">
+          <div style="font-family:'Playfair Display',serif;font-size:32px;font-weight:900;color:#c62828;line-height:1" id="wp-perdriver">$115</div>
+          <div style="font-size:11px;color:#888;letter-spacing:1.5px;text-transform:uppercase;margin-top:6px">Avg driver · extra so far</div>
+        </div>
+        <div style="text-align:center;padding:14px 22px;background:#fff5f5;border:1px solid #f0d0d0;border-radius:6px;min-width:200px">
+          <div style="font-family:'Playfair Display',serif;font-size:32px;font-weight:900;color:#c62828;line-height:1" id="wp-premium">+$1.11</div>
+          <div style="font-size:11px;color:#888;letter-spacing:1.5px;text-transform:uppercase;margin-top:6px">National premium / gallon</div>
+        </div>
+      </div>
+
+      <!-- Map legend -->
+      <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:6px 20px;margin-bottom:12px">
+        <div style="font-size:11px;color:#999;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;width:100%;text-align:center;margin-bottom:4px">Extra $ per driver since March 1</div>
+        <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:#666;font-weight:600"><div style="width:14px;height:14px;background:#fee0b6"></div> &lt; $80</div>
+        <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:#666;font-weight:600"><div style="width:14px;height:14px;background:#f4a261"></div> $80–120</div>
+        <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:#666;font-weight:600"><div style="width:14px;height:14px;background:#e76f51"></div> $120–160</div>
+        <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:#666;font-weight:600"><div style="width:14px;height:14px;background:#c1432b"></div> $160–200</div>
+        <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:#666;font-weight:600"><div style="width:14px;height:14px;background:#8e1c0d"></div> &gt; $200</div>
+      </div>
+
+      <!-- Map -->
+      <div id="warp-map-wrap" style="position:relative;max-width:900px;margin:0 auto">
+        <div id="warp-map" style="width:100%;min-height:400px"></div>
+        <div id="warp-popover" style="display:none;position:absolute;background:#fff;border:1px solid #ddd;padding:18px;z-index:50;min-width:240px;box-shadow:0 8px 24px rgba(0,0,0,0.12);border-radius:8px">
+          <div id="wpp-state" style="font-weight:700;font-size:16px;margin-bottom:10px;padding-bottom:8px;border-bottom:2px solid #c62828"></div>
+          <div style="display:grid;grid-template-columns:1fr auto;gap:6px 12px;font-size:13px">
+            <span style="color:#888">Pre-war price:</span><span id="wpp-base" style="font-weight:700;color:#555;text-align:right"></span>
+            <span style="color:#888">Today's price:</span><span id="wpp-now" style="font-weight:700;color:#1a1a2e;text-align:right"></span>
+            <span style="color:#888">Premium / gal:</span><span id="wpp-prem" style="font-weight:700;color:#c62828;text-align:right"></span>
+            <span style="color:#888">Gallons since Mar 1:</span><span id="wpp-gal" style="font-weight:700;color:#555;text-align:right"></span>
+            <span style="color:#888;border-top:1px solid #eee;padding-top:6px">Extra per driver:</span><span id="wpp-extra" style="font-weight:700;color:#c62828;text-align:right;font-size:16px;border-top:1px solid #eee;padding-top:6px"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Historical gas price chart -->
+<section class="section-wrap">
+  <div class="section-card">
+    <div class="results-header">U.S. NATIONAL GAS PRICE — A DECADE OF CONTEXT</div>
+    <div class="section-card-body">
+      <p style="color:#666;text-align:center;margin-bottom:8px;font-size:15px;max-width:760px;margin-left:auto;margin-right:auto">
+        Monthly U.S. regular gasoline average since 2015. The pump has crossed
+        <strong>$4</strong> three times in recent memory: the <strong>2022 invasion of Ukraine</strong>,
+        the <strong>2026 Iran crisis</strong> (current), and briefly in 2008.
+      </p>
+      <p style="color:#999;text-align:center;margin-bottom:18px;font-size:12px">
+        Source: EIA Weekly Retail Gasoline survey · monthly mean · all grades excluded, Regular only.
+      </p>
+      <div style="position:relative;max-width:1000px;margin:0 auto;height:340px">
+        <canvas id="histChart"></canvas>
+      </div>
+    </div>
+  </div>
+</section>
+
 <!-- Stats -->
 <section class="stats-section">
   <div class="stats-inner">
@@ -878,6 +956,8 @@ document.addEventListener('DOMContentLoaded', function() {
   populateDropdowns();
   initCostChart();
   initEGallon();
+  initWarPremium();
+  initHistoricalChart();
   initPairsControls();
   loadInputs();
   calculateSavings(parseInt(document.getElementById('milesRange').value));
@@ -2088,6 +2168,273 @@ function initEGallon() {
 
   // Initial render of the dynamic hero stats
   renderHeroStats();
+}
+
+// =================== WAR PREMIUM MAP ===================
+// Pre-war baseline: Jan 27, 2026 national avg ≈ $3.40 (EIA weekly retail, last
+// "calm" week before Iran-related anticipation re-priced the curve). Each state's
+// pre-war price is scaled proportionally from current using this national ratio.
+// Premium per driver = (today - baseline) × gallons consumed since Mar 1.
+// 13,500 mi/yr ÷ 25.4 MPG combined avg ≈ 1.46 gal/day → × days.
+
+const PRE_WAR_NATIONAL = 3.40;             // $/gal — Jan 27, 2026 national avg
+const WAR_START = new Date('2026-03-01');  // anchor date for accumulation
+const GAL_PER_DAY = 1.46;                  // avg US driver
+const US_DRIVERS = 230_000_000;            // FHWA, licensed drivers ~2024
+
+// State driver counts (approx, millions) — used only for the national aggregate.
+// Scaled from US Census state populations × 0.7.
+const stateDrivers = {
+  Alabama:3.6,Alaska:0.5,Arizona:5.3,Arkansas:2.2,California:28.1,Colorado:4.2,
+  Connecticut:2.6,Delaware:0.7,'District of Columbia':0.5,Florida:16.4,Georgia:7.6,
+  Hawaii:1.0,Idaho:1.4,Illinois:8.9,Indiana:4.8,Iowa:2.3,Kansas:2.1,Kentucky:3.2,
+  Louisiana:3.3,Maine:1.0,Maryland:4.4,Massachusetts:4.9,Michigan:7.2,Minnesota:4.0,
+  Mississippi:2.1,Missouri:4.4,Montana:0.8,Nebraska:1.4,Nevada:2.3,'New Hampshire':1.0,
+  'New Jersey':6.6,'New Mexico':1.5,'New York':14.3,'North Carolina':7.5,'North Dakota':0.5,
+  Ohio:8.4,Oklahoma:2.8,Oregon:3.0,Pennsylvania:9.7,'Rhode Island':0.8,'South Carolina':3.8,
+  'South Dakota':0.6,Tennessee:4.9,Texas:19.8,Utah:2.3,Vermont:0.5,Virginia:6.3,
+  Washington:5.5,'West Virginia':1.3,Wisconsin:4.3,Wyoming:0.4
+};
+
+function warPremiumColor(extra) {
+  if (extra == null) return '#ddd';
+  if (extra < 80)  return '#fee0b6';
+  if (extra < 120) return '#f4a261';
+  if (extra < 160) return '#e76f51';
+  if (extra < 200) return '#c1432b';
+  return '#8e1c0d';
+}
+
+function daysSinceWar() {
+  const now = new Date();
+  return Math.max(0, Math.floor((now - WAR_START) / 86400000));
+}
+
+// Pre-war price for a state, scaled proportionally from current price.
+function preWarPrice(state) {
+  const cur = gasPrices.find(d => d.state === state);
+  const natlCur = gasPrices.find(d => d.state === 'National');
+  if (!cur || !natlCur) return null;
+  return cur.price * (PRE_WAR_NATIONAL / natlCur.price);
+}
+
+function statePremium(state) {
+  const cur = gasPrices.find(d => d.state === state);
+  const base = preWarPrice(state);
+  if (!cur || base == null) return null;
+  const days = daysSinceWar();
+  const gallons = GAL_PER_DAY * days;
+  const premiumPerGal = cur.price - base;
+  const extraPerDriver = premiumPerGal * gallons;
+  return { current: cur.price, base, premiumPerGal, days, gallons, extraPerDriver };
+}
+
+function initWarPremium() {
+  const container = document.getElementById('warp-map');
+  if (!container) return;
+  const width = container.clientWidth || 900;
+  const height = 420;
+  const svg = d3.select('#warp-map').append('svg')
+    .attr('viewBox', `0 0 ${width} ${height}`)
+    .attr('preserveAspectRatio', 'xMidYMid meet')
+    .style('width','100%').style('height','100%');
+
+  document.getElementById('wp-days').textContent = daysSinceWar();
+
+  d3.json('https://cdn.jsdelivr.net/npm/us-atlas@3/states-10m.json').then(us => {
+    const projection = d3.geoAlbersUsa().fitSize([width, height], topojson.feature(us, us.objects.states));
+    const path = d3.geoPath().projection(projection);
+    const popover = document.getElementById('warp-popover');
+
+    svg.selectAll('path')
+      .data(topojson.feature(us, us.objects.states).features)
+      .join('path')
+      .attr('d', path)
+      .attr('fill', d => {
+        const p = statePremium(d.properties.name);
+        return p ? warPremiumColor(p.extraPerDriver) : '#ddd';
+      })
+      .attr('stroke', '#fff').attr('stroke-width', 1)
+      .style('cursor','pointer')
+      .on('mouseover', function(){ d3.select(this).attr('stroke','#1a1a2e').attr('stroke-width',2); })
+      .on('mouseout',  function(){ d3.select(this).attr('stroke','#fff').attr('stroke-width',1); })
+      .on('click', function(event, d){
+        const name = d.properties.name;
+        const p = statePremium(name);
+        if (!p) return;
+        popover.style.display = 'block';
+        popover.style.position = 'fixed';
+        popover.style.left = (event.clientX + 15) + 'px';
+        popover.style.top  = (event.clientY - 100) + 'px';
+        const pr = popover.getBoundingClientRect();
+        if (pr.bottom > window.innerHeight) popover.style.top = (window.innerHeight - pr.height - 10) + 'px';
+        if (pr.right  > window.innerWidth)  popover.style.left = (event.clientX - pr.width - 15) + 'px';
+        document.getElementById('wpp-state').textContent = name;
+        document.getElementById('wpp-base').textContent  = '$' + p.base.toFixed(2);
+        document.getElementById('wpp-now').textContent   = '$' + p.current.toFixed(2);
+        document.getElementById('wpp-prem').textContent  = '+$' + p.premiumPerGal.toFixed(2);
+        document.getElementById('wpp-gal').textContent   = Math.round(p.gallons) + ' gal';
+        document.getElementById('wpp-extra').textContent = '$' + Math.round(p.extraPerDriver).toLocaleString();
+      });
+
+    svg.selectAll('text')
+      .data(topojson.feature(us, us.objects.states).features)
+      .join('text')
+      .attr('x', d => path.centroid(d)[0])
+      .attr('y', d => path.centroid(d)[1])
+      .attr('text-anchor','middle').attr('dy','0.35em')
+      .attr('font-size','13px').attr('font-weight','700')
+      .attr('font-family','Open Sans, sans-serif')
+      .attr('fill', d => {
+        const p = statePremium(d.properties.name);
+        return (p && p.extraPerDriver >= 160) ? '#fff' : '#1a1a2e';
+      })
+      .attr('pointer-events','none')
+      .text(d => {
+        const p = statePremium(d.properties.name);
+        return p ? '$' + Math.round(p.extraPerDriver) : '';
+      });
+  });
+
+  // Close on outside click
+  document.addEventListener('click', function(e){
+    const wrap = document.getElementById('warp-map-wrap');
+    const pop  = document.getElementById('warp-popover');
+    if (wrap && pop && !pop.contains(e.target) && !wrap.contains(e.target)) {
+      pop.style.display = 'none';
+    }
+  });
+
+  // National rollup: per-state extra × drivers, summed.
+  let nationalTotal = 0, perDriverWeighted = 0, totalDrivers = 0;
+  Object.keys(stateDrivers).forEach(state => {
+    const p = statePremium(state);
+    if (!p) return;
+    nationalTotal       += p.extraPerDriver * (stateDrivers[state] * 1_000_000);
+    perDriverWeighted   += p.extraPerDriver * (stateDrivers[state] * 1_000_000);
+    totalDrivers        += stateDrivers[state] * 1_000_000;
+  });
+  const avgPerDriver = totalDrivers > 0 ? perDriverWeighted / totalDrivers : 0;
+  const natlGas = gasPrices.find(d => d.state === 'National');
+  const natlPremium = natlGas ? natlGas.price - PRE_WAR_NATIONAL : 0;
+
+  document.getElementById('wp-total').textContent     = '$' + (nationalTotal / 1e9).toFixed(1) + 'B';
+  document.getElementById('wp-perdriver').textContent = '$' + Math.round(avgPerDriver);
+  document.getElementById('wp-premium').textContent   = '+$' + natlPremium.toFixed(2);
+}
+
+// =================== HISTORICAL GAS PRICE CHART ===================
+// Monthly U.S. regular gasoline average, 2015 → present. Values are
+// approximated from EIA Weekly Retail Gasoline survey monthly means.
+const HIST_GAS_MONTHLY = [
+  // 2015
+  ['2015-01',2.13],['2015-02',2.27],['2015-03',2.46],['2015-04',2.45],['2015-05',2.74],['2015-06',2.80],['2015-07',2.79],['2015-08',2.65],['2015-09',2.42],['2015-10',2.30],['2015-11',2.17],['2015-12',2.05],
+  // 2016
+  ['2016-01',1.94],['2016-02',1.78],['2016-03',2.03],['2016-04',2.17],['2016-05',2.30],['2016-06',2.36],['2016-07',2.24],['2016-08',2.21],['2016-09',2.21],['2016-10',2.30],['2016-11',2.21],['2016-12',2.25],
+  // 2017
+  ['2017-01',2.39],['2017-02',2.34],['2017-03',2.36],['2017-04',2.46],['2017-05',2.43],['2017-06',2.36],['2017-07',2.34],['2017-08',2.45],['2017-09',2.66],['2017-10',2.55],['2017-11',2.61],['2017-12',2.50],
+  // 2018
+  ['2018-01',2.61],['2018-02',2.66],['2018-03',2.69],['2018-04',2.85],['2018-05',2.96],['2018-06',2.97],['2018-07',2.91],['2018-08',2.89],['2018-09',2.89],['2018-10',2.92],['2018-11',2.78],['2018-12',2.46],
+  // 2019
+  ['2019-01',2.30],['2019-02',2.40],['2019-03',2.62],['2019-04',2.86],['2019-05',2.92],['2019-06',2.81],['2019-07',2.84],['2019-08',2.66],['2019-09',2.65],['2019-10',2.67],['2019-11',2.65],['2019-12',2.62],
+  // 2020
+  ['2020-01',2.62],['2020-02',2.50],['2020-03',2.50],['2020-04',1.94],['2020-05',1.96],['2020-06',2.19],['2020-07',2.27],['2020-08',2.27],['2020-09',2.27],['2020-10',2.21],['2020-11',2.20],['2020-12',2.25],
+  // 2021
+  ['2021-01',2.42],['2021-02',2.59],['2021-03',2.89],['2021-04',2.94],['2021-05',3.07],['2021-06',3.16],['2021-07',3.22],['2021-08',3.21],['2021-09',3.27],['2021-10',3.39],['2021-11',3.49],['2021-12',3.41],
+  // 2022 — Ukraine
+  ['2022-01',3.41],['2022-02',3.61],['2022-03',4.32],['2022-04',4.21],['2022-05',4.59],['2022-06',5.03],['2022-07',4.67],['2022-08',4.06],['2022-09',3.81],['2022-10',3.93],['2022-11',3.80],['2022-12',3.32],
+  // 2023
+  ['2023-01',3.45],['2023-02',3.48],['2023-03',3.51],['2023-04',3.66],['2023-05',3.57],['2023-06',3.59],['2023-07',3.71],['2023-08',3.84],['2023-09',3.84],['2023-10',3.65],['2023-11',3.35],['2023-12',3.18],
+  // 2024
+  ['2024-01',3.10],['2024-02',3.30],['2024-03',3.51],['2024-04',3.66],['2024-05',3.62],['2024-06',3.49],['2024-07',3.51],['2024-08',3.43],['2024-09',3.20],['2024-10',3.18],['2024-11',3.05],['2024-12',3.04],
+  // 2025
+  ['2025-01',3.10],['2025-02',3.18],['2025-03',3.10],['2025-04',3.18],['2025-05',3.21],['2025-06',3.22],['2025-07',3.27],['2025-08',3.20],['2025-09',3.15],['2025-10',3.18],['2025-11',3.13],['2025-12',3.18],
+  // 2026 — Iran crisis
+  ['2026-01',3.36],['2026-02',3.50],['2026-03',3.85],['2026-04',4.30]
+];
+
+function initHistoricalChart() {
+  const el = document.getElementById('histChart');
+  if (!el) return;
+  // Append "today" as the latest point using current AAA national avg
+  const natlGas = gasPrices.find(d => d.state === 'National');
+  const today = new Date();
+  const ym = today.toISOString().slice(0,7);  // e.g., '2026-05'
+  const series = HIST_GAS_MONTHLY.slice();
+  if (natlGas && series[series.length - 1][0] !== ym) {
+    series.push([ym, natlGas.price]);
+  } else if (natlGas) {
+    series[series.length - 1] = [ym, natlGas.price];
+  }
+  const labels = series.map(p => p[0]);
+  const data   = series.map(p => p[1]);
+  const lastIdx = series.length - 1;
+
+  // Show every 6th label so the axis is readable.
+  const tickEvery = 6;
+
+  const ctx = el.getContext('2d');
+  const chart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        label: 'U.S. Regular avg ($/gal)',
+        data,
+        borderColor: '#1a1a2e',
+        backgroundColor: 'rgba(26,26,46,0.06)',
+        borderWidth: 2,
+        tension: 0.25,
+        pointRadius: labels.map((_, i) => i === lastIdx ? 7 : 0),
+        pointBackgroundColor: labels.map((_, i) => i === lastIdx ? '#c62828' : '#1a1a2e'),
+        pointBorderColor: labels.map((_, i) => i === lastIdx ? '#fff' : '#1a1a2e'),
+        pointBorderWidth: 2,
+        fill: true
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            title: (items) => items[0].label,
+            label: (item) => '$' + item.parsed.y.toFixed(2) + ' / gal'
+          }
+        },
+        annotation: undefined
+      },
+      scales: {
+        x: {
+          ticks: {
+            color: '#888',
+            font: { size: 10 },
+            callback: function(val, idx) {
+              return idx % tickEvery === 0 ? labels[idx].slice(0, 4) : '';
+            },
+            maxRotation: 0, autoSkip: false
+          },
+          grid: { color: '#f0f0f0' }
+        },
+        y: {
+          ticks: { color: '#888', font: { size: 10 }, callback: v => '$' + v.toFixed(2) },
+          grid: { color: '#f0f0f0' },
+          suggestedMin: 1.5
+        }
+      }
+    }
+  });
+
+  // Pulse the latest point: alternate its radius every ~700ms.
+  let up = false;
+  setInterval(() => {
+    up = !up;
+    chart.data.datasets[0].pointRadius = labels.map((_, i) =>
+      i === lastIdx ? (up ? 10 : 6) : 0
+    );
+    chart.update('none');
+  }, 700);
 }
 
 // Compute the "Why drivers are switching" headline stats from live data,
