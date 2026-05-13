@@ -2107,8 +2107,10 @@ function initEGallon() {
       })
       .attr('pointer-events', 'none')
       .text(d => {
-        const eg = getEGallon(d.properties.name);
-        const gp = getGasPrice(d.properties.name);
+        const name = d.properties.name;
+        if (SMALL_STATES.has(name)) return '';
+        const eg = getEGallon(name);
+        const gp = getGasPrice(name);
         if (!eg || !gp) return '';
         return '$' + (gp - eg).toFixed(2);
       });
@@ -2127,8 +2129,10 @@ function initEGallon() {
         return pct != null && pct >= 65 ? '#fff' : '#1a1a2e';
       })
       .text(d => {
-        const eg = getEGallon(d.properties.name);
-        const gp = getGasPrice(d.properties.name);
+        const name = d.properties.name;
+        if (SMALL_STATES.has(name)) return '';
+        const eg = getEGallon(name);
+        const gp = getGasPrice(name);
         if (!eg || !gp) return '';
         return '$' + (gp - eg).toFixed(2);
       });
@@ -2176,6 +2180,13 @@ function initEGallon() {
 // pre-war price is scaled proportionally from current using this national ratio.
 // Premium per driver = (today - baseline) × gallons consumed since Mar 1.
 // 13,500 mi/yr ÷ 25.4 MPG combined avg ≈ 1.46 gal/day → × days.
+
+// Small states whose centroids overlap on a US choropleth — skip inline labels
+// for these; the popover (click) still shows the full per-state detail.
+const SMALL_STATES = new Set([
+  'Rhode Island','District of Columbia','Connecticut','New Jersey','Delaware',
+  'Massachusetts','New Hampshire','Vermont','Maryland'
+]);
 
 const PRE_WAR_NATIONAL = 3.40;             // $/gal — Jan 27, 2026 national avg
 const WAR_START = new Date('2026-03-01');  // anchor date for accumulation
@@ -2291,7 +2302,9 @@ function initWarPremium() {
       })
       .attr('pointer-events','none')
       .text(d => {
-        const p = statePremium(d.properties.name);
+        const name = d.properties.name;
+        if (SMALL_STATES.has(name)) return '';
+        const p = statePremium(name);
         return p ? '$' + Math.round(p.extraPerDriver) : '';
       });
   });
