@@ -674,7 +674,7 @@ a{color:inherit;text-decoration:none}
       <p style="color:#666;text-align:center;margin-bottom:20px;font-size:15px">Search any U.S. location to find nearby EV chargers. Powered by the U.S. Department of Energy.</p>
       <div style="max-width:900px;margin:0 auto;overflow:hidden;height:650px"><div id="afdc-stations" style="transform:scale(0.65);transform-origin:top center;width:154%;margin-left:-27%"></div></div>
       <script type="text/javascript">window.afdcStationsOptions = {"country":"all","localeCountry":"US","path":"/find/nearest","query":{"fuel":"ELEC","country":"US"}}</script>
-      <script async defer src="https://widgets.nrel.gov/afdc/station-locator/assets/embed.js"></script>
+      <script async defer src="https://widgets.nlr.gov/afdc/station-locator/assets/embed.js"></script>
     </div>
   </div>
 </section>
@@ -2399,6 +2399,8 @@ function initHistoricalChart() {
         borderWidth: 2,
         tension: 0.25,
         pointRadius: labels.map((_, i) => i === lastIdx ? 7 : 0),
+        pointHoverRadius: labels.map((_, i) => i === lastIdx ? 9 : 5),
+        pointHitRadius: 12,
         pointBackgroundColor: labels.map((_, i) => i === lastIdx ? '#c62828' : '#1a1a2e'),
         pointBorderColor: labels.map((_, i) => i === lastIdx ? '#fff' : '#1a1a2e'),
         pointBorderWidth: 2,
@@ -2408,15 +2410,20 @@ function initHistoricalChart() {
     options: {
       responsive: true,
       maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false, axis: 'x' },
       plugins: {
         legend: { display: false },
         tooltip: {
           callbacks: {
-            title: (items) => items[0].label,
+            title: (items) => {
+              const ym = items[0].label;             // e.g., '2026-04'
+              const [y, m] = ym.split('-');
+              const names = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+              return names[parseInt(m,10)-1] + ' ' + y;
+            },
             label: (item) => '$' + item.parsed.y.toFixed(2) + ' / gal'
           }
-        },
-        annotation: undefined
+        }
       },
       scales: {
         x: {
@@ -2439,15 +2446,6 @@ function initHistoricalChart() {
     }
   });
 
-  // Pulse the latest point: alternate its radius every ~700ms.
-  let up = false;
-  setInterval(() => {
-    up = !up;
-    chart.data.datasets[0].pointRadius = labels.map((_, i) =>
-      i === lastIdx ? (up ? 10 : 6) : 0
-    );
-    chart.update('none');
-  }, 700);
 }
 
 // Compute the "Why drivers are switching" headline stats from live data,
