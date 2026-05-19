@@ -1,0 +1,25 @@
+vehicle,vehicle_type,segment,source,annual_premium_usd,coverage,data_as_of,source_url,notes
+Tesla Model Y,EV,Small SUV,MoneyGeek,2892,Full,2026,https://www.moneygeek.com/insurance/auto/tesla-model-y-insurance/,$241/mo full coverage converted to annual
+Tesla Model Y,EV,Small SUV,Insure.com,3836,Full,2026,https://www.insure.com/car-insurance/tesla-model-y-insurance-cost/,Average national
+Tesla Model Y,EV,Small SUV,Bankrate,,Full,Nov 2025,https://www.bankrate.com/insurance/car/tesla/model-y/,Not in Bankrate's central make/model table
+Tesla Model Y,EV,Small SUV,The Zebra,,Full,2026,https://www.thezebra.com/auto-insurance/vehicles/tesla/model-y/,Page exists; direct fetch blocked (403)
+Tesla Model 3,EV,Sedan,MoneyGeek,2495,Full,2026,https://www.moneygeek.com/insurance/auto/tesla-model-3-insurance/,Average across model years
+Tesla Model 3,EV,Sedan,Insure.com,3871,Full,2026,https://www.insure.com/car-insurance/tesla-model-3-insurance-cost/,Average national
+Tesla Model 3,EV,Sedan,Bankrate,3419,Full,Nov 2025,https://www.bankrate.com/insurance/car/tesla/model-3/,Quadrant Information Services
+Tesla Model 3,EV,Sedan,The Zebra,3150,Full,2026,https://www.thezebra.com/auto-insurance/vehicles/tesla/model-3/,$1575/6mo full coverage converted to annual
+Ford F-150 Lightning,EV,Pickup,MoneyGeek,2500,Full,2026,https://www.moneygeek.com/insurance/auto/ford-f-150-insurance/,Approx trim-average from Lightning XLT/Platinum quotes ($166-$272/mo)
+Ford F-150 Lightning,EV,Pickup,Insure.com,3078,Full,2026,https://www.insure.com/car-insurance/ford-f-series-insurance-cost/,Trim avg: Pro $2878 / Flash $2925 / XLT $2990 / Lariat $3216 / Platinum $3379
+Ford F-150 Lightning,EV,Pickup,Bankrate,,Full,Nov 2025,https://www.bankrate.com/insurance/car/ford/f-150/,No separate Lightning page (404); F-150 page does not break out Lightning
+Ford F-150 Lightning,EV,Pickup,The Zebra,2798,Full,2026,https://www.thezebra.com/auto-insurance/vehicles/ford/f-150-lightning/,$1399/6mo full coverage converted to annual
+Toyota RAV4,ICE,Small SUV,MoneyGeek,2140,Full,2026,https://www.moneygeek.com/insurance/auto/toyota-rav4-insurance/,Average across model years
+Toyota RAV4,ICE,Small SUV,Insure.com,2478,Full,2026,https://www.insure.com/car-insurance/toyota-rav4-insurance-cost/,Average national
+Toyota RAV4,ICE,Small SUV,Bankrate,,Full,Nov 2025,https://www.bankrate.com/insurance/car/toyota/rav-4/,Not in Bankrate's central make/model table
+Toyota RAV4,ICE,Small SUV,The Zebra,,Full,2026,https://www.thezebra.com/auto-insurance/vehicles/toyota/rav4/,Page exists; direct fetch blocked (403)
+Honda Accord,ICE,Sedan,MoneyGeek,1976,Full,2026,https://www.moneygeek.com/insurance/auto/honda-accord-insurance/,Average national
+Honda Accord,ICE,Sedan,Insure.com,2600,Full,2026,https://www.insure.com/car-insurance/honda-accord-insurance-cost/,Average national
+Honda Accord,ICE,Sedan,Bankrate,2735,Full,Nov 2025,https://www.bankrate.com/insurance/car/honda/accord/,Quadrant Information Services
+Honda Accord,ICE,Sedan,The Zebra,2349,Full,2026,https://www.thezebra.com/auto-insurance/vehicles/honda/accord/,From search snippet
+Ford F-150,ICE,Pickup,MoneyGeek,1862,Full,2026,https://www.moneygeek.com/insurance/auto/ford-f-150-insurance/,Average base trim
+Ford F-150,ICE,Pickup,Insure.com,2696,Full,2026,https://www.insure.com/car-insurance/ford-f-series-insurance-cost/,Base trim; Raptor $3004
+Ford F-150,ICE,Pickup,Bankrate,2630,Full,Nov 2025,https://www.bankrate.com/insurance/car/ford/f-150/,Quadrant Information Services
+Ford F-150,ICE,Pickup,The Zebra,,Full,2026,https://www.thezebra.com/auto-insurance/vehicles/ford/f-150/,Page exists; direct fetch blocked (403)
