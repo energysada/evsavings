@@ -68,6 +68,20 @@ a{color:inherit;text-decoration:none}
 .pm-cell .pm-pct.low{background:#999}
 .pm-cell .pm-pct.negative{background:#c62828}
 
+/* ====== E-GALLON MAP + SIDE TABLE ====== */
+.egal-layout{display:grid;grid-template-columns:1.65fr 1fr;gap:28px;max-width:1340px;margin:0 auto;align-items:start}
+.egal-rank{width:100%;border-collapse:collapse;font-family:'Open Sans',sans-serif}
+.egal-rank caption{caption-side:top;text-align:left;font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#999;padding-bottom:10px}
+.egal-rank th{font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#2e7d32;padding:8px 6px;border-bottom:1.5px solid #1a1a2e;text-align:right}
+.egal-rank th:first-child{text-align:left}
+.egal-rank td{padding:11px 6px;border-bottom:1px dotted #d8d8d8;font-size:14px;font-variant-numeric:tabular-nums;text-align:right;color:#444}
+.egal-rank td:first-child{text-align:left;font-weight:600;color:#1a1a2e}
+.egal-rank tr:hover td{background:#f4f9f4}
+.egal-rank .er-bar{display:inline-block;height:7px;background:#2e7d32;vertical-align:middle;margin-right:9px;border-radius:1px;min-width:6px}
+.egal-rank .er-eg{color:#2e7d32;font-weight:700;font-family:'Playfair Display',serif;font-size:15px}
+.egal-rank .er-gas{font-family:'Playfair Display',serif;font-size:15px;color:#555}
+@media(max-width:820px){.egal-layout{grid-template-columns:1fr}}
+
 /* ====== CALCULATOR ====== */
 .calc-section{background:#eee;padding:10px 40px 10px}
 .calc-container-single{max-width:1500px;margin:0 auto;background:#fff;overflow:hidden;border:1px solid #e0e0e0}
@@ -339,22 +353,35 @@ a{color:inherit;text-decoration:none}
         <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:#666;font-weight:600"><div style="width:14px;height:14px;background:#c8e6c9"></div> &lt; 40%</div>
       </div>
 
-      <!-- Map container -->
-      <div id="egallon-map-wrap" style="position:relative;max-width:900px;margin:0 auto">
-        <div id="egallon-map" style="width:100%;min-height:400px"></div>
-        <!-- Lightweight hover tooltip -->
-        <div id="egallon-hover" style="display:none;position:fixed;background:#1a1a2e;color:#fff;padding:8px 12px;font-size:13px;font-weight:600;border-radius:4px;pointer-events:none;z-index:60;box-shadow:0 6px 18px rgba(0,0,0,0.25);white-space:nowrap"></div>
-        <!-- Popover for clicked state -->
-        <div id="egallon-popover" style="display:none;position:absolute;background:#fff;border:1px solid #ddd;padding:20px;z-index:50;min-width:240px;box-shadow:0 8px 24px rgba(0,0,0,0.12);border-radius:8px">
-        <div id="egp-state" style="font-weight:700;font-size:16px;margin-bottom:10px;padding-bottom:8px;border-bottom:2px solid #2e7d32"></div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:13px">
-          <span style="color:#888">E-Gallon:</span><span id="egp-egallon" style="font-weight:700;color:#2e7d32;text-align:right"></span>
-          <span style="color:#888">Gas Price:</span><span id="egp-gas" style="font-weight:700;color:#555;text-align:right"></span>
-          <span style="color:#888">You Save:</span><span id="egp-saving" style="font-weight:700;color:#2e7d32;text-align:right"></span>
-          <span style="color:#888">Savings %:</span><span id="egp-pct" style="font-weight:700;color:#2e7d32;text-align:right"></span>
+      <!-- Map + side ranking table -->
+      <div class="egal-layout">
+        <!-- Map container -->
+        <div id="egallon-map-wrap" style="position:relative">
+          <div id="egallon-map" style="width:100%;min-height:400px"></div>
+          <!-- Lightweight hover tooltip -->
+          <div id="egallon-hover" style="display:none;position:fixed;background:#1a1a2e;color:#fff;padding:8px 12px;font-size:13px;font-weight:600;border-radius:4px;pointer-events:none;z-index:60;box-shadow:0 6px 18px rgba(0,0,0,0.25);white-space:nowrap"></div>
+          <!-- Popover for clicked state -->
+          <div id="egallon-popover" style="display:none;position:absolute;background:#fff;border:1px solid #ddd;padding:20px;z-index:50;min-width:240px;box-shadow:0 8px 24px rgba(0,0,0,0.12);border-radius:8px">
+          <div id="egp-state" style="font-weight:700;font-size:16px;margin-bottom:10px;padding-bottom:8px;border-bottom:2px solid #2e7d32"></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:13px">
+            <span style="color:#888">E-Gallon:</span><span id="egp-egallon" style="font-weight:700;color:#2e7d32;text-align:right"></span>
+            <span style="color:#888">Gas Price:</span><span id="egp-gas" style="font-weight:700;color:#555;text-align:right"></span>
+            <span style="color:#888">You Save:</span><span id="egp-saving" style="font-weight:700;color:#2e7d32;text-align:right"></span>
+            <span style="color:#888">Savings %:</span><span id="egp-pct" style="font-weight:700;color:#2e7d32;text-align:right"></span>
+          </div>
         </div>
-      </div>
-      </div><!-- end egallon-map-wrap -->
+        </div><!-- end egallon-map-wrap -->
+        <!-- Side ranking table: 10 most-populous states, sorted by gas price -->
+        <div>
+          <table class="egal-rank">
+            <caption>10 most-populous states &middot; priciest gas first</caption>
+            <thead>
+              <tr><th>State</th><th>Gas / gal</th><th>E-Gallon</th></tr>
+            </thead>
+            <tbody id="egal-rank-body"></tbody>
+          </table>
+        </div>
+      </div><!-- end egal-layout -->
     </div>
   </div>
 </section>
@@ -2194,8 +2221,34 @@ function initEGallon() {
     const el = document.getElementById('egal-banner-pct');
     if (el) el.textContent = avg + '%';
   };
+  // Side ranking table — 10 most-populous states, sorted by gas price (high to low).
+  const TOP10_POP = ['California','Texas','Florida','New York','Pennsylvania',
+                     'Illinois','Ohio','Georgia','North Carolina','Michigan'];
+  window.refreshEgalRankTable = function() {
+    const rows = TOP10_POP.map(name => {
+      const gp = getGasPrice(name);
+      const eg = getEGallon(name);
+      return (gp && eg) ? { name, gp, eg } : null;
+    }).filter(Boolean);
+    rows.sort((a, b) => b.gp - a.gp);
+    const maxGp = rows.length ? rows[0].gp : 1;
+    const body = document.getElementById('egal-rank-body');
+    if (!body) return;
+    body.innerHTML = rows.map(r => {
+      const barW = Math.max(6, Math.round((r.gp / maxGp) * 64));
+      return `<tr>
+        <td><span class="er-bar" style="width:${barW}px"></span>${r.name}</td>
+        <td class="er-gas">$${r.gp.toFixed(2)}</td>
+        <td class="er-eg">$${r.eg.toFixed(2)}</td>
+      </tr>`;
+    }).join('');
+  };
+
   // First render
-  setTimeout(() => { if (window.refreshEGallonMap) window.refreshEGallonMap(); }, 200);
+  setTimeout(() => {
+    if (window.refreshEGallonMap) window.refreshEGallonMap();
+    if (window.refreshEgalRankTable) window.refreshEgalRankTable();
+  }, 200);
 
   // Close popover when clicking anywhere outside it (state clicks stop propagation).
   document.addEventListener('click', function(e) {
@@ -2214,6 +2267,7 @@ function initEGallon() {
       renderMaintenance();
       renderHeroStats();
       if (window.refreshEGallonMap) window.refreshEGallonMap();
+      if (window.refreshEgalRankTable) window.refreshEgalRankTable();
     });
   });
 
