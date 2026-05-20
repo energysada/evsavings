@@ -108,17 +108,15 @@ const SHARED = (function(){
   // AAA state averages, updated May 20, 2026
   const gasPrices = {
     "National":4.555,"Alabama":4.154,"Alaska":5.278,"Arizona":4.825,"Arkansas":4.104,
-    "California":6.145,"Colorado":4.784,"Connecticut":4.647,"Delaware":4.333,
-    "District of Columbia":4.671,"Florida":4.521,"Georgia":4.006,"Hawaii":5.648,
-    "Idaho":4.698,"Illinois":5.033,"Indiana":4.074,"Iowa":4.282,"Kansas":4.117,
-    "Kentucky":4.297,"Louisiana":4.049,"Maine":4.520,"Maryland":4.456,
-    "Massachusetts":4.501,"Michigan":4.773,"Minnesota":4.398,"Mississippi":4.014,
-    "Missouri":4.198,"Montana":4.613,"Nebraska":4.288,"Nevada":5.271,
-    "New Hampshire":4.484,"New Jersey":4.524,"New Mexico":4.520,"New York":4.612,
-    "North Carolina":4.212,"North Dakota":4.245,"Ohio":4.745,"Oklahoma":4.093,
-    "Oregon":5.353,"Pennsylvania":4.644,"Rhode Island":4.496,"South Carolina":4.175,
-    "South Dakota":4.339,"Tennessee":4.215,"Texas":4.038,"Utah":4.700,
-    "Vermont":4.570,"Virginia":4.309,"Washington":5.789,"West Virginia":4.485,
+    "California":6.145,"Colorado":4.784,"Connecticut":4.647,"Delaware":4.333,"District of Columbia":4.671,
+    "Florida":4.521,"Georgia":4.006,"Hawaii":5.648,"Idaho":4.698,"Illinois":5.033,
+    "Indiana":4.074,"Iowa":4.282,"Kansas":4.117,"Kentucky":4.297,"Louisiana":4.049,
+    "Maine":4.520,"Maryland":4.456,"Massachusetts":4.501,"Michigan":4.773,"Minnesota":4.398,
+    "Mississippi":4.014,"Missouri":4.198,"Montana":4.613,"Nebraska":4.288,"Nevada":5.271,
+    "New Hampshire":4.484,"New Jersey":4.524,"New Mexico":4.520,"New York":4.612,"North Carolina":4.212,
+    "North Dakota":4.245,"Ohio":4.745,"Oklahoma":4.093,"Oregon":5.353,"Pennsylvania":4.644,
+    "Rhode Island":4.496,"South Carolina":4.175,"South Dakota":4.339,"Tennessee":4.215,"Texas":4.038,
+    "Utah":4.700,"Vermont":4.570,"Virginia":4.309,"Washington":5.789,"West Virginia":4.485,
     "Wisconsin":4.482,"Wyoming":4.565
   };
 
