@@ -493,8 +493,8 @@ a{color:inherit;text-decoration:none}
           <div class="ctrl-body">
             <div class="ctrl-toggle" id="maintYearsToggle">
               <button class="maint-yr-btn" data-years="1">1 yr</button>
-              <button class="maint-yr-btn" data-years="5">5 yr</button>
-              <button class="maint-yr-btn active" data-years="10">10 yr</button>
+              <button class="maint-yr-btn active" data-years="5">5 yr</button>
+              <button class="maint-yr-btn" data-years="10">10 yr</button>
             </div>
           </div>
           <div class="ctrl-footer"></div>
@@ -1869,7 +1869,7 @@ function getVehicleSegment(model) {
 
 function renderMaintenance() {
   const activeBtn = document.querySelector('.maint-yr-btn.active');
-  const years = activeBtn ? parseInt(activeBtn.dataset.years) : 10;
+  const years = activeBtn ? parseInt(activeBtn.dataset.years) : 5;
   const annualMiles = parseInt(document.getElementById('maintMiles')?.value || document.getElementById('milesRange').value);
   const totalMiles = annualMiles * years;
 
