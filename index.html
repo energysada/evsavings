@@ -500,7 +500,11 @@ a{color:inherit;text-decoration:none}
           <div class="ctrl-footer"></div>
         </div>
       </div>
-      <p style="color:#999;text-align:center;font-size:12px;margin-top:-20px;margin-bottom:20px">Costs reflect the vehicles selected in Deep Dive below. Change vehicles there to compare different models.</p>
+      <p style="color:#999;text-align:center;font-size:12px;margin-top:-20px;margin-bottom:16px">Costs reflect the vehicles selected in Deep Dive below. Change vehicles there to compare different models.</p>
+      <div style="text-align:center;margin-bottom:20px">
+        <button id="maintBreakdownToggle" onclick="toggleMaintBreakdown()" style="background:#fff;border:1px solid #ddd;border-radius:4px;padding:9px 20px;font-size:13px;font-weight:600;color:#2e7d32;cursor:pointer;font-family:'Open Sans',sans-serif">▾ Show full maintenance breakdown</button>
+      </div>
+      <div id="maintBreakdownWrap" style="display:none">
       <div class="maint-columns" style="display:grid;grid-template-columns:1fr 1fr;gap:24px;max-width:900px;margin:0 auto">
         <div>
           <h3 id="maintGasHeader" style="text-align:center;font-size:13px;font-weight:700;letter-spacing:1px;color:#555;margin-bottom:16px">⛽ GAS VEHICLE</h3>
@@ -519,6 +523,7 @@ a{color:inherit;text-decoration:none}
           </div>
         </div>
       </div>
+      </div><!-- end maintBreakdownWrap -->
       <div style="text-align:center;margin-top:28px;padding:20px;background:#e8f5e9;border-radius:8px;max-width:500px;margin-left:auto;margin-right:auto">
         <div style="font-size:12px;font-weight:700;letter-spacing:1px;color:#2e7d32;margin-bottom:4px">MAINTENANCE SAVINGS WITH EV</div>
         <div id="maintSavings" style="font-family:'Playfair Display',serif;font-size:40px;font-weight:700;color:#2e7d32">—</div>
@@ -1865,6 +1870,16 @@ function getVehicleSegment(model) {
   const gas = gasVehicles.find(v => v.model === model);
   if (gas) return gas.segment;
   return 'Sedan';
+}
+
+// Maintenance breakdown is collapsed by default — expand on click.
+function toggleMaintBreakdown() {
+  const wrap = document.getElementById('maintBreakdownWrap');
+  const btn  = document.getElementById('maintBreakdownToggle');
+  const open = wrap.style.display !== 'none';
+  wrap.style.display = open ? 'none' : 'block';
+  btn.textContent = open ? '▾ Show full maintenance breakdown'
+                         : '▴ Hide maintenance breakdown';
 }
 
 function renderMaintenance() {
