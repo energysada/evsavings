@@ -86,10 +86,11 @@ a{color:inherit;text-decoration:none}
 .egal-rank td{padding:4px 6px;border-bottom:1px dotted #d8d8d8;font-size:13px;font-variant-numeric:tabular-nums;text-align:right;color:#444}
 .egal-rank td:first-child{text-align:left;font-weight:600;color:#1a1a2e}
 .egal-rank tr:hover td{background:#f4f9f4}
+.egal-rank .er-cell{display:flex;align-items:center;justify-content:flex-end;gap:8px}
 .egal-rank .er-val{font-family:'Playfair Display',serif;font-size:14px;line-height:1.05}
 .egal-rank .er-gas{color:#b03a2e}
 .egal-rank .er-eg{color:#2e7d32}
-.egal-rank .er-bar{height:4px;border-radius:1px;margin-top:2px;margin-left:auto;min-width:6px}
+.egal-rank .er-bar{height:7px;border-radius:1px;min-width:6px;flex:none}
 .egal-rank .er-bar-gas{background:#b03a2e}
 .egal-rank .er-bar-eg{background:#2e7d32}
 @media(max-width:820px){.egal-layout{grid-template-columns:1fr}}
@@ -2287,12 +2288,12 @@ function initEGallon() {
     const body = document.getElementById('egal-rank-body');
     if (!body) return;
     body.innerHTML = rows.map(r => {
-      const gasW = Math.max(6, Math.round((r.gp / maxGp) * 70));
-      const egW  = Math.max(6, Math.round((r.eg / maxEg) * 70));
+      const gasW = Math.max(6, Math.round((r.gp / maxGp) * 56));
+      const egW  = Math.max(6, Math.round((r.eg / maxEg) * 56));
       return `<tr>
         <td>${r.name}</td>
-        <td><div class="er-val er-gas">$${r.gp.toFixed(2)}</div><div class="er-bar er-bar-gas" style="width:${gasW}px"></div></td>
-        <td><div class="er-val er-eg">$${r.eg.toFixed(2)}</div><div class="er-bar er-bar-eg" style="width:${egW}px"></div></td>
+        <td><div class="er-cell"><span class="er-bar er-bar-gas" style="width:${gasW}px"></span><span class="er-val er-gas">$${r.gp.toFixed(2)}</span></div></td>
+        <td><div class="er-cell"><span class="er-bar er-bar-eg" style="width:${egW}px"></span><span class="er-val er-eg">$${r.eg.toFixed(2)}</span></div></td>
       </tr>`;
     }).join('');
   };
