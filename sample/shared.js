@@ -105,7 +105,7 @@ const SHARED = (function(){
     "Wisconsin":18.39,"Wyoming":13.91
   };
 
-  // AAA state averages, updated May 20, 2026
+  // AAA state averages, updated May 21, 2026
   const gasPrices = {
     "National":4.555,"Alabama":4.154,"Alaska":5.278,"Arizona":4.825,"Arkansas":4.104,
     "California":6.145,"Colorado":4.784,"Connecticut":4.647,"Delaware":4.333,"District of Columbia":4.671,
