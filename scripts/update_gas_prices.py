@@ -144,6 +144,11 @@ def main():
         r"📊 Today \(\$[0-9.]+ nat'l avg\)",
         f"\U0001F4CA Today (${national:.2f} nat'l avg)", idx, count=1)
 
+    # Visible "last updated" badge in the e-gallon section.
+    idx = re.sub(
+        r'<span id="gas-updated-date">[^<]*</span>',
+        f'<span id="gas-updated-date">{human}</span>', idx, count=1)
+
     idx = re.sub(
         r"AAA gas prices \([A-Z][a-z]+ [0-9]{1,2}, [0-9]{4}\)",
         f"AAA gas prices ({human})", idx, count=1)
