@@ -2137,9 +2137,9 @@ function initEGallon() {
       })
       .on('mouseover', function(event, d) {
         d3.select(this).attr('stroke', '#1a1a2e').attr('stroke-width', 2);
-        // Highlight corresponding label
+        // Highlight corresponding label — enlarge only, keep its own color
         svg.selectAll('text').filter(t => t.properties.name === d.properties.name)
-          .attr('font-size', '18px').attr('fill', '#c62828');
+          .attr('font-size', '18px').attr('font-weight', '800');
         // Hover tooltip
         const eg = getEGallon(d.properties.name), gp = getGasPrice(d.properties.name);
         if (eg && gp) {
@@ -2161,6 +2161,7 @@ function initEGallon() {
         d3.select(this).attr('stroke', '#fff').attr('stroke-width', 1);
         svg.selectAll('text').filter(t => t.properties.name === d.properties.name)
           .attr('font-size', '14px')
+          .attr('font-weight', '700')
           .attr('fill', () => {
             const pct = stateSavingsPct(d.properties.name);
             return pct != null && pct >= 65 ? '#fff' : '#1a1a2e';
