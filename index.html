@@ -576,8 +576,8 @@ a{color:inherit;text-decoration:none}
               <div class="ctrl-label">Show Over</div>
               <div class="ctrl-body">
                 <div class="ctrl-toggle" id="maintYearsToggle">
-                  <button class="maint-yr-btn" data-years="1">1 yr</button>
-                  <button class="maint-yr-btn active" data-years="5">5 yr</button>
+                  <button class="maint-yr-btn active" data-years="1">1 yr</button>
+                  <button class="maint-yr-btn" data-years="5">5 yr</button>
                   <button class="maint-yr-btn" data-years="10">10 yr</button>
                 </div>
               </div>
@@ -1959,7 +1959,7 @@ function toggleMaintBreakdown() {
 
 function renderMaintenance() {
   const activeBtn = document.querySelector('.maint-yr-btn.active');
-  const years = activeBtn ? parseInt(activeBtn.dataset.years) : 5;
+  const years = activeBtn ? parseInt(activeBtn.dataset.years) : 1;
   const annualMiles = parseInt(document.getElementById('maintMiles')?.value || document.getElementById('milesRange').value);
   const totalMiles = annualMiles * years;
 
