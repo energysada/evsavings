@@ -12,9 +12,18 @@
 <script src="https://cdn.jsdelivr.net/npm/topojson-client@3"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-html{scroll-behavior:smooth}
+html{scroll-behavior:smooth;scroll-padding-top:52px}
 body{font-family:'Open Sans',sans-serif;background:#eee;color:#1a1a2e;line-height:1.6;-webkit-font-smoothing:antialiased}
 a{color:inherit;text-decoration:none}
+
+/* ====== SECTION NAV ====== */
+.topnav{position:sticky;top:0;z-index:200;background:#1a1a2e;display:flex;align-items:center;gap:2px;padding:0 14px;overflow-x:auto;border-bottom:3px solid #2e7d32;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.topnav::-webkit-scrollbar{display:none}
+.topnav .nav-brand{color:#fff;font-family:'Playfair Display',serif;font-weight:900;font-size:15px;padding:11px 14px 11px 0;white-space:nowrap;letter-spacing:-0.3px}
+.topnav .nav-brand span{color:#4caf50}
+.topnav a{color:#b9b9c4;font-size:11.5px;font-weight:700;letter-spacing:0.6px;text-transform:uppercase;padding:13px 12px;white-space:nowrap;transition:color .15s,box-shadow .15s}
+.topnav a:hover{color:#fff;box-shadow:inset 0 -3px 0 #4caf50}
+@media(max-width:560px){.topnav .nav-brand{font-size:13px}.topnav a{padding:12px 9px;font-size:11px}}
 
 /* ====== HERO ====== */
 .hero-wrap{background:#eee;padding:20px 40px 0}
@@ -335,6 +344,19 @@ a{color:inherit;text-decoration:none}
 </head>
 <body>
 
+<!-- Section navigation -->
+<nav class="topnav">
+  <a class="nav-brand" href="#top">EV<span>$</span>avings</a>
+  <a href="#sec-egallon">E-Gallon</a>
+  <a href="#sec-warpremium">War Premium</a>
+  <a href="#sec-history">Gas History</a>
+  <a href="#sec-maintenance">Maintenance</a>
+  <a href="#sec-evreplace">EV vs ICE</a>
+  <a href="#sec-charging">Charging</a>
+  <a href="#sec-trips">Range</a>
+</nav>
+
+<span id="top"></span>
 
 <!-- Hero -->
 <div class="hero-wrap">
@@ -345,7 +367,7 @@ a{color:inherit;text-decoration:none}
 </div>
 
 <!-- E-Gallon: Cost to charge an EV per gallon equivalent -->
-<section class="section-wrap">
+<section class="section-wrap" id="sec-egallon">
   <div class="section-card">
     <div class="results-header">WHAT DOES IT COST TO "FILL UP" AN EV?</div>
     <div class="section-card-body">
@@ -417,7 +439,7 @@ a{color:inherit;text-decoration:none}
 </section>
 
 <!-- War Premium: extra paid per driver since March 1 -->
-<section class="section-wrap">
+<section class="section-wrap" id="sec-warpremium">
   <div class="section-card">
     <div class="results-header">THE WAR PREMIUM — WHAT YOUR STATE HAS PAID EXTRA</div>
     <div class="section-card-body">
@@ -476,7 +498,7 @@ a{color:inherit;text-decoration:none}
 </section>
 
 <!-- Historical gas price chart -->
-<section class="section-wrap">
+<section class="section-wrap" id="sec-history">
   <div class="section-card">
     <div class="results-header">U.S. NATIONAL GAS PRICE — A DECADE OF CONTEXT</div>
     <div class="section-card-body">
@@ -529,7 +551,7 @@ a{color:inherit;text-decoration:none}
 </section>
 
 <!-- Maintenance Costs -->
-<section class="section-wrap">
+<section class="section-wrap" id="sec-maintenance">
   <div class="section-card">
     <div class="results-header">HOW MUCH DO YOU SAVE ON MAINTENANCE?</div>
     <div class="section-card-body">
@@ -591,7 +613,7 @@ a{color:inherit;text-decoration:none}
 </section>
 
 <!-- Matched Pairs Matrix -->
-<section class="section-wrap">
+<section class="section-wrap" id="sec-evreplace">
   <div class="section-card">
     <div class="results-header">WHAT EV CAN REPLACE YOUR ICE</div>
     <div class="section-card-body">
@@ -742,7 +764,7 @@ a{color:inherit;text-decoration:none}
 </section>
 
 <!-- Charging Station Locator -->
-<section class="section-wrap">
+<section class="section-wrap" id="sec-charging">
   <div class="section-card">
     <div class="results-header">WHERE CAN YOU CHARGE?</div>
     <div class="section-card-body">
@@ -755,7 +777,7 @@ a{color:inherit;text-decoration:none}
 </section>
 
 <!-- Trips Per Charge -->
-<section class="section-wrap">
+<section class="section-wrap" id="sec-trips">
   <div class="section-card">
     <div class="results-header">HOW FAR CAN YOU GO ON ONE CHARGE?</div>
     <div class="section-card-body">
