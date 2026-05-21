@@ -108,13 +108,13 @@ a{color:inherit;text-decoration:none}
 .evr-table{width:100%;border-collapse:collapse;font-family:'Open Sans',sans-serif;min-width:720px}
 .evr-table thead th{font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#999;padding:0 14px 12px;border-bottom:2px solid #1a1a2e;text-align:right;vertical-align:bottom}
 .evr-table thead th:nth-child(1),.evr-table thead th:nth-child(2),.evr-table thead th:nth-child(3){text-align:left}
-.evr-table td{padding:18px 14px;border-bottom:1px solid #e4e4e4;vertical-align:middle;text-align:right;font-variant-numeric:tabular-nums}
+.evr-table td{padding:9px 14px;border-bottom:1px solid #e4e4e4;vertical-align:middle;text-align:right;font-variant-numeric:tabular-nums}
 .evr-table td:nth-child(1),.evr-table td:nth-child(2),.evr-table td:nth-child(3){text-align:left}
 .evr-table tbody tr{cursor:pointer;transition:background .12s}
 .evr-table tbody tr:hover{background:#f5faf5}
-.evr-drive{font-family:'Open Sans',sans-serif;font-size:16px;font-weight:700;color:#1a1a2e;line-height:1.2}
-.evr-spec{font-size:11px;letter-spacing:1px;text-transform:uppercase;color:#aaa;margin-top:4px}
-.evr-seg{font-size:14px;color:#555;line-height:1.3}
+.evr-drive{font-family:'Open Sans',sans-serif;font-size:15px;font-weight:700;color:#1a1a2e;line-height:1.15}
+.evr-spec{font-size:10px;letter-spacing:1px;text-transform:uppercase;color:#aaa;margin-top:2px}
+.evr-seg{font-size:13px;color:#555;line-height:1.25}
 .evr-ev{font-family:'Open Sans',sans-serif;font-weight:600;font-size:15px;color:#2e7d32;line-height:1.3}
 .evr-msrp{font-family:'Open Sans',sans-serif;font-weight:700;font-size:15px;color:#c62828}
 .evr-msrp.na{color:#ccc}
@@ -657,11 +657,11 @@ a{color:inherit;text-decoration:none}
     <div class="section-card-body">
       <div class="maint-layout">
         <div>
-          <blockquote style="font-family:'Playfair Display',serif;font-size:clamp(20px,2.4vw,28px);font-weight:700;color:#1a1a2e;line-height:1.3;margin:0 0 14px;border:none">
+          <blockquote style="font-family:'Playfair Display',serif;font-size:clamp(19px,2.2vw,25px);font-weight:700;color:#1a1a2e;line-height:1.25;margin:0 0 8px;border:none">
             An engine has two thousand moving parts. <span style="color:#2e7d32">A motor has one.</span>
           </blockquote>
-          <p style="color:#666;margin-bottom:18px;font-size:14px">EVs have fewer moving parts — no engine oil, no transmission fluid, no exhaust system. Brakes last longer thanks to regenerative braking.</p>
-          <div class="ctrl-bar" style="justify-content:flex-start;margin-bottom:10px">
+          <p style="color:#666;margin-bottom:12px;font-size:14px">EVs have fewer moving parts — no engine oil, no transmission fluid, no exhaust system. Brakes last longer thanks to regenerative braking.</p>
+          <div class="ctrl-bar" style="justify-content:flex-start;margin-bottom:8px;padding:10px 14px">
             <div class="ctrl-group">
               <div class="ctrl-label">Annual Miles</div>
               <div class="ctrl-body"><input type="range" id="maintMiles" class="rb-slider" min="5000" max="125000" value="15000" step="1000"><span class="ctrl-val" id="maintMilesVal">15k</span></div>
@@ -686,10 +686,10 @@ a{color:inherit;text-decoration:none}
           </div>
           <p style="color:#999;font-size:12px;margin:0">Costs reflect the vehicles selected in the calculator above.</p>
         </div>
-        <div style="text-align:center;padding:28px 24px;background:#e8f5e9;border-radius:8px">
-          <div style="font-size:12px;font-weight:700;letter-spacing:1px;color:#2e7d32;margin-bottom:6px">MAINTENANCE SAVINGS WITH EV</div>
-          <div id="maintSavings" style="font-family:'Playfair Display',serif;font-size:52px;font-weight:700;color:#2e7d32;line-height:1">—</div>
-          <div id="maintSavingsDetail" style="font-size:13px;color:#666;margin-top:6px"></div>
+        <div style="text-align:center;padding:18px 22px;background:#e8f5e9;border-radius:8px">
+          <div style="font-size:12px;font-weight:700;letter-spacing:1px;color:#2e7d32;margin-bottom:4px">MAINTENANCE SAVINGS WITH EV</div>
+          <div id="maintSavings" style="font-family:'Playfair Display',serif;font-size:42px;font-weight:700;color:#2e7d32;line-height:1">—</div>
+          <div id="maintSavingsDetail" style="font-size:13px;color:#666;margin-top:4px"></div>
         </div>
       </div>
       <div style="text-align:center;margin:14px 0 20px">
@@ -2575,15 +2575,15 @@ function initHistoricalChart() {
       datasets: [{
         label: 'U.S. Regular avg ($/gal)',
         data,
-        borderColor: '#1a1a2e',
-        backgroundColor: 'rgba(26,26,46,0.06)',
-        borderWidth: 2,
-        tension: 0.25,
-        pointRadius: labels.map((_, i) => i === lastIdx ? 7 : 0),
-        pointHoverRadius: labels.map((_, i) => i === lastIdx ? 9 : 5),
+        borderColor: '#c1432b',
+        backgroundColor: 'rgba(193,67,43,0.09)',
+        borderWidth: 2.5,
+        tension: 0.3,
+        pointRadius: labels.map((_, i) => i === lastIdx ? 6 : 0),
+        pointHoverRadius: labels.map((_, i) => i === lastIdx ? 8 : 5),
         pointHitRadius: 12,
-        pointBackgroundColor: labels.map((_, i) => i === lastIdx ? '#c62828' : '#1a1a2e'),
-        pointBorderColor: labels.map((_, i) => i === lastIdx ? '#fff' : '#1a1a2e'),
+        pointBackgroundColor: '#8e1c0d',
+        pointBorderColor: '#fff',
         pointBorderWidth: 2,
         fill: true
       }]
@@ -2609,18 +2609,20 @@ function initHistoricalChart() {
       scales: {
         x: {
           ticks: {
-            color: '#888',
-            font: { size: 10 },
+            color: '#999',
+            font: { family: 'Open Sans', size: 10 },
             callback: function(val, idx) {
               return idx % tickEvery === 0 ? labels[idx].slice(0, 4) : '';
             },
             maxRotation: 0, autoSkip: false
           },
-          grid: { color: '#f0f0f0' }
+          grid: { display: false },
+          border: { color: '#ddd' }
         },
         y: {
-          ticks: { color: '#888', font: { size: 10 }, callback: v => '$' + v.toFixed(2) },
-          grid: { color: '#f0f0f0' },
+          ticks: { color: '#999', font: { family: 'Open Sans', size: 10 }, maxTicksLimit: 5, callback: v => '$' + v.toFixed(2) },
+          grid: { color: '#ededed' },
+          border: { display: false },
           suggestedMin: 1.5
         }
       }
