@@ -358,6 +358,7 @@ a{color:inherit;text-decoration:none}
   <a class="nav-brand" href="#top">EV<span>$</span>avings</a>
   <a href="#sec-egallon">E-Gallon</a>
   <a href="#sec-warpremium">War Premium</a>
+  <a href="#sec-calc">Calculator</a>
   <a href="#sec-maintenance">Maintenance</a>
   <a href="#sec-evreplace">EV vs ICE</a>
   <a href="#sec-charging">Charging</a>
@@ -550,130 +551,8 @@ a{color:inherit;text-decoration:none}
   </div>
 </section>
 
-<!-- Maintenance Costs -->
-<section class="section-wrap" id="sec-maintenance">
-  <div class="section-card">
-    <div class="results-header">HOW MUCH DO YOU SAVE ON MAINTENANCE?</div>
-    <div class="section-card-body">
-      <div class="maint-layout">
-        <div>
-          <blockquote style="font-family:'Playfair Display',serif;font-size:clamp(20px,2.4vw,28px);font-weight:700;color:#1a1a2e;line-height:1.3;margin:0 0 14px;border:none">
-            An engine has two thousand moving parts. <span style="color:#2e7d32">A motor has one.</span>
-          </blockquote>
-          <p style="color:#666;margin-bottom:18px;font-size:14px">EVs have fewer moving parts — no engine oil, no transmission fluid, no exhaust system. Brakes last longer thanks to regenerative braking.</p>
-          <div class="ctrl-bar" style="justify-content:flex-start;margin-bottom:10px">
-            <div class="ctrl-group">
-              <div class="ctrl-label">Annual Miles</div>
-              <div class="ctrl-body"><input type="range" id="maintMiles" class="rb-slider" min="5000" max="125000" value="15000" step="1000"><span class="ctrl-val" id="maintMilesVal">15k</span></div>
-              <div class="ctrl-footer"></div>
-            </div>
-            <div class="ctrl-group">
-              <div class="ctrl-label">Driving Habits</div>
-              <div class="ctrl-body"><input type="range" id="maintCityHwy" class="rb-slider" min="0" max="100" value="55" step="5"></div>
-              <div class="ctrl-footer"><span><strong id="maintCityLabel">55%</strong> City</span><span><strong id="maintHwyLabel">45%</strong> Hwy</span></div>
-            </div>
-            <div class="ctrl-group">
-              <div class="ctrl-label">Show Over</div>
-              <div class="ctrl-body">
-                <div class="ctrl-toggle" id="maintYearsToggle">
-                  <button class="maint-yr-btn active" data-years="1">1 yr</button>
-                  <button class="maint-yr-btn" data-years="5">5 yr</button>
-                  <button class="maint-yr-btn" data-years="10">10 yr</button>
-                </div>
-              </div>
-              <div class="ctrl-footer"></div>
-            </div>
-          </div>
-          <p style="color:#999;font-size:12px;margin:0">Costs reflect the vehicles selected in Deep Dive below.</p>
-        </div>
-        <div style="text-align:center;padding:28px 24px;background:#e8f5e9;border-radius:8px">
-          <div style="font-size:12px;font-weight:700;letter-spacing:1px;color:#2e7d32;margin-bottom:6px">MAINTENANCE SAVINGS WITH EV</div>
-          <div id="maintSavings" style="font-family:'Playfair Display',serif;font-size:52px;font-weight:700;color:#2e7d32;line-height:1">—</div>
-          <div id="maintSavingsDetail" style="font-size:13px;color:#666;margin-top:6px"></div>
-        </div>
-      </div>
-      <div style="text-align:center;margin:14px 0 20px">
-        <button id="maintBreakdownToggle" onclick="toggleMaintBreakdown()" style="background:#fff;border:1px solid #ddd;border-radius:4px;padding:9px 20px;font-size:13px;font-weight:600;color:#2e7d32;cursor:pointer;font-family:'Open Sans',sans-serif">▾ Show full maintenance breakdown</button>
-      </div>
-      <div id="maintBreakdownWrap" style="display:none">
-      <div class="maint-columns" style="display:grid;grid-template-columns:1fr 1fr;gap:24px;max-width:900px;margin:0 auto">
-        <div>
-          <h3 id="maintGasHeader" style="text-align:center;font-size:13px;font-weight:700;letter-spacing:1px;color:#555;margin-bottom:16px">⛽ GAS VEHICLE</h3>
-          <div id="gasMaintenanceItems"></div>
-          <div style="border-top:2px solid #555;margin-top:12px;padding-top:12px;text-align:center">
-            <div style="font-size:12px;color:#999;font-weight:600">TOTAL MAINTENANCE</div>
-            <div id="gasMaintTotal" style="font-family:'Playfair Display',serif;font-size:32px;font-weight:700;color:#555">—</div>
-          </div>
-        </div>
-        <div>
-          <h3 id="maintEvHeader" style="text-align:center;font-size:13px;font-weight:700;letter-spacing:1px;color:#2e7d32;margin-bottom:16px">⚡ ELECTRIC VEHICLE</h3>
-          <div id="evMaintenanceItems"></div>
-          <div style="border-top:2px solid #2e7d32;margin-top:12px;padding-top:12px;text-align:center">
-            <div style="font-size:12px;color:#999;font-weight:600">TOTAL MAINTENANCE</div>
-            <div id="evMaintTotal" style="font-family:'Playfair Display',serif;font-size:32px;font-weight:700;color:#2e7d32">—</div>
-          </div>
-        </div>
-      </div>
-      </div><!-- end maintBreakdownWrap -->
-    </div>
-  </div>
-</section>
-
-<!-- Matched Pairs Matrix -->
-<section class="section-wrap" id="sec-evreplace">
-  <div class="section-card">
-    <div class="results-header">WHAT EV CAN REPLACE YOUR ICE</div>
-    <div class="section-card-body">
-      <div class="ctrl-bar">
-        <div class="ctrl-group">
-          <div class="ctrl-label">State</div>
-          <div class="ctrl-body"><select id="pairsState"></select></div>
-          <div class="ctrl-footer"></div>
-        </div>
-        <div class="ctrl-group">
-          <div class="ctrl-label">Annual Miles</div>
-          <div class="ctrl-body"><input type="range" id="pairsMiles" class="rb-slider" min="5000" max="125000" value="15000" step="1000"><span class="ctrl-val" id="pairsMilesVal">15k</span></div>
-          <div class="ctrl-footer"></div>
-        </div>
-        <div class="ctrl-group">
-          <div class="ctrl-label">Driving Habits</div>
-          <div class="ctrl-body"><input type="range" id="pairsCityHwy" class="rb-slider" min="0" max="100" value="55" step="5"></div>
-          <div class="ctrl-footer"><span><strong id="pairsCityLabel">55%</strong> City</span><span><strong id="pairsHwyLabel">45%</strong> Hwy</span></div>
-        </div>
-        <div class="ctrl-group">
-          <div class="ctrl-label">Show Savings Over</div>
-          <div class="ctrl-body">
-            <div class="ctrl-toggle" id="pairsYearsToggle">
-              <button class="pc-yr-btn" data-years="1">1 yr</button>
-              <button class="pc-yr-btn active" data-years="5">5 yr</button>
-              <button class="pc-yr-btn" data-years="10">10 yr</button>
-            </div>
-          </div>
-          <div class="ctrl-footer"></div>
-        </div>
-      </div>
-      <p style="color:#999;font-size:12px;margin:-8px 0 14px">Find the gas car you drive — see its closest electric equivalent and what switching saves. Click any row for the EV's details.</p>
-      <div style="overflow-x:auto">
-        <table class="evr-table">
-          <thead>
-            <tr>
-              <th>What you drive</th>
-              <th>Segment</th>
-              <th>Electric equivalent</th>
-              <th>MSRP &Delta;</th>
-              <th id="evr-fuel-head">5-yr fuel save</th>
-              <th id="evr-maint-head">5-yr maint save</th>
-            </tr>
-          </thead>
-          <tbody id="pairs-tbody"></tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- Calculator (hidden — set display:block to restore) -->
-<section class="calc-section" style="display:none">
+<!-- Deep-dive fuel-cost calculator -->
+<section class="calc-section" id="sec-calc">
   <div class="calc-container-single">
       <div class="results-panel">
         <div class="results-header">WHAT IF YOU PICK YOUR OWN VEHICLES?</div>
@@ -767,6 +646,128 @@ a{color:inherit;text-decoration:none}
           </div>
         </div>
       </div>
+  </div>
+</section>
+
+<!-- Maintenance Costs -->
+<section class="section-wrap" id="sec-maintenance">
+  <div class="section-card">
+    <div class="results-header">HOW MUCH DO YOU SAVE ON MAINTENANCE?</div>
+    <div class="section-card-body">
+      <div class="maint-layout">
+        <div>
+          <blockquote style="font-family:'Playfair Display',serif;font-size:clamp(20px,2.4vw,28px);font-weight:700;color:#1a1a2e;line-height:1.3;margin:0 0 14px;border:none">
+            An engine has two thousand moving parts. <span style="color:#2e7d32">A motor has one.</span>
+          </blockquote>
+          <p style="color:#666;margin-bottom:18px;font-size:14px">EVs have fewer moving parts — no engine oil, no transmission fluid, no exhaust system. Brakes last longer thanks to regenerative braking.</p>
+          <div class="ctrl-bar" style="justify-content:flex-start;margin-bottom:10px">
+            <div class="ctrl-group">
+              <div class="ctrl-label">Annual Miles</div>
+              <div class="ctrl-body"><input type="range" id="maintMiles" class="rb-slider" min="5000" max="125000" value="15000" step="1000"><span class="ctrl-val" id="maintMilesVal">15k</span></div>
+              <div class="ctrl-footer"></div>
+            </div>
+            <div class="ctrl-group">
+              <div class="ctrl-label">Driving Habits</div>
+              <div class="ctrl-body"><input type="range" id="maintCityHwy" class="rb-slider" min="0" max="100" value="55" step="5"></div>
+              <div class="ctrl-footer"><span><strong id="maintCityLabel">55%</strong> City</span><span><strong id="maintHwyLabel">45%</strong> Hwy</span></div>
+            </div>
+            <div class="ctrl-group">
+              <div class="ctrl-label">Show Over</div>
+              <div class="ctrl-body">
+                <div class="ctrl-toggle" id="maintYearsToggle">
+                  <button class="maint-yr-btn active" data-years="1">1 yr</button>
+                  <button class="maint-yr-btn" data-years="5">5 yr</button>
+                  <button class="maint-yr-btn" data-years="10">10 yr</button>
+                </div>
+              </div>
+              <div class="ctrl-footer"></div>
+            </div>
+          </div>
+          <p style="color:#999;font-size:12px;margin:0">Costs reflect the vehicles selected in the calculator above.</p>
+        </div>
+        <div style="text-align:center;padding:28px 24px;background:#e8f5e9;border-radius:8px">
+          <div style="font-size:12px;font-weight:700;letter-spacing:1px;color:#2e7d32;margin-bottom:6px">MAINTENANCE SAVINGS WITH EV</div>
+          <div id="maintSavings" style="font-family:'Playfair Display',serif;font-size:52px;font-weight:700;color:#2e7d32;line-height:1">—</div>
+          <div id="maintSavingsDetail" style="font-size:13px;color:#666;margin-top:6px"></div>
+        </div>
+      </div>
+      <div style="text-align:center;margin:14px 0 20px">
+        <button id="maintBreakdownToggle" onclick="toggleMaintBreakdown()" style="background:#fff;border:1px solid #ddd;border-radius:4px;padding:9px 20px;font-size:13px;font-weight:600;color:#2e7d32;cursor:pointer;font-family:'Open Sans',sans-serif">▾ Show full maintenance breakdown</button>
+      </div>
+      <div id="maintBreakdownWrap" style="display:none">
+      <div class="maint-columns" style="display:grid;grid-template-columns:1fr 1fr;gap:24px;max-width:900px;margin:0 auto">
+        <div>
+          <h3 id="maintGasHeader" style="text-align:center;font-size:13px;font-weight:700;letter-spacing:1px;color:#555;margin-bottom:16px">⛽ GAS VEHICLE</h3>
+          <div id="gasMaintenanceItems"></div>
+          <div style="border-top:2px solid #555;margin-top:12px;padding-top:12px;text-align:center">
+            <div style="font-size:12px;color:#999;font-weight:600">TOTAL MAINTENANCE</div>
+            <div id="gasMaintTotal" style="font-family:'Playfair Display',serif;font-size:32px;font-weight:700;color:#555">—</div>
+          </div>
+        </div>
+        <div>
+          <h3 id="maintEvHeader" style="text-align:center;font-size:13px;font-weight:700;letter-spacing:1px;color:#2e7d32;margin-bottom:16px">⚡ ELECTRIC VEHICLE</h3>
+          <div id="evMaintenanceItems"></div>
+          <div style="border-top:2px solid #2e7d32;margin-top:12px;padding-top:12px;text-align:center">
+            <div style="font-size:12px;color:#999;font-weight:600">TOTAL MAINTENANCE</div>
+            <div id="evMaintTotal" style="font-family:'Playfair Display',serif;font-size:32px;font-weight:700;color:#2e7d32">—</div>
+          </div>
+        </div>
+      </div>
+      </div><!-- end maintBreakdownWrap -->
+    </div>
+  </div>
+</section>
+
+<!-- Matched Pairs Matrix -->
+<section class="section-wrap" id="sec-evreplace">
+  <div class="section-card">
+    <div class="results-header">WHAT EV CAN REPLACE YOUR ICE</div>
+    <div class="section-card-body">
+      <div class="ctrl-bar">
+        <div class="ctrl-group">
+          <div class="ctrl-label">State</div>
+          <div class="ctrl-body"><select id="pairsState"></select></div>
+          <div class="ctrl-footer"></div>
+        </div>
+        <div class="ctrl-group">
+          <div class="ctrl-label">Annual Miles</div>
+          <div class="ctrl-body"><input type="range" id="pairsMiles" class="rb-slider" min="5000" max="125000" value="15000" step="1000"><span class="ctrl-val" id="pairsMilesVal">15k</span></div>
+          <div class="ctrl-footer"></div>
+        </div>
+        <div class="ctrl-group">
+          <div class="ctrl-label">Driving Habits</div>
+          <div class="ctrl-body"><input type="range" id="pairsCityHwy" class="rb-slider" min="0" max="100" value="55" step="5"></div>
+          <div class="ctrl-footer"><span><strong id="pairsCityLabel">55%</strong> City</span><span><strong id="pairsHwyLabel">45%</strong> Hwy</span></div>
+        </div>
+        <div class="ctrl-group">
+          <div class="ctrl-label">Show Savings Over</div>
+          <div class="ctrl-body">
+            <div class="ctrl-toggle" id="pairsYearsToggle">
+              <button class="pc-yr-btn" data-years="1">1 yr</button>
+              <button class="pc-yr-btn active" data-years="5">5 yr</button>
+              <button class="pc-yr-btn" data-years="10">10 yr</button>
+            </div>
+          </div>
+          <div class="ctrl-footer"></div>
+        </div>
+      </div>
+      <p style="color:#999;font-size:12px;margin:-8px 0 14px">Find the gas car you drive — see its closest electric equivalent and what switching saves. Click any row for the EV's details.</p>
+      <div style="overflow-x:auto">
+        <table class="evr-table">
+          <thead>
+            <tr>
+              <th>What you drive</th>
+              <th>Segment</th>
+              <th>Electric equivalent</th>
+              <th>MSRP &Delta;</th>
+              <th id="evr-fuel-head">5-yr fuel save</th>
+              <th id="evr-maint-head">5-yr maint save</th>
+            </tr>
+          </thead>
+          <tbody id="pairs-tbody"></tbody>
+        </table>
+      </div>
+    </div>
   </div>
 </section>
 
