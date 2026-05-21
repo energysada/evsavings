@@ -99,6 +99,10 @@ a{color:inherit;text-decoration:none}
 .wp-subhead{font-size:13px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#1a1a2e;margin-bottom:8px}
 @media(max-width:860px){.wp-layout{grid-template-columns:1fr;gap:28px}}
 
+/* ====== MAINTENANCE — INPUTS LEFT, RESULT RIGHT ====== */
+.maint-layout{display:grid;grid-template-columns:1.3fr 1fr;gap:34px;align-items:center;margin-bottom:6px}
+@media(max-width:860px){.maint-layout{grid-template-columns:1fr;gap:20px}}
+
 /* ====== "WHAT EV CAN REPLACE YOUR ICE" TABLE (editorial style) ====== */
 .evr-table{width:100%;border-collapse:collapse;font-family:'Open Sans',sans-serif;min-width:720px}
 .evr-table thead th{font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#999;padding:0 14px 12px;border-bottom:2px solid #1a1a2e;text-align:right;vertical-align:bottom}
@@ -551,35 +555,44 @@ a{color:inherit;text-decoration:none}
   <div class="section-card">
     <div class="results-header">HOW MUCH DO YOU SAVE ON MAINTENANCE?</div>
     <div class="section-card-body">
-      <blockquote style="font-family:'Playfair Display',serif;font-size:clamp(22px,3vw,32px);font-weight:700;color:#1a1a2e;text-align:center;line-height:1.3;max-width:18ch;margin:8px auto 22px;border:none">
-        An engine has two thousand moving parts. <span style="color:#2e7d32">A motor has one.</span>
-      </blockquote>
-      <p style="color:#666;text-align:center;margin-bottom:24px;font-size:15px">EVs have fewer moving parts — no engine oil, no transmission fluid, no exhaust system. Brakes last longer thanks to regenerative braking.</p>
-      <div class="ctrl-bar">
-        <div class="ctrl-group">
-          <div class="ctrl-label">Annual Miles</div>
-          <div class="ctrl-body"><input type="range" id="maintMiles" class="rb-slider" min="5000" max="125000" value="15000" step="1000"><span class="ctrl-val" id="maintMilesVal">15k</span></div>
-          <div class="ctrl-footer"></div>
-        </div>
-        <div class="ctrl-group">
-          <div class="ctrl-label">Driving Habits</div>
-          <div class="ctrl-body"><input type="range" id="maintCityHwy" class="rb-slider" min="0" max="100" value="55" step="5"></div>
-          <div class="ctrl-footer"><span><strong id="maintCityLabel">55%</strong> City</span><span><strong id="maintHwyLabel">45%</strong> Hwy</span></div>
-        </div>
-        <div class="ctrl-group">
-          <div class="ctrl-label">Show Over</div>
-          <div class="ctrl-body">
-            <div class="ctrl-toggle" id="maintYearsToggle">
-              <button class="maint-yr-btn" data-years="1">1 yr</button>
-              <button class="maint-yr-btn active" data-years="5">5 yr</button>
-              <button class="maint-yr-btn" data-years="10">10 yr</button>
+      <div class="maint-layout">
+        <div>
+          <blockquote style="font-family:'Playfair Display',serif;font-size:clamp(20px,2.4vw,28px);font-weight:700;color:#1a1a2e;line-height:1.3;margin:0 0 14px;border:none">
+            An engine has two thousand moving parts. <span style="color:#2e7d32">A motor has one.</span>
+          </blockquote>
+          <p style="color:#666;margin-bottom:18px;font-size:14px">EVs have fewer moving parts — no engine oil, no transmission fluid, no exhaust system. Brakes last longer thanks to regenerative braking.</p>
+          <div class="ctrl-bar" style="justify-content:flex-start;margin-bottom:10px">
+            <div class="ctrl-group">
+              <div class="ctrl-label">Annual Miles</div>
+              <div class="ctrl-body"><input type="range" id="maintMiles" class="rb-slider" min="5000" max="125000" value="15000" step="1000"><span class="ctrl-val" id="maintMilesVal">15k</span></div>
+              <div class="ctrl-footer"></div>
+            </div>
+            <div class="ctrl-group">
+              <div class="ctrl-label">Driving Habits</div>
+              <div class="ctrl-body"><input type="range" id="maintCityHwy" class="rb-slider" min="0" max="100" value="55" step="5"></div>
+              <div class="ctrl-footer"><span><strong id="maintCityLabel">55%</strong> City</span><span><strong id="maintHwyLabel">45%</strong> Hwy</span></div>
+            </div>
+            <div class="ctrl-group">
+              <div class="ctrl-label">Show Over</div>
+              <div class="ctrl-body">
+                <div class="ctrl-toggle" id="maintYearsToggle">
+                  <button class="maint-yr-btn" data-years="1">1 yr</button>
+                  <button class="maint-yr-btn active" data-years="5">5 yr</button>
+                  <button class="maint-yr-btn" data-years="10">10 yr</button>
+                </div>
+              </div>
+              <div class="ctrl-footer"></div>
             </div>
           </div>
-          <div class="ctrl-footer"></div>
+          <p style="color:#999;font-size:12px;margin:0">Costs reflect the vehicles selected in Deep Dive below.</p>
+        </div>
+        <div style="text-align:center;padding:28px 24px;background:#e8f5e9;border-radius:8px">
+          <div style="font-size:12px;font-weight:700;letter-spacing:1px;color:#2e7d32;margin-bottom:6px">MAINTENANCE SAVINGS WITH EV</div>
+          <div id="maintSavings" style="font-family:'Playfair Display',serif;font-size:52px;font-weight:700;color:#2e7d32;line-height:1">—</div>
+          <div id="maintSavingsDetail" style="font-size:13px;color:#666;margin-top:6px"></div>
         </div>
       </div>
-      <p style="color:#999;text-align:center;font-size:12px;margin-top:-20px;margin-bottom:16px">Costs reflect the vehicles selected in Deep Dive below. Change vehicles there to compare different models.</p>
-      <div style="text-align:center;margin-bottom:20px">
+      <div style="text-align:center;margin:14px 0 20px">
         <button id="maintBreakdownToggle" onclick="toggleMaintBreakdown()" style="background:#fff;border:1px solid #ddd;border-radius:4px;padding:9px 20px;font-size:13px;font-weight:600;color:#2e7d32;cursor:pointer;font-family:'Open Sans',sans-serif">▾ Show full maintenance breakdown</button>
       </div>
       <div id="maintBreakdownWrap" style="display:none">
@@ -602,11 +615,6 @@ a{color:inherit;text-decoration:none}
         </div>
       </div>
       </div><!-- end maintBreakdownWrap -->
-      <div style="text-align:center;margin-top:28px;padding:20px;background:#e8f5e9;border-radius:8px;max-width:500px;margin-left:auto;margin-right:auto">
-        <div style="font-size:12px;font-weight:700;letter-spacing:1px;color:#2e7d32;margin-bottom:4px">MAINTENANCE SAVINGS WITH EV</div>
-        <div id="maintSavings" style="font-family:'Playfair Display',serif;font-size:40px;font-weight:700;color:#2e7d32">—</div>
-        <div id="maintSavingsDetail" style="font-size:13px;color:#666;margin-top:4px"></div>
-      </div>
     </div>
   </div>
 </section>
