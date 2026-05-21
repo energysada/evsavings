@@ -1362,8 +1362,26 @@ function computePair(pair, elecPrice, gasPrice, miles, years, chf) {
 // ===== "What EV can replace your ICE" table =====
 const SEG_LABEL = {'Sedan':'Sedan','Small SUV':'Compact SUV','Large SUV':'Large SUV','Pickup':'Pickup'};
 
-// MSRP by model — populated from data/msrp once provided. Empty => MSRP Δ shows "—".
-const MSRP = {};
+// MSRP by model, base trim. EV prices: residual_value_analysis MSRP dataset
+// (lowest trim of the latest model year). Gas prices: 2026 base-trim MSRP,
+// web-sourced (Edmunds / KBB / Cars.com / maker sites). Approximate — trims vary.
+const MSRP = {
+  // Electric
+  "BMW i4":53975,"BMW iX xDrive40":87250,"Cadillac LYRIQ":60090,"Chevrolet Bolt EV":27495,
+  "Chevrolet Equinox EV AWD":34995,"Chevrolet Silverado EV":67400,"Ford F-150 Lightning 4WD":51975,
+  "Ford Mustang Mach-E":39990,"GMC Sierra EV":89900,"Genesis G80 Electrified":74875,
+  "Genesis GV60":53845,"Hyundai Ioniq 6 Long Range RWD":39095,"Hyundai Kona Electric":34470,
+  "Kia EV9 Standard":56395,"Mercedes-Benz EQS 580 4MATIC":101150,"Nissan Ariya":41160,
+  "Rivian R1S Dual Standard":77700,"Rivian R1T Dual Standard":71700,"Tesla Model 3 RWD":36020,
+  "Tesla Model S":81630,"Tesla Model Y":46630,"Volkswagen ID. Buzz":61545,
+  // Gas
+  "BMW 330i":46500,"BMW 740i":100850,"BMW X5 xDrive40i":67000,"Cadillac XT5":46595,
+  "Chevrolet Equinox FWD":30795,"Chevrolet Silverado 4WD":39695,"Ford Escape":30350,
+  "Ford Explorer RWD":38465,"Ford F-150 2WD":39330,"Genesis GV70 2.5T":48985,
+  "Honda Accord":29000,"Honda Civic":24695,"Hyundai Kona":25500,"Mercedes-Benz S 500":119500,
+  "Nissan Rogue":29090,"Subaru Outback":34995,"Toyota Camry":29300,"Toyota RAV4":33350,
+  "Volkswagen Tiguan":30805
+};
 function getMsrpDelta(evModel, gasModel) {
   if (MSRP[evModel] == null || MSRP[gasModel] == null) return null;
   return MSRP[evModel] - MSRP[gasModel];
