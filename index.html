@@ -408,11 +408,11 @@ a{color:inherit;text-decoration:none}
       <!-- Map legend (colors = % savings vs gas in selected scenario) -->
       <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:6px 20px;margin-bottom:8px">
         <div style="font-size:11px;color:#999;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;width:100%;text-align:center;margin-bottom:4px">Color: how much cheaper the e-gallon is than gas</div>
-        <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:#666;font-weight:600"><div style="width:14px;height:14px;background:#1d4f8c"></div> Saves &gt; 75%</div>
-        <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:#666;font-weight:600"><div style="width:14px;height:14px;background:#79c4dd"></div> 65–75%</div>
-        <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:#666;font-weight:600"><div style="width:14px;height:14px;background:#f4f4f4;border:1px solid #ccc"></div> 55–65%</div>
-        <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:#666;font-weight:600"><div style="width:14px;height:14px;background:#df8c8c"></div> 45–55%</div>
-        <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:#666;font-weight:600"><div style="width:14px;height:14px;background:#b8323a"></div> &lt; 45%</div>
+        <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:#666;font-weight:600"><div style="width:14px;height:14px;background:#1e3a8a"></div> Saves &gt; 75%</div>
+        <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:#666;font-weight:600"><div style="width:14px;height:14px;background:#2563eb"></div> 65–75%</div>
+        <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:#666;font-weight:600"><div style="width:14px;height:14px;background:#3b82f6"></div> 55–65%</div>
+        <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:#666;font-weight:600"><div style="width:14px;height:14px;background:#93c5fd"></div> 45–55%</div>
+        <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:#666;font-weight:600"><div style="width:14px;height:14px;background:#dbeafe;border:1px solid #ddd"></div> &lt; 45%</div>
       </div>
 
       <!-- Map + side ranking table -->
@@ -484,11 +484,11 @@ a{color:inherit;text-decoration:none}
           <h3 class="wp-subhead">Extra paid per driver, by state</h3>
           <!-- Map legend -->
           <div style="display:flex;flex-wrap:wrap;gap:6px 16px;margin-bottom:10px">
-            <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:#666;font-weight:600"><div style="width:14px;height:14px;background:#1d4f8c"></div> &lt; $80</div>
-            <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:#666;font-weight:600"><div style="width:14px;height:14px;background:#79c4dd"></div> $80–120</div>
-            <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:#666;font-weight:600"><div style="width:14px;height:14px;background:#f4f4f4;border:1px solid #ccc"></div> $120–160</div>
-            <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:#666;font-weight:600"><div style="width:14px;height:14px;background:#df8c8c"></div> $160–200</div>
-            <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:#666;font-weight:600"><div style="width:14px;height:14px;background:#b8323a"></div> &gt; $200</div>
+            <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:#666;font-weight:600"><div style="width:14px;height:14px;background:#a50f15"></div> &gt; $200</div>
+            <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:#666;font-weight:600"><div style="width:14px;height:14px;background:#de2d26"></div> $160–200</div>
+            <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:#666;font-weight:600"><div style="width:14px;height:14px;background:#fb6a4a"></div> $120–160</div>
+            <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:#666;font-weight:600"><div style="width:14px;height:14px;background:#fcae91"></div> $80–120</div>
+            <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:#666;font-weight:600"><div style="width:14px;height:14px;background:#fee5d9;border:1px solid #ddd"></div> &lt; $80</div>
           </div>
           <div id="warp-map-wrap" style="position:relative">
             <div id="warp-map" style="width:100%;min-height:380px"></div>
@@ -2135,15 +2135,14 @@ function initEGallon() {
 
   // Color is now driven by the savings percentage (gas - egallon) / gas — so the
   // map visibly shifts greener under the 2022-peak scenario.
-  // AAA-style 5-bin diverging palette. High savings = dark blue (good),
-  // low savings = dark red (less EV advantage).
+  // Sequential blues: higher savings = darker blue.
   function savingsColor(pct) {
     if (pct == null) return '#e5e5e5';
-    if (pct >= 75) return '#1d4f8c';   // dark blue
-    if (pct >= 65) return '#79c4dd';   // light blue
-    if (pct >= 55) return '#f4f4f4';   // near-white (mid)
-    if (pct >= 45) return '#df8c8c';   // light red
-    return '#b8323a';                  // dark red
+    if (pct >= 75) return '#1e3a8a';   // darkest
+    if (pct >= 65) return '#2563eb';
+    if (pct >= 55) return '#3b82f6';
+    if (pct >= 45) return '#93c5fd';
+    return '#dbeafe';                  // lightest
   }
   function stateSavingsPct(stateName) {
     const eg = getEGallon(stateName), gp = getGasPrice(stateName);
@@ -2244,7 +2243,7 @@ function initEGallon() {
           .attr('font-weight', '700')
           .attr('fill', () => {
             const pct = stateSavingsPct(d.properties.name);
-            return pct != null && (pct >= 75 || pct < 45) ? '#fff' : '#1a1a2e';
+            return pct != null && pct >= 55 ? '#fff' : '#1a1a2e';
           });
         document.getElementById('egallon-hover').style.display = 'none';
       });
@@ -2393,15 +2392,14 @@ const stateDrivers = {
   Washington:5.5,'West Virginia':1.3,Wisconsin:4.3,Wyoming:0.4
 };
 
-// AAA-style 5-bin diverging palette. High premium = dark red (most pain),
-// low premium = dark blue (least pain) — matches AAA's "expensive = red" convention.
+// Sequential reds: every state is "paying extra" — darker = more pain.
 function warPremiumColor(extra) {
   if (extra == null) return '#e5e5e5';
-  if (extra < 80)  return '#1d4f8c';   // dark blue
-  if (extra < 120) return '#79c4dd';   // light blue
-  if (extra < 160) return '#f4f4f4';   // near-white (mid)
-  if (extra < 200) return '#df8c8c';   // light red
-  return '#b8323a';                    // dark red
+  if (extra < 80)  return '#fee5d9';   // very light
+  if (extra < 120) return '#fcae91';
+  if (extra < 160) return '#fb6a4a';
+  if (extra < 200) return '#de2d26';
+  return '#a50f15';                    // darkest
 }
 
 function daysSinceWar() {
@@ -2488,7 +2486,7 @@ function initWarPremium() {
           .attr('font-size','13px')
           .attr('fill', () => {
             const p = statePremium(d.properties.name);
-            return (p && (p.extraPerDriver >= 200 || p.extraPerDriver < 80)) ? '#fff' : '#1a1a2e';
+            return (p && p.extraPerDriver >= 160) ? '#fff' : '#1a1a2e';
           });
         document.getElementById('warp-hover').style.display = 'none';
       })
