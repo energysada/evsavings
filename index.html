@@ -616,33 +616,28 @@ a{color:inherit;text-decoration:none}
             </div>
           </div>
 
-          <!-- Chart + Table side by side -->
-          <div class="results-columns">
-            <div class="chart-section">
-              <div class="chart-title">Cumulative Fuel Costs Over Time</div>
-              <div class="chart-wrapper">
-                <canvas id="costChart"></canvas>
-              </div>
-            </div>
-            <div>
-              <div class="breakdown-label">DETAILED BREAKDOWN</div>
-              <div id="costBreakdownContent" style="padding:0">
-                <table class="breakdown-table">
-                  <thead>
-                    <tr><th class="label-col"></th><th>Electric</th><th>Gas</th></tr>
-                  </thead>
-                  <tbody>
-                    <tr><td class="label-col">Vehicle</td><td class="ev-col ev-model-name">—</td><td class="gas-col gas-model-name">—</td></tr>
-                    <tr><td class="label-col">Cost / kWh</td><td class="ev-col ev-cost-per-kwh">—</td><td class="gas-col"></td></tr>
-                    <tr><td class="label-col">Cost / Gallon</td><td class="ev-col"></td><td class="gas-col gas-cost-per-gallon">—</td></tr>
-                    <tr><td class="label-col">Efficiency</td><td class="ev-col ev-efficiency">—</td><td class="gas-col gas-efficiency">—</td></tr>
-                    <tr><td class="label-col">Cost / 100 mi</td><td class="ev-col ev-cost-per-100-miles">—</td><td class="gas-col gas-cost-per-100-miles">—</td></tr>
-                    <tr><td class="label-col">Cost / Mile</td><td class="ev-col ev-total-cost-per-mile">—</td><td class="gas-col gas-total-cost-per-mile">—</td></tr>
-                    <tr><td class="label-col">Annual Cost</td><td class="ev-col ev-total-annual-cost">—</td><td class="gas-col gas-total-annual-cost">—</td></tr>
-                    <tr><td class="label-col">Annual Savings</td><td class="ev-col ev-annual-savings">—</td><td class="gas-col gas-annual-savings">—</td></tr>
-                  </tbody>
-                </table>
-              </div>
+          <!-- Detailed breakdown — collapsed by default, like maintenance -->
+          <div style="text-align:center;margin:18px 0 6px">
+            <button id="fuelBreakdownToggle" onclick="toggleFuelBreakdown()" style="background:#fff;border:1px solid #ddd;border-radius:4px;padding:9px 20px;font-size:13px;font-weight:600;color:#2e7d32;cursor:pointer;font-family:'Open Sans',sans-serif">▾ Show full fuel breakdown</button>
+          </div>
+          <div id="fuelBreakdownWrap" style="display:none">
+            <div class="breakdown-label">DETAILED BREAKDOWN</div>
+            <div id="costBreakdownContent" style="padding:0">
+              <table class="breakdown-table">
+                <thead>
+                  <tr><th class="label-col"></th><th>Electric</th><th>Gas</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td class="label-col">Vehicle</td><td class="ev-col ev-model-name">—</td><td class="gas-col gas-model-name">—</td></tr>
+                  <tr><td class="label-col">Cost / kWh</td><td class="ev-col ev-cost-per-kwh">—</td><td class="gas-col"></td></tr>
+                  <tr><td class="label-col">Cost / Gallon</td><td class="ev-col"></td><td class="gas-col gas-cost-per-gallon">—</td></tr>
+                  <tr><td class="label-col">Efficiency</td><td class="ev-col ev-efficiency">—</td><td class="gas-col gas-efficiency">—</td></tr>
+                  <tr><td class="label-col">Cost / 100 mi</td><td class="ev-col ev-cost-per-100-miles">—</td><td class="gas-col gas-cost-per-100-miles">—</td></tr>
+                  <tr><td class="label-col">Cost / Mile</td><td class="ev-col ev-total-cost-per-mile">—</td><td class="gas-col gas-total-cost-per-mile">—</td></tr>
+                  <tr><td class="label-col">Annual Cost</td><td class="ev-col ev-total-annual-cost">—</td><td class="gas-col gas-total-annual-cost">—</td></tr>
+                  <tr><td class="label-col">Annual Savings</td><td class="ev-col ev-annual-savings">—</td><td class="gas-col gas-annual-savings">—</td></tr>
+                </tbody>
+              </table>
             </div>
           </div>
         </div>
@@ -1175,7 +1170,9 @@ function toggleBreakdown(btn, contentId, label) {
 // ============== CHART ==============
 let costChart;
 function initCostChart() {
-  const ctx = document.getElementById('costChart').getContext('2d');
+  const el = document.getElementById('costChart');
+  if (!el) return;   // chart removed from this page; deep-dive shows table only
+  const ctx = el.getContext('2d');
   costChart = new Chart(ctx, {
     type: 'line',
     data: {
@@ -1300,14 +1297,16 @@ function calculateSavings(milesRange) {
   setText('.ev-monthly-savings', '$' + Math.round(Math.max(0, monthlySavings)).toLocaleString());
   setText('.ev-10-year-savings', '$' + Math.round(Math.max(0, monthlySavings) * 120).toLocaleString());
 
-  // Update chart
-  const evCumulative = Array.from({length:10}, (_,i) => (evAnnual/12) * 12 * (i+1));
-  const gasCumulative = Array.from({length:10}, (_,i) => (gasAnnual/12) * 12 * (i+1));
-  costChart.data.datasets[0].data = gasCumulative;
-  costChart.data.datasets[0].label = gas;
-  costChart.data.datasets[1].data = evCumulative;
-  costChart.data.datasets[1].label = ev;
-  costChart.update();
+  // Update chart (chart removed; guard for null)
+  if (costChart) {
+    const evCumulative = Array.from({length:10}, (_,i) => (evAnnual/12) * 12 * (i+1));
+    const gasCumulative = Array.from({length:10}, (_,i) => (gasAnnual/12) * 12 * (i+1));
+    costChart.data.datasets[0].data = gasCumulative;
+    costChart.data.datasets[0].label = gas;
+    costChart.data.datasets[1].data = evCumulative;
+    costChart.data.datasets[1].label = ev;
+    costChart.update();
+  }
 
   // Update matched pairs
   renderPairs(); renderBrandMatrix();
@@ -1947,6 +1946,16 @@ function getVehicleSegment(model) {
   const gas = gasVehicles.find(v => v.model === model);
   if (gas) return gas.segment;
   return 'Sedan';
+}
+
+// Fuel-calculator breakdown is collapsed by default — expand on click.
+function toggleFuelBreakdown() {
+  const wrap = document.getElementById('fuelBreakdownWrap');
+  const btn  = document.getElementById('fuelBreakdownToggle');
+  const open = wrap.style.display !== 'none';
+  wrap.style.display = open ? 'none' : 'block';
+  btn.textContent = open ? '▾ Show full fuel breakdown'
+                         : '▴ Hide fuel breakdown';
 }
 
 // Maintenance breakdown is collapsed by default — expand on click.
