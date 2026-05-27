@@ -506,7 +506,7 @@ a{color:inherit;text-decoration:none}
           </div>
         </div>
         <div>
-          <h3 class="wp-subhead">A decade of context</h3>
+          <h3 class="wp-subhead">Avg US Gasoline Price (2015–2026)</h3>
           <p style="color:#666;font-size:13px;margin-bottom:4px;line-height:1.5">
             Monthly U.S. regular average since 2015. The pump crossed <strong>$4</strong> in the
             2022 Ukraine invasion and again now, the 2026 Iran crisis.
@@ -2467,10 +2467,18 @@ function initWarPremium() {
         const p = statePremium(d.properties.name);
         if (p) {
           const tip = document.getElementById('warp-hover');
-          tip.textContent = d.properties.name + ': $' + Math.round(p.extraPerDriver).toLocaleString() + ' extra / driver';
+          // Statewide aggregate: per-driver × drivers in this state.
+          const drivers = (stateDrivers[d.properties.name] || 0) * 1e6;
+          const total = p.extraPerDriver * drivers;
+          const totalStr = total >= 1e9
+            ? '$' + (total / 1e9).toFixed(1) + 'B'
+            : '$' + (total / 1e6).toFixed(0) + 'M';
+          tip.innerHTML = '<div style="font-weight:700;font-size:14px;margin-bottom:2px">' + d.properties.name + '</div>'
+            + '<div>$' + Math.round(p.extraPerDriver).toLocaleString() + ' / driver · '
+            + '<span style="opacity:0.9">' + totalStr + ' statewide</span></div>';
           tip.style.display = 'block';
           tip.style.left = (event.clientX + 14) + 'px';
-          tip.style.top  = (event.clientY - 32) + 'px';
+          tip.style.top  = (event.clientY - 36) + 'px';
         }
       })
       .on('mousemove', function(event){
