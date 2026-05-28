@@ -13,20 +13,21 @@
 <script src="../shared.js"></script>
 <style>
   :root{
-    --bg:#050505;
-    --bg-2:#0d0d0d;
-    --bg-3:#161616;
-    --hair:#1e1e1e;
-    --hair-2:#2d2d2d;
-    --hair-3:#3d3d3d;
-    --text:#f5f5f5;
-    --text-2:#a0a0a0;
-    --text-3:#5a5a5a;
-    --text-4:#3d3d3d;
-    --accent:#c6f432;
-    --accent-dim:#7a9b0d;
-    --accent-bg:rgba(198,244,50,0.08);
-    --warn:#ff5252;
+    --bg:#fafafa;
+    --bg-2:#f3f3f3;
+    --bg-3:#ededed;
+    --hair:#e6e6e6;
+    --hair-2:#d0d0d0;
+    --hair-3:#a8a8a8;
+    --text:#080808;
+    --text-2:#525252;
+    --text-3:#8a8a8a;
+    --text-4:#c8c8c8;
+    --accent:#4a6608;             /* readable lime-on-white text accent */
+    --accent-bright:#c6f432;       /* bright lime for fills, bars, buttons */
+    --accent-dim:#a3c41a;
+    --accent-bg:rgba(198,244,50,0.18);
+    --warn:#b8242c;
   }
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
   html{scroll-behavior:smooth;scroll-padding-top:64px}
@@ -46,7 +47,7 @@
   button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;padding:0}
   input,select,button{font-family:inherit}
 
-  ::selection{background:var(--accent);color:var(--bg)}
+  ::selection{background:var(--accent-bright);color:var(--text)}
 
   /* ───────── primitive utilities ───────── */
   .mono{font-family:'Geist Mono',ui-monospace,monospace;font-feature-settings:"tnum","zero"}
@@ -63,14 +64,14 @@
   /* ───────── top nav ───────── */
   .nav{
     position:sticky;top:0;z-index:100;
-    background:rgba(5,5,5,0.7);
+    background:rgba(250,250,250,0.75);
     backdrop-filter:blur(20px) saturate(180%);
     -webkit-backdrop-filter:blur(20px) saturate(180%);
     border-bottom:1px solid var(--hair);
   }
   .nav-inner{display:flex;align-items:center;justify-content:space-between;height:60px;padding:0 40px;max-width:1440px;margin:0 auto}
   .brand{display:flex;align-items:center;gap:10px;font-family:'Geist Mono',monospace;font-size:12px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase}
-  .brand .mark{width:9px;height:9px;background:var(--accent);border-radius:50%;box-shadow:0 0 12px var(--accent)}
+  .brand .mark{width:9px;height:9px;background:var(--accent-bright);border-radius:50%}
   .brand span{color:var(--text-2)}
   .brand strong{color:var(--text);font-weight:600}
   .nav-links{display:flex;gap:2px}
@@ -84,7 +85,7 @@
   .nav-links a:hover{color:var(--text)}
   .nav-meta{display:flex;align-items:center;gap:16px;font-family:'Geist Mono',monospace;font-size:11px;letter-spacing:0.12em;color:var(--text-3);text-transform:uppercase}
   .nav-meta .live{color:var(--accent);display:flex;align-items:center;gap:6px}
-  .nav-meta .live::before{content:"";display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--accent);box-shadow:0 0 8px var(--accent);animation:pulse 1.6s ease-in-out infinite}
+  .nav-meta .live::before{content:"";display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--accent-bright);animation:pulse 1.6s ease-in-out infinite}
   @keyframes pulse{50%{opacity:0.35}}
 
   /* ───────── hero ───────── */
@@ -100,7 +101,7 @@
   }
   .hero h1 em{font-family:'Instrument Serif',serif;font-style:italic;font-weight:400;color:var(--accent);letter-spacing:-0.02em}
   .hero h1 .underline{position:relative;display:inline-block}
-  .hero h1 .underline::after{content:"";position:absolute;left:0;right:0;bottom:0.06em;height:2px;background:var(--accent);transform-origin:left;animation:line-grow 1.4s cubic-bezier(.2,.8,.2,1) 0.4s both}
+  .hero h1 .underline::after{content:"";position:absolute;left:0;right:0;bottom:0.06em;height:3px;background:var(--accent-bright);transform-origin:left;animation:line-grow 1.4s cubic-bezier(.2,.8,.2,1) 0.4s both}
   @keyframes line-grow{from{transform:scaleX(0)}to{transform:scaleX(1)}}
 
   .hero-lede{font-size:17px;color:var(--text-2);max-width:46ch;font-weight:400;line-height:1.55}
@@ -156,14 +157,14 @@
   }
   .ctrl input[type=range]::-webkit-slider-runnable-track{height:1px;background:var(--hair-3)}
   .ctrl input[type=range]::-webkit-slider-thumb{
-    -webkit-appearance:none;width:12px;height:12px;background:var(--accent);
-    border-radius:50%;margin-top:-5.5px;cursor:pointer;border:none;
-    box-shadow:0 0 0 4px rgba(198,244,50,0.15);
+    -webkit-appearance:none;width:14px;height:14px;background:var(--accent-bright);
+    border-radius:50%;margin-top:-6.5px;cursor:pointer;border:1px solid var(--accent);
+    box-shadow:0 0 0 4px rgba(198,244,50,0.25);
     transition:box-shadow .15s;
   }
-  .ctrl input[type=range]::-webkit-slider-thumb:hover{box-shadow:0 0 0 7px rgba(198,244,50,0.18)}
+  .ctrl input[type=range]::-webkit-slider-thumb:hover{box-shadow:0 0 0 7px rgba(198,244,50,0.32)}
   .ctrl input[type=range]::-moz-range-track{height:1px;background:var(--hair-3)}
-  .ctrl input[type=range]::-moz-range-thumb{width:12px;height:12px;background:var(--accent);border-radius:50%;border:none;cursor:pointer}
+  .ctrl input[type=range]::-moz-range-thumb{width:14px;height:14px;background:var(--accent-bright);border-radius:50%;border:1px solid var(--accent);cursor:pointer}
   .ctrl .val{font-family:'Geist Mono',monospace;font-size:13px;color:var(--accent);margin-top:auto}
 
   /* scenario toggle */
@@ -176,7 +177,7 @@
   }
   .scenario button:last-child{border-right:none}
   .scenario button:hover:not(.active){color:var(--text-2)}
-  .scenario button.active{color:var(--bg);background:var(--accent)}
+  .scenario button.active{color:var(--text);background:var(--accent-bright);border-color:transparent}
 
   /* ───────── results strip ───────── */
   .res-strip{display:grid;grid-template-columns:repeat(4,1fr);border:1px solid var(--hair);margin-top:32px}
@@ -206,17 +207,19 @@
 
   /* hover tooltip */
   #egal-tip{position:fixed;display:none;z-index:80;pointer-events:none;
-    background:var(--bg-2);border:1px solid var(--accent);
+    background:var(--text);color:#fafafa;border:1px solid var(--text);
     padding:14px 16px;min-width:200px;
     font-family:'Geist Mono',monospace;font-size:12px;
-    box-shadow:0 12px 32px rgba(0,0,0,0.6);
+    box-shadow:0 12px 32px rgba(0,0,0,0.18);
   }
+  #egal-tip .t-name{color:#fafafa}
+  #egal-tip .t-row{color:#a8a8a8}
   #egal-tip .t-name{font-family:'Geist',sans-serif;font-size:15px;font-weight:500;color:var(--text);margin-bottom:8px;letter-spacing:-0.01em}
-  #egal-tip .t-row{display:flex;justify-content:space-between;gap:16px;padding:4px 0;color:var(--text-2)}
-  #egal-tip .t-row .v{color:var(--accent);font-weight:500}
+  #egal-tip .t-row{display:flex;justify-content:space-between;gap:16px;padding:4px 0}
+  #egal-tip .t-row .v{color:var(--accent-bright);font-weight:500}
 
   /* clicked popover (in-map) */
-  #egal-pop{position:fixed;display:none;z-index:90;background:var(--bg-2);border:1px solid var(--hair-2);padding:22px 24px;min-width:260px;box-shadow:0 24px 60px rgba(0,0,0,0.8)}
+  #egal-pop{position:fixed;display:none;z-index:90;background:#fff;border:1px solid var(--hair-2);padding:22px 24px;min-width:260px;box-shadow:0 24px 60px rgba(0,0,0,0.15)}
   #egal-pop .p-name{font-family:'Geist',sans-serif;font-size:20px;font-weight:400;color:var(--text);margin-bottom:18px;letter-spacing:-0.02em;padding-bottom:14px;border-bottom:1px solid var(--hair)}
   #egal-pop .p-name em{font-family:'Instrument Serif',serif;font-style:italic;color:var(--accent)}
   #egal-pop .p-row{display:flex;justify-content:space-between;align-items:baseline;padding:7px 0;font-family:'Geist Mono',monospace;font-size:13px}
@@ -265,8 +268,8 @@
   .bar-row{display:grid;grid-template-columns:40px 1fr;gap:20px;align-items:center}
   .bar-row .lbl{font-family:'Geist Mono',monospace;font-size:11px;color:var(--text-3);letter-spacing:0.1em;text-transform:uppercase}
   .bar-row .b-track{height:36px;background:var(--bg-2);position:relative;border:1px solid var(--hair)}
-  .bar-row .b-fill{height:100%;background:var(--text-3);display:flex;align-items:center;padding-left:14px;font-family:'Geist Mono',monospace;font-size:13px;color:var(--bg);font-weight:500;transition:width .4s cubic-bezier(.2,.8,.2,1)}
-  .bar-row .b-fill.ev{background:var(--accent)}
+  .bar-row .b-fill{height:100%;background:var(--text-3);display:flex;align-items:center;padding-left:14px;font-family:'Geist Mono',monospace;font-size:13px;color:#fff;font-weight:500;transition:width .4s cubic-bezier(.2,.8,.2,1)}
+  .bar-row .b-fill.ev{background:var(--accent-bright);color:var(--text)}
   .maint-stats{display:flex;flex-direction:column;gap:0}
   .ms-row{display:flex;justify-content:space-between;align-items:baseline;padding:16px 0;border-bottom:1px solid var(--hair);font-family:'Geist Mono',monospace}
   .ms-row .k{font-size:11px;color:var(--text-3);letter-spacing:0.12em;text-transform:uppercase}
@@ -307,12 +310,12 @@
   .cta h2 em{font-family:'Instrument Serif',serif;font-style:italic;color:var(--accent);font-weight:400}
   .cta-btn{display:inline-flex;align-items:center;gap:16px;
     padding:18px 32px;
-    background:var(--accent);color:var(--bg);
+    background:var(--accent-bright);color:var(--text);
     font-family:'Geist Mono',monospace;font-size:13px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;
-    border:1px solid var(--accent);
+    border:1px solid var(--accent-bright);
     transition:all .15s ease;
   }
-  .cta-btn:hover{background:transparent;color:var(--accent);transform:translateY(-1px)}
+  .cta-btn:hover{background:var(--text);color:var(--accent-bright);border-color:var(--text);transform:translateY(-1px)}
   .cta-btn svg{width:14px;height:14px}
 
   /* ───────── footer ───────── */
@@ -490,11 +493,11 @@
       <div id="egal-map"></div>
       <div class="egal-side">
         <div class="egal-leg">
-          <div class="row"><span class="chip" style="background:rgba(198,244,50,0.05)"></span>&lt; $1.20</div>
-          <div class="row"><span class="chip" style="background:rgba(198,244,50,0.18)"></span>$1.20–1.60</div>
-          <div class="row"><span class="chip" style="background:rgba(198,244,50,0.36)"></span>$1.60–2.00</div>
-          <div class="row"><span class="chip" style="background:rgba(198,244,50,0.62)"></span>$2.00–2.60</div>
-          <div class="row"><span class="chip" style="background:#c6f432"></span>&gt; $2.60</div>
+          <div class="row"><span class="chip" style="background:#a8d018;border-color:#a8d018"></span>&lt; $1.20 · most saved</div>
+          <div class="row"><span class="chip" style="background:#c6f432;border-color:#c6f432"></span>$1.20–1.60</div>
+          <div class="row"><span class="chip" style="background:#e3f78a;border-color:#d8ea7e"></span>$1.60–2.00</div>
+          <div class="row"><span class="chip" style="background:#f3fbcf;border-color:#e6efb8"></span>$2.00–2.60</div>
+          <div class="row"><span class="chip" style="background:#fafce8;border-color:#e8e9d0"></span>&gt; $2.60 · least saved</div>
         </div>
         <div class="egal-extremes">
           <h4>Cheapest</h4>
@@ -749,24 +752,25 @@ function setT(id, html){ const el = document.getElementById(id); if (el) el.inne
 
 // ───────── MAP ─────────
 function egalColor(v){
-  if (v == null) return '#1a1a1a';
-  if (v < 1.20) return '#c6f432';                     // most savings — full lime
-  if (v < 1.60) return 'rgba(198,244,50,0.62)';
-  if (v < 2.00) return 'rgba(198,244,50,0.36)';
-  if (v < 2.60) return 'rgba(198,244,50,0.18)';
-  return 'rgba(198,244,50,0.05)';
+  if (v == null) return '#ededed';
+  // light bg → step from very pale lime to full lime as savings increase
+  if (v < 1.20) return '#a8d018';                     // most savings — deeper lime
+  if (v < 1.60) return '#c6f432';
+  if (v < 2.00) return '#e3f78a';
+  if (v < 2.60) return '#f3fbcf';
+  return '#fafce8';                                    // barely tinted
 }
 function drawMap(){
   const tip = document.getElementById('egal-tip');
   const pop = document.getElementById('egal-pop');
   S.drawMap('egal-map', {
-    height:520, strokeColor:'#050505', strokeWidth:1,
+    height:520, strokeColor:'#fafafa', strokeWidth:1,
     colorFn: n => egalColor(S.eGallon(n)),
     labelFn: n => { const v = S.eGallon(n); return v ? '$' + v.toFixed(2) : ''; },
-    labelColor: n => { const v = S.eGallon(n); return v && v < 1.40 ? '#050505' : '#f5f5f5'; },
+    labelColor: n => '#080808',
     labelSize:'10px', labelFont:'Geist Mono',
     onHover:(name, ev, node, over) => {
-      d3.select(node).attr('stroke', over ? '#c6f432' : '#050505').attr('stroke-width', over ? 2 : 1);
+      d3.select(node).attr('stroke', over ? '#080808' : '#fafafa').attr('stroke-width', over ? 2 : 1);
       if (over) {
         const v = S.eGallon(name), g = S.getGasPrice(name, state.scenario);
         if (v && g) {
@@ -800,9 +804,7 @@ function drawMap(){
 }
 function refreshMap(){
   d3.select('#egal-map svg').selectAll('path').attr('fill', d => egalColor(S.eGallon(d.properties.name)));
-  d3.select('#egal-map svg').selectAll('text').attr('fill', d => {
-    const v = S.eGallon(d.properties.name); return v && v < 1.40 ? '#050505' : '#f5f5f5';
-  });
+  d3.select('#egal-map svg').selectAll('text').attr('fill', '#080808');
 }
 
 function renderExtremes(){
