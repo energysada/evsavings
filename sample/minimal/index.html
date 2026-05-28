@@ -1,0 +1,900 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>EV / GAS — Minimal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;800&family=Geist+Mono:wght@300;400;500;600&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://d3js.org/d3.v7.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/topojson-client@3"></script>
+<script src="../shared.js"></script>
+<style>
+  :root{
+    --bg:#050505;
+    --bg-2:#0d0d0d;
+    --bg-3:#161616;
+    --hair:#1e1e1e;
+    --hair-2:#2d2d2d;
+    --hair-3:#3d3d3d;
+    --text:#f5f5f5;
+    --text-2:#a0a0a0;
+    --text-3:#5a5a5a;
+    --text-4:#3d3d3d;
+    --accent:#c6f432;
+    --accent-dim:#7a9b0d;
+    --accent-bg:rgba(198,244,50,0.08);
+    --warn:#ff5252;
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth;scroll-padding-top:64px}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:'Geist','Helvetica Neue',Arial,sans-serif;
+    font-weight:400;
+    font-size:15px;
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+    -moz-osx-font-smoothing:grayscale;
+    font-feature-settings:"ss01","cv11";
+    overflow-x:hidden;
+  }
+  a{color:inherit;text-decoration:none}
+  button{font:inherit;color:inherit;background:none;border:none;cursor:pointer;padding:0}
+  input,select,button{font-family:inherit}
+
+  ::selection{background:var(--accent);color:var(--bg)}
+
+  /* ───────── primitive utilities ───────── */
+  .mono{font-family:'Geist Mono',ui-monospace,monospace;font-feature-settings:"tnum","zero"}
+  .num{font-variant-numeric:tabular-nums}
+  .eyebrow{font-family:'Geist Mono',monospace;font-size:11px;font-weight:500;letter-spacing:0.18em;text-transform:uppercase;color:var(--text-3)}
+  .eyebrow .dot{color:var(--accent)}
+  .accent{color:var(--accent)}
+  .dim{color:var(--text-2)}
+  .dimmer{color:var(--text-3)}
+
+  /* ───────── layout container ───────── */
+  .wrap{max-width:1440px;margin:0 auto;padding:0 40px}
+
+  /* ───────── top nav ───────── */
+  .nav{
+    position:sticky;top:0;z-index:100;
+    background:rgba(5,5,5,0.7);
+    backdrop-filter:blur(20px) saturate(180%);
+    -webkit-backdrop-filter:blur(20px) saturate(180%);
+    border-bottom:1px solid var(--hair);
+  }
+  .nav-inner{display:flex;align-items:center;justify-content:space-between;height:60px;padding:0 40px;max-width:1440px;margin:0 auto}
+  .brand{display:flex;align-items:center;gap:10px;font-family:'Geist Mono',monospace;font-size:12px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase}
+  .brand .mark{width:9px;height:9px;background:var(--accent);border-radius:50%;box-shadow:0 0 12px var(--accent)}
+  .brand span{color:var(--text-2)}
+  .brand strong{color:var(--text);font-weight:600}
+  .nav-links{display:flex;gap:2px}
+  .nav-links a{
+    font-family:'Geist Mono',monospace;
+    font-size:11px;font-weight:500;letter-spacing:0.12em;text-transform:uppercase;
+    color:var(--text-3);
+    padding:8px 12px;border-radius:4px;
+    transition:color .15s ease;
+  }
+  .nav-links a:hover{color:var(--text)}
+  .nav-meta{display:flex;align-items:center;gap:16px;font-family:'Geist Mono',monospace;font-size:11px;letter-spacing:0.12em;color:var(--text-3);text-transform:uppercase}
+  .nav-meta .live{color:var(--accent);display:flex;align-items:center;gap:6px}
+  .nav-meta .live::before{content:"";display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--accent);box-shadow:0 0 8px var(--accent);animation:pulse 1.6s ease-in-out infinite}
+  @keyframes pulse{50%{opacity:0.35}}
+
+  /* ───────── hero ───────── */
+  .hero{padding:140px 0 120px;border-bottom:1px solid var(--hair);position:relative;overflow:hidden}
+  .hero-grid{display:grid;grid-template-columns:1fr;gap:48px}
+  .hero h1{
+    font-family:'Geist',sans-serif;
+    font-weight:300;
+    font-size:clamp(56px,9vw,148px);
+    line-height:0.92;letter-spacing:-0.045em;
+    margin:18px 0 32px;
+    max-width:18ch;
+  }
+  .hero h1 em{font-family:'Instrument Serif',serif;font-style:italic;font-weight:400;color:var(--accent);letter-spacing:-0.02em}
+  .hero h1 .underline{position:relative;display:inline-block}
+  .hero h1 .underline::after{content:"";position:absolute;left:0;right:0;bottom:0.06em;height:2px;background:var(--accent);transform-origin:left;animation:line-grow 1.4s cubic-bezier(.2,.8,.2,1) 0.4s both}
+  @keyframes line-grow{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+
+  .hero-lede{font-size:17px;color:var(--text-2);max-width:46ch;font-weight:400;line-height:1.55}
+  .hero-lede strong{color:var(--text);font-weight:500}
+
+  /* hero stat row */
+  .hero-stats{margin-top:96px;display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid var(--hair)}
+  .hero-stat{padding:32px 0 4px;border-right:1px solid var(--hair);padding-right:28px}
+  .hero-stat:last-child{border-right:none}
+  .hero-stat .k{font-family:'Geist Mono',monospace;font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:var(--text-3);margin-bottom:18px}
+  .hero-stat .v{font-family:'Geist Mono',monospace;font-size:44px;font-weight:300;line-height:1;letter-spacing:-0.02em;color:var(--text);font-variant-numeric:tabular-nums}
+  .hero-stat .v em{font-family:'Instrument Serif',serif;font-style:italic;font-weight:400;color:var(--accent)}
+  .hero-stat .d{font-size:12px;color:var(--text-3);margin-top:10px;font-family:'Geist Mono',monospace;letter-spacing:0.06em}
+
+  .hero-stagger > * {opacity:0;animation:fade-up 0.7s cubic-bezier(.16,1,.3,1) forwards}
+  .hero-stagger > *:nth-child(1){animation-delay:0.05s}
+  .hero-stagger > *:nth-child(2){animation-delay:0.15s}
+  .hero-stagger > *:nth-child(3){animation-delay:0.25s}
+  .hero-stagger > *:nth-child(4){animation-delay:0.35s}
+  .hero-stagger > *:nth-child(5){animation-delay:0.45s}
+  @keyframes fade-up{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+
+  /* ───────── section primitive ───────── */
+  section.s{padding:128px 0;border-bottom:1px solid var(--hair);position:relative}
+  .s-head{display:grid;grid-template-columns:auto 1fr auto;gap:48px;align-items:end;margin-bottom:64px}
+  .s-head .label{display:flex;align-items:center;gap:12px}
+  .s-head .num{font-family:'Geist Mono',monospace;font-size:11px;letter-spacing:0.2em;color:var(--text-3)}
+  .s-head h2{font-family:'Geist',sans-serif;font-weight:300;font-size:clamp(36px,5vw,64px);line-height:1;letter-spacing:-0.035em;color:var(--text)}
+  .s-head h2 em{font-family:'Instrument Serif',serif;font-style:italic;font-weight:400;color:var(--accent)}
+  .s-head .deck{font-size:15px;color:var(--text-2);max-width:42ch;justify-self:end;line-height:1.5}
+
+  /* ───────── inputs / controls ───────── */
+  .ctrl-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1px;background:var(--hair);border:1px solid var(--hair)}
+  .ctrl{background:var(--bg);padding:18px 20px;display:flex;flex-direction:column;gap:10px;min-height:88px}
+  .ctrl .ck{font-family:'Geist Mono',monospace;font-size:10px;letter-spacing:0.18em;text-transform:uppercase;color:var(--text-3)}
+  .ctrl select,.ctrl input[type=range]{
+    background:transparent;color:var(--text);border:none;
+    font-family:'Geist',sans-serif;font-size:15px;font-weight:500;
+    padding:0;cursor:pointer;outline:none;width:100%;
+  }
+  .ctrl select{
+    -webkit-appearance:none;appearance:none;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 5 5-5' stroke='%23a0a0a0' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");
+    background-repeat:no-repeat;background-position:right 0 center;padding-right:18px;
+    border-bottom:1px solid var(--hair-2);padding-bottom:6px;
+    transition:border-color .15s,color .15s;
+  }
+  .ctrl select:focus,.ctrl select:hover{border-bottom-color:var(--accent)}
+  .ctrl select option,.ctrl select optgroup{background:var(--bg-2);color:var(--text)}
+  .ctrl select optgroup{color:var(--accent);font-family:'Geist Mono',monospace;font-size:10px;letter-spacing:0.2em;text-transform:uppercase}
+  .ctrl input[type=range]{
+    -webkit-appearance:none;appearance:none;background:transparent;height:18px;padding:0;margin:2px 0;
+  }
+  .ctrl input[type=range]::-webkit-slider-runnable-track{height:1px;background:var(--hair-3)}
+  .ctrl input[type=range]::-webkit-slider-thumb{
+    -webkit-appearance:none;width:12px;height:12px;background:var(--accent);
+    border-radius:50%;margin-top:-5.5px;cursor:pointer;border:none;
+    box-shadow:0 0 0 4px rgba(198,244,50,0.15);
+    transition:box-shadow .15s;
+  }
+  .ctrl input[type=range]::-webkit-slider-thumb:hover{box-shadow:0 0 0 7px rgba(198,244,50,0.18)}
+  .ctrl input[type=range]::-moz-range-track{height:1px;background:var(--hair-3)}
+  .ctrl input[type=range]::-moz-range-thumb{width:12px;height:12px;background:var(--accent);border-radius:50%;border:none;cursor:pointer}
+  .ctrl .val{font-family:'Geist Mono',monospace;font-size:13px;color:var(--accent);margin-top:auto}
+
+  /* scenario toggle */
+  .scenario{display:flex;border:1px solid var(--hair-2);margin-top:0}
+  .scenario button{
+    flex:1;padding:14px 16px;
+    font-family:'Geist Mono',monospace;font-size:11px;font-weight:500;letter-spacing:0.16em;text-transform:uppercase;
+    color:var(--text-3);background:transparent;border-right:1px solid var(--hair-2);
+    transition:color .15s,background .15s;
+  }
+  .scenario button:last-child{border-right:none}
+  .scenario button:hover:not(.active){color:var(--text-2)}
+  .scenario button.active{color:var(--bg);background:var(--accent)}
+
+  /* ───────── results strip ───────── */
+  .res-strip{display:grid;grid-template-columns:repeat(4,1fr);border:1px solid var(--hair);margin-top:32px}
+  .res-strip > div{padding:36px 28px;border-right:1px solid var(--hair)}
+  .res-strip > div:last-child{border-right:none}
+  .res-strip .k{font-family:'Geist Mono',monospace;font-size:10px;letter-spacing:0.18em;text-transform:uppercase;color:var(--text-3);margin-bottom:24px}
+  .res-strip .v{font-family:'Geist Mono',monospace;font-size:44px;font-weight:300;line-height:1;letter-spacing:-0.02em;color:var(--text);font-variant-numeric:tabular-nums}
+  .res-strip .v em{font-family:'Instrument Serif',serif;font-style:italic;color:var(--accent);font-weight:400}
+  .res-strip .v.good{color:var(--accent)}
+  .res-strip .v.bad{color:var(--warn)}
+  .res-strip .d{font-size:12px;color:var(--text-3);margin-top:12px;font-family:'Geist Mono',monospace;letter-spacing:0.06em}
+
+  /* ───────── map ───────── */
+  .map-wrap{display:grid;grid-template-columns:1fr 280px;gap:48px;align-items:start;margin-top:24px}
+  #egal-map{width:100%;min-height:480px;position:relative}
+  #egal-map svg{display:block;width:100%;height:auto}
+  #egal-map svg path{transition:opacity .15s,stroke-width .15s}
+  .egal-side{display:flex;flex-direction:column;gap:32px}
+  .egal-leg{display:flex;flex-direction:column;gap:8px}
+  .egal-leg .row{display:flex;align-items:center;gap:12px;font-family:'Geist Mono',monospace;font-size:11px;letter-spacing:0.08em;color:var(--text-2)}
+  .egal-leg .chip{width:24px;height:12px;border:1px solid rgba(255,255,255,0.06)}
+  .egal-extremes h4{font-family:'Geist Mono',monospace;font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:var(--text-3);margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid var(--hair)}
+  .egal-extremes .ex-row{display:flex;justify-content:space-between;align-items:baseline;padding:8px 0;border-bottom:1px solid var(--hair);font-family:'Geist Mono',monospace;font-size:13px}
+  .egal-extremes .ex-row .name{color:var(--text-2)}
+  .egal-extremes .ex-row .val{color:var(--accent);font-weight:500}
+  .egal-extremes .ex-row .val.warn{color:var(--warn)}
+
+  /* hover tooltip */
+  #egal-tip{position:fixed;display:none;z-index:80;pointer-events:none;
+    background:var(--bg-2);border:1px solid var(--accent);
+    padding:14px 16px;min-width:200px;
+    font-family:'Geist Mono',monospace;font-size:12px;
+    box-shadow:0 12px 32px rgba(0,0,0,0.6);
+  }
+  #egal-tip .t-name{font-family:'Geist',sans-serif;font-size:15px;font-weight:500;color:var(--text);margin-bottom:8px;letter-spacing:-0.01em}
+  #egal-tip .t-row{display:flex;justify-content:space-between;gap:16px;padding:4px 0;color:var(--text-2)}
+  #egal-tip .t-row .v{color:var(--accent);font-weight:500}
+
+  /* clicked popover (in-map) */
+  #egal-pop{position:fixed;display:none;z-index:90;background:var(--bg-2);border:1px solid var(--hair-2);padding:22px 24px;min-width:260px;box-shadow:0 24px 60px rgba(0,0,0,0.8)}
+  #egal-pop .p-name{font-family:'Geist',sans-serif;font-size:20px;font-weight:400;color:var(--text);margin-bottom:18px;letter-spacing:-0.02em;padding-bottom:14px;border-bottom:1px solid var(--hair)}
+  #egal-pop .p-name em{font-family:'Instrument Serif',serif;font-style:italic;color:var(--accent)}
+  #egal-pop .p-row{display:flex;justify-content:space-between;align-items:baseline;padding:7px 0;font-family:'Geist Mono',monospace;font-size:13px}
+  #egal-pop .p-row .k{color:var(--text-3);letter-spacing:0.06em}
+  #egal-pop .p-row .v{color:var(--text);font-variant-numeric:tabular-nums}
+  #egal-pop .p-row .v.acc{color:var(--accent)}
+
+  /* ───────── matrix (vehicle match) ───────── */
+  .matrix{display:grid;grid-template-columns:130px repeat(4,1fr);gap:1px;background:var(--hair);border:1px solid var(--hair)}
+  .mx-corner,.mx-col-h{background:var(--bg);padding:18px 16px;font-family:'Geist Mono',monospace;font-size:10px;letter-spacing:0.18em;text-transform:uppercase;color:var(--text-3)}
+  .mx-col-h{text-align:right;color:var(--text-2)}
+  .mx-row-h{background:var(--bg);padding:24px 16px;font-family:'Geist',sans-serif;font-size:15px;font-weight:500;color:var(--text);display:flex;align-items:center;letter-spacing:-0.01em}
+  .mx-cell{background:var(--bg);padding:16px;min-height:96px;display:flex;flex-direction:column;gap:4px;transition:background .15s}
+  .mx-cell:hover{background:var(--bg-2)}
+  .mx-cell.empty{background:var(--bg)}
+  .mx-cell.empty::before{content:"·";color:var(--text-4);font-family:'Geist Mono',monospace;font-size:16px;display:block;text-align:center;margin-top:24px}
+  .mx-cell .pair{padding:6px 0;border-bottom:1px solid var(--hair);cursor:pointer;display:flex;flex-direction:column;gap:2px}
+  .mx-cell .pair:last-child{border-bottom:none}
+  .mx-cell .pair .gas{font-size:13px;color:var(--text-2);font-weight:400;letter-spacing:-0.01em}
+  .mx-cell .pair .ev{font-family:'Geist',sans-serif;font-size:14px;font-weight:500;color:var(--text);letter-spacing:-0.01em}
+  .mx-cell .pair .sav{font-family:'Geist Mono',monospace;font-size:14px;color:var(--accent);font-variant-numeric:tabular-nums;margin-top:4px}
+  .mx-cell .pair .sav.neg{color:var(--warn)}
+
+  /* ───────── brand pairs list ───────── */
+  .brand-list{display:grid;grid-template-columns:1fr;border-top:1px solid var(--hair)}
+  .brand-row{
+    display:grid;grid-template-columns:1.4fr 80px 1.4fr 1fr 1fr;gap:32px;align-items:center;
+    padding:24px 0;border-bottom:1px solid var(--hair);transition:background .15s;cursor:pointer;
+  }
+  .brand-row:hover{background:var(--bg-2)}
+  .brand-row .ice{display:flex;flex-direction:column;gap:4px}
+  .brand-row .ice .name{font-family:'Geist',sans-serif;font-size:18px;font-weight:500;color:var(--text);letter-spacing:-0.015em}
+  .brand-row .ice .spec{font-family:'Geist Mono',monospace;font-size:11px;color:var(--text-3);letter-spacing:0.08em;text-transform:uppercase}
+  .brand-row .arrow{font-family:'Geist Mono',monospace;font-size:14px;color:var(--text-3);text-align:center;justify-self:center}
+  .brand-row .ev{display:flex;flex-direction:column;gap:4px}
+  .brand-row .ev .name{font-family:'Geist',sans-serif;font-size:18px;font-weight:500;color:var(--accent);letter-spacing:-0.015em}
+  .brand-row .ev .spec{font-family:'Geist Mono',monospace;font-size:11px;color:var(--accent-dim);letter-spacing:0.08em;text-transform:uppercase}
+  .brand-row .save{font-family:'Geist Mono',monospace;font-size:18px;color:var(--accent);font-weight:500;text-align:right;font-variant-numeric:tabular-nums}
+  .brand-row .meta{font-family:'Geist Mono',monospace;font-size:11px;color:var(--text-3);letter-spacing:0.08em;text-transform:uppercase;text-align:right}
+
+  /* ───────── maintenance ───────── */
+  .maint-wrap{display:grid;grid-template-columns:1fr 1fr;gap:96px;align-items:start}
+  .maint-bar{display:flex;flex-direction:column;gap:24px}
+  .maint-bar h3{font-family:'Geist',sans-serif;font-weight:300;font-size:36px;line-height:1;letter-spacing:-0.03em;color:var(--text)}
+  .maint-bar h3 em{font-family:'Instrument Serif',serif;font-style:italic;color:var(--accent)}
+  .bar-row{display:grid;grid-template-columns:40px 1fr;gap:20px;align-items:center}
+  .bar-row .lbl{font-family:'Geist Mono',monospace;font-size:11px;color:var(--text-3);letter-spacing:0.1em;text-transform:uppercase}
+  .bar-row .b-track{height:36px;background:var(--bg-2);position:relative;border:1px solid var(--hair)}
+  .bar-row .b-fill{height:100%;background:var(--text-3);display:flex;align-items:center;padding-left:14px;font-family:'Geist Mono',monospace;font-size:13px;color:var(--bg);font-weight:500;transition:width .4s cubic-bezier(.2,.8,.2,1)}
+  .bar-row .b-fill.ev{background:var(--accent)}
+  .maint-stats{display:flex;flex-direction:column;gap:0}
+  .ms-row{display:flex;justify-content:space-between;align-items:baseline;padding:16px 0;border-bottom:1px solid var(--hair);font-family:'Geist Mono',monospace}
+  .ms-row .k{font-size:11px;color:var(--text-3);letter-spacing:0.12em;text-transform:uppercase}
+  .ms-row .v{font-size:18px;color:var(--text);font-weight:300;letter-spacing:-0.02em;font-variant-numeric:tabular-nums}
+  .ms-row.delta .v{color:var(--accent);font-size:24px}
+
+  .maint-side h4{font-family:'Geist Mono',monospace;font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:var(--text-3);margin-bottom:24px}
+  .maint-side ul{list-style:none;display:flex;flex-direction:column;gap:1px;background:var(--hair)}
+  .maint-side li{background:var(--bg);padding:14px 18px;display:flex;justify-content:space-between;align-items:baseline}
+  .maint-side li .item{font-size:14px;color:var(--text-2)}
+  .maint-side li .item small{display:block;font-family:'Geist Mono',monospace;font-size:10px;color:var(--text-3);letter-spacing:0.08em;margin-top:3px;text-transform:uppercase}
+  .maint-side li .cost{font-family:'Geist Mono',monospace;font-size:13px;color:var(--accent);font-variant-numeric:tabular-nums}
+  .maint-side li .cost.zero{color:var(--text-3)}
+
+  /* ───────── charging ───────── */
+  .chrg-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--hair);border:1px solid var(--hair)}
+  .chrg-cell{background:var(--bg);padding:36px 28px;display:flex;flex-direction:column;gap:18px;min-height:200px;transition:background .15s}
+  .chrg-cell:hover{background:var(--bg-2)}
+  .chrg-cell .k{font-family:'Geist Mono',monospace;font-size:10px;letter-spacing:0.18em;text-transform:uppercase;color:var(--text-3)}
+  .chrg-cell .v{font-family:'Geist Mono',monospace;font-size:48px;font-weight:300;line-height:1;letter-spacing:-0.03em;color:var(--text);font-variant-numeric:tabular-nums;margin-top:auto}
+  .chrg-cell .v em{font-family:'Instrument Serif',serif;font-style:italic;font-weight:400;color:var(--accent)}
+  .chrg-cell .v small{font-family:'Geist',sans-serif;font-size:13px;color:var(--text-3);font-weight:400;letter-spacing:0;margin-left:6px}
+  .chrg-cell .d{font-size:13px;color:var(--text-2);line-height:1.5}
+
+  /* ───────── range / trips ───────── */
+  .trips-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:0;border-top:1px solid var(--hair)}
+  .trip-row{display:grid;grid-template-columns:1fr auto;gap:24px;align-items:center;padding:20px 24px;border-bottom:1px solid var(--hair);border-right:1px solid var(--hair)}
+  .trip-row:nth-child(2n){border-right:none}
+  .trip-row .ft{font-family:'Geist',sans-serif;font-size:16px;color:var(--text);letter-spacing:-0.015em}
+  .trip-row .ft small{display:block;font-family:'Geist Mono',monospace;font-size:11px;color:var(--text-3);margin-top:4px;letter-spacing:0.08em;text-transform:uppercase}
+  .trip-row .stops{font-family:'Geist Mono',monospace;font-size:24px;font-weight:300;color:var(--accent);letter-spacing:-0.02em;font-variant-numeric:tabular-nums;text-align:right;min-width:80px}
+  .trip-row .stops.warn{color:var(--warn)}
+  .trip-row .stops small{display:block;font-size:10px;letter-spacing:0.16em;color:var(--text-3);text-transform:uppercase;margin-top:2px;font-weight:500}
+
+  /* ───────── cta ───────── */
+  .cta{padding:200px 0;text-align:center;border-bottom:1px solid var(--hair)}
+  .cta h2{font-family:'Geist',sans-serif;font-weight:300;font-size:clamp(48px,7vw,104px);line-height:0.95;letter-spacing:-0.04em;max-width:18ch;margin:0 auto 48px}
+  .cta h2 em{font-family:'Instrument Serif',serif;font-style:italic;color:var(--accent);font-weight:400}
+  .cta-btn{display:inline-flex;align-items:center;gap:16px;
+    padding:18px 32px;
+    background:var(--accent);color:var(--bg);
+    font-family:'Geist Mono',monospace;font-size:13px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;
+    border:1px solid var(--accent);
+    transition:all .15s ease;
+  }
+  .cta-btn:hover{background:transparent;color:var(--accent);transform:translateY(-1px)}
+  .cta-btn svg{width:14px;height:14px}
+
+  /* ───────── footer ───────── */
+  footer{padding:48px 0;display:flex;justify-content:space-between;align-items:center;font-family:'Geist Mono',monospace;font-size:11px;letter-spacing:0.12em;color:var(--text-3);text-transform:uppercase}
+  footer a{color:var(--text-3);transition:color .15s}
+  footer a:hover{color:var(--accent)}
+
+  /* ───────── responsive ───────── */
+  @media(max-width:1024px){
+    .map-wrap{grid-template-columns:1fr}
+    .maint-wrap{grid-template-columns:1fr;gap:48px}
+    .matrix{grid-template-columns:100px repeat(4,1fr);font-size:11px}
+    .brand-row{grid-template-columns:1.2fr 40px 1.2fr 1fr;gap:20px}
+    .brand-row .meta{display:none}
+    .chrg-grid{grid-template-columns:repeat(2,1fr)}
+    .res-strip,.hero-stats{grid-template-columns:repeat(2,1fr)}
+    .res-strip > div,.hero-stat{border-right:1px solid var(--hair);border-bottom:1px solid var(--hair)}
+    .res-strip > div:nth-child(2n),.hero-stat:nth-child(2n){border-right:none}
+  }
+  @media(max-width:680px){
+    .wrap,.nav-inner{padding:0 20px}
+    .hero{padding:80px 0 64px}
+    .hero h1{font-size:14vw}
+    .hero-stats{margin-top:48px}
+    section.s{padding:64px 0}
+    .s-head{grid-template-columns:1fr;gap:18px;margin-bottom:32px}
+    .s-head .deck{justify-self:start}
+    .nav-links{display:none}
+    .ctrl-row{grid-template-columns:1fr}
+    .res-strip,.hero-stats{grid-template-columns:1fr}
+    .res-strip > div,.hero-stat{border-right:none}
+    .trips-grid{grid-template-columns:1fr}
+    .trip-row{border-right:none}
+    .chrg-grid{grid-template-columns:1fr}
+  }
+</style>
+</head>
+<body>
+
+<!-- ───────── NAV ───────── -->
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="../" class="brand"><span class="mark"></span><span>06 ·</span><strong>Minimal</strong></a>
+    <div class="nav-links">
+      <a href="#calc">Calculate</a>
+      <a href="#map">Map</a>
+      <a href="#match">Match</a>
+      <a href="#brand">Anchor</a>
+      <a href="#maint">Service</a>
+      <a href="#charge">Charge</a>
+      <a href="#range">Range</a>
+    </div>
+    <div class="nav-meta">
+      <span>APR 26</span>
+      <span class="live">LIVE</span>
+    </div>
+  </div>
+</nav>
+
+<!-- ───────── HERO ───────── -->
+<section class="hero">
+  <div class="wrap hero-stagger">
+    <div class="eyebrow"><span class="dot">●</span> EV / GAS · COMPARATIVE ANALYSIS</div>
+    <h1>The cost of going electric, in one <em>precise</em> page.</h1>
+    <p class="hero-lede">Pick your state, your car, your annual miles. Get the only three numbers that matter: <strong>what you'd save on fuel</strong>, <strong>what you'd save on service</strong>, and <strong>how long until the math turns positive</strong>. No theatre.</p>
+    <div class="hero-stats">
+      <div class="hero-stat">
+        <div class="k">Fuel · per mile</div>
+        <div class="v" id="hs-perm"><em>3.9¢</em></div>
+        <div class="d">vs <span id="hs-perm-gas">11.4¢</span> gas</div>
+      </div>
+      <div class="hero-stat">
+        <div class="k">Annual save</div>
+        <div class="v" id="hs-annual"><em>$1,240</em></div>
+        <div class="d">13,500 mi · home charge</div>
+      </div>
+      <div class="hero-stat">
+        <div class="k">5-yr position</div>
+        <div class="v" id="hs-5yr"><em>$7,740</em></div>
+        <div class="d">fuel + service</div>
+      </div>
+      <div class="hero-stat">
+        <div class="k">Break even</div>
+        <div class="v" id="hs-be"><em>4.3</em>yr</div>
+        <div class="d">on $6.4k premium</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ───────── CALCULATOR ───────── -->
+<section class="s" id="calc">
+  <div class="wrap">
+    <div class="s-head">
+      <div class="label">
+        <span class="num">01 / Calc</span>
+      </div>
+      <h2>Your <em>parameters</em>, the response.</h2>
+      <p class="deck">Six fields. Everything else derives. Inputs persist on this device.</p>
+    </div>
+
+    <div class="ctrl-row">
+      <div class="ctrl">
+        <div class="ck">State</div>
+        <select id="stateSel"></select>
+      </div>
+      <div class="ctrl">
+        <div class="ck">Electric</div>
+        <select id="evSel"></select>
+      </div>
+      <div class="ctrl">
+        <div class="ck">Gas</div>
+        <select id="gasSel"></select>
+      </div>
+      <div class="ctrl">
+        <div class="ck">Annual miles</div>
+        <input type="range" id="milesSel" min="5000" max="30000" step="500" value="13500">
+        <div class="val" id="milesVal">13,500</div>
+      </div>
+      <div class="ctrl">
+        <div class="ck">City / Highway</div>
+        <input type="range" id="chSel" min="0" max="100" step="5" value="55">
+        <div class="val" id="chVal">55 / 45</div>
+      </div>
+      <div class="ctrl">
+        <div class="ck">Hold</div>
+        <select id="yrSel">
+          <option value="1">1 year</option>
+          <option value="5" selected>5 years</option>
+          <option value="10">10 years</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="scenario" style="margin-top:24px">
+      <button class="sc-btn active" data-scenario="current">Today · Apr 2026</button>
+      <button class="sc-btn" data-scenario="peak2022">Stress · 2022 crisis</button>
+    </div>
+
+    <div class="res-strip">
+      <div>
+        <div class="k">Gas · 100 mi</div>
+        <div class="v bad" id="r-gas100">$11.42</div>
+        <div class="d" id="r-gas100-d">at current</div>
+      </div>
+      <div>
+        <div class="k">EV · 100 mi</div>
+        <div class="v good" id="r-ev100">$3.88</div>
+        <div class="d" id="r-ev100-d">home charge</div>
+      </div>
+      <div>
+        <div class="k">Annual delta</div>
+        <div class="v" id="r-ann"><em>+$1,240</em></div>
+        <div class="d" id="r-ann-d">favours EV</div>
+      </div>
+      <div>
+        <div class="k" id="r-hold-k">5-year net</div>
+        <div class="v" id="r-hold">$7,740</div>
+        <div class="d">incl. service Δ</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ───────── MAP ───────── -->
+<section class="s" id="map">
+  <div class="wrap">
+    <div class="s-head">
+      <div class="label"><span class="num">02 / Map</span></div>
+      <h2>The <em>geography</em> of a gallon.</h2>
+      <p class="deck">E-gallon equivalent priced at your local utility. Hover for the spread. Click to pin.</p>
+    </div>
+
+    <div class="map-wrap">
+      <div id="egal-map"></div>
+      <div class="egal-side">
+        <div class="egal-leg">
+          <div class="row"><span class="chip" style="background:rgba(198,244,50,0.05)"></span>&lt; $1.20</div>
+          <div class="row"><span class="chip" style="background:rgba(198,244,50,0.18)"></span>$1.20–1.60</div>
+          <div class="row"><span class="chip" style="background:rgba(198,244,50,0.36)"></span>$1.60–2.00</div>
+          <div class="row"><span class="chip" style="background:rgba(198,244,50,0.62)"></span>$2.00–2.60</div>
+          <div class="row"><span class="chip" style="background:#c6f432"></span>&gt; $2.60</div>
+        </div>
+        <div class="egal-extremes">
+          <h4>Cheapest</h4>
+          <div id="ex-cheap"></div>
+        </div>
+        <div class="egal-extremes">
+          <h4>Priciest</h4>
+          <div id="ex-pricey"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<div id="egal-tip"></div>
+<div id="egal-pop">
+  <div class="p-name" id="pop-name">State · <em>label</em></div>
+  <div class="p-row"><span class="k">E-gallon</span><span class="v acc" id="pop-eg">$0.00</span></div>
+  <div class="p-row"><span class="k">Regular gal</span><span class="v" id="pop-gas">$0.00</span></div>
+  <div class="p-row"><span class="k">Saved / gal</span><span class="v" id="pop-save">$0.00</span></div>
+  <div class="p-row"><span class="k">% cheaper</span><span class="v acc" id="pop-pct">0%</span></div>
+  <div class="p-row"><span class="k">Electric ¢/kWh</span><span class="v" id="pop-elec">0</span></div>
+</div>
+
+<!-- ───────── MATCH (segment × tier) ───────── -->
+<section class="s" id="match">
+  <div class="wrap">
+    <div class="s-head">
+      <div class="label"><span class="num">03 / Match</span></div>
+      <h2>By <em>segment</em>, by tier.</h2>
+      <p class="deck">Curated pairs: sedans, crossovers, large SUVs, pickups — at four price bands.</p>
+    </div>
+    <div class="matrix" id="seg-mx"></div>
+  </div>
+</section>
+
+<!-- ───────── BRAND ANCHOR ───────── -->
+<section class="s" id="brand">
+  <div class="wrap">
+    <div class="s-head">
+      <div class="label"><span class="num">04 / Anchor</span></div>
+      <h2>If you drive a <em>Camry</em>.</h2>
+      <p class="deck">Anchored on the ICE you'd swap. The closest electric, the position, the math.</p>
+    </div>
+    <div class="brand-list" id="brand-list"></div>
+  </div>
+</section>
+
+<!-- ───────── MAINTENANCE ───────── -->
+<section class="s" id="maint">
+  <div class="wrap">
+    <div class="s-head">
+      <div class="label"><span class="num">05 / Service</span></div>
+      <h2>The <em>quiet dividend</em> of moving parts.</h2>
+      <p class="deck">2,000 vs 1. The math doesn't care that you don't miss spark plugs.</p>
+    </div>
+    <div class="maint-wrap">
+      <div class="maint-bar">
+        <h3>5-yr cost. <em>Less is more.</em></h3>
+        <div class="bar-row">
+          <div class="lbl">Gas</div>
+          <div class="b-track"><div class="b-fill" id="bar-gas" style="width:100%">$3,410</div></div>
+        </div>
+        <div class="bar-row">
+          <div class="lbl">EV</div>
+          <div class="b-track"><div class="b-fill ev" id="bar-ev" style="width:46%">$1,570</div></div>
+        </div>
+        <div class="maint-stats">
+          <div class="ms-row">
+            <div class="k">Gas · 5 yr</div>
+            <div class="v" id="m-ice">$3,410</div>
+          </div>
+          <div class="ms-row">
+            <div class="k">EV · 5 yr</div>
+            <div class="v" id="m-ev">$1,570</div>
+          </div>
+          <div class="ms-row delta">
+            <div class="k">You save</div>
+            <div class="v" id="m-delta">$1,840</div>
+          </div>
+        </div>
+      </div>
+      <div class="maint-side">
+        <h4>What disappears</h4>
+        <ul>
+          <li><div class="item">Oil &amp; filter<small>every 7.5k mi</small></div><div class="cost">−$810</div></li>
+          <li><div class="item">Spark plugs<small>every 60k mi</small></div><div class="cost">−$320</div></li>
+          <li><div class="item">Transmission fluid<small>every 60k mi</small></div><div class="cost">−$240</div></li>
+          <li><div class="item">Air filter<small>every 30k mi</small></div><div class="cost">−$140</div></li>
+          <li><div class="item">Coolant flush<small>every 50k mi</small></div><div class="cost">−$100</div></li>
+          <li><div class="item">Brake pads<small>regen extends life</small></div><div class="cost">−$360</div></li>
+          <li><div class="item">Tires<small>50k mi · slightly more</small></div><div class="cost zero">+$130</div></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ───────── CHARGING ───────── -->
+<section class="s" id="charge">
+  <div class="wrap">
+    <div class="s-head">
+      <div class="label"><span class="num">06 / Charge</span></div>
+      <h2>The <em>outlet</em> in your garage.</h2>
+      <p class="deck">Eighty percent of charging is the boring one. Overnight. At home. Forgotten.</p>
+    </div>
+    <div class="chrg-grid">
+      <div class="chrg-cell">
+        <div class="k">L2 · Home · 240V</div>
+        <div class="d">Overnight, full pack from empty.</div>
+        <div class="v"><em>8</em><small>hr</small></div>
+      </div>
+      <div class="chrg-cell">
+        <div class="k">L1 · Wall · 120V</div>
+        <div class="d">Adds 40 mi per 10 hr. Good for short commutes.</div>
+        <div class="v"><em>40</em><small>hr</small></div>
+      </div>
+      <div class="chrg-cell">
+        <div class="k">DC Fast · Road</div>
+        <div class="d">10 → 80 % en route. Long-trip backup.</div>
+        <div class="v"><em>30</em><small>min</small></div>
+      </div>
+      <div class="chrg-cell">
+        <div class="k">% Home charged</div>
+        <div class="d">Typical US EV owner, annual basis.</div>
+        <div class="v"><em>80</em><small>%</small></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ───────── RANGE ───────── -->
+<section class="s" id="range">
+  <div class="wrap">
+    <div class="s-head">
+      <div class="label"><span class="num">07 / Range</span></div>
+      <h2>How many stops, to the <em>long weekend</em>?</h2>
+      <p class="deck">Real-world range on common US corridor trips. Most are zero or one fast-charge.</p>
+    </div>
+    <div class="trips-grid" id="trips-grid"></div>
+  </div>
+</section>
+
+<!-- ───────── CTA ───────── -->
+<section class="cta">
+  <div class="wrap">
+    <h2>Calculate <em>your</em> position.<br>Three questions. Sixty seconds.</h2>
+    <a href="#calc" class="cta-btn">
+      Begin Assessment
+      <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 7h12M7 1l6 6-6 6"/></svg>
+    </a>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap" style="display:flex;justify-content:space-between;width:100%;max-width:1440px">
+    <span>evsavings · sample 06 · minimal</span>
+    <span><a href="../">← Return to gallery</a></span>
+    <span>© MMXXVI</span>
+  </div>
+</footer>
+
+<script>
+const S = SHARED;
+const state = {
+  scenario:'current', years:5, miles:13500, cityPct:55,
+  state:'California', evModel:'Tesla Model Y', gasModel:'Toyota RAV4'
+};
+
+document.addEventListener('DOMContentLoaded', () => {
+  S.populateStateSelect(document.getElementById('stateSel'), state.state);
+  S.populateSelect(document.getElementById('evSel'), S.electricVehicles, state.evModel, false);
+  S.populateSelect(document.getElementById('gasSel'), S.gasVehicles, state.gasModel, true);
+
+  const saved = S.load();
+  ['state','evModel','gasModel','miles','cityPct','years','scenario'].forEach(k => { if (saved[k] != null) state[k] = saved[k]; });
+  syncControls(); updateLabels();
+  recalc(); renderSeg(); renderBrand(); renderTrips(); renderExtremes(); drawMap();
+
+  // wire
+  document.getElementById('stateSel').addEventListener('change', e => { state.state = e.target.value; persist(); recalc(); renderSeg(); renderBrand(); refreshMap(); });
+  document.getElementById('evSel').addEventListener('change', e => { state.evModel = e.target.value; persist(); recalc(); renderTrips(); });
+  document.getElementById('gasSel').addEventListener('change', e => { state.gasModel = e.target.value; persist(); recalc(); });
+  document.getElementById('milesSel').addEventListener('input', e => { state.miles = parseInt(e.target.value); updateLabels(); persist(); recalc(); renderSeg(); renderBrand(); });
+  document.getElementById('chSel').addEventListener('input', e => { state.cityPct = parseInt(e.target.value); updateLabels(); persist(); recalc(); renderSeg(); renderBrand(); });
+  document.getElementById('yrSel').addEventListener('change', e => { state.years = parseInt(e.target.value); persist(); recalc(); renderSeg(); renderBrand(); });
+  document.querySelectorAll('.sc-btn').forEach(b => b.addEventListener('click', () => {
+    document.querySelectorAll('.sc-btn').forEach(x => x.classList.remove('active')); b.classList.add('active');
+    state.scenario = b.dataset.scenario; persist(); recalc(); renderSeg(); renderBrand(); refreshMap(); renderExtremes();
+  }));
+
+  document.addEventListener('click', e => {
+    if (!e.target.closest('#egal-pop') && !e.target.closest('#egal-map svg path')) {
+      document.getElementById('egal-pop').style.display = 'none';
+    }
+  });
+});
+
+function syncControls(){
+  document.getElementById('stateSel').value = state.state;
+  document.getElementById('evSel').value = state.evModel;
+  document.getElementById('gasSel').value = state.gasModel;
+  document.getElementById('milesSel').value = state.miles;
+  document.getElementById('chSel').value = state.cityPct;
+  document.getElementById('yrSel').value = state.years;
+  document.querySelectorAll('.sc-btn').forEach(b => b.classList.toggle('active', b.dataset.scenario === state.scenario));
+}
+function persist(){ S.save(state); }
+function updateLabels(){
+  document.getElementById('milesVal').textContent = state.miles.toLocaleString();
+  document.getElementById('chVal').textContent = state.cityPct + ' / ' + (100 - state.cityPct);
+}
+
+// ───────── CALC ─────────
+function recalc(){
+  const c = S.costPer100(state.evModel, state.gasModel, state.state, state.scenario, state.cityPct);
+  if (!c) return;
+  const ev = S.findEV(state.evModel), gas = S.findGas(state.gasModel);
+  const evAnn = c.evAnnual(state.miles), gasAnn = c.gasAnnual(state.miles);
+  const annual = gasAnn - evAnn;
+  const maintSeg = ev.segment === 'Pickup' ? 'Pickup' : ev.segment === 'Luxury' ? 'Luxury' : (ev.segment === 'Sedan' ? 'Sedan' : 'Small SUV');
+  const m = S.maintCost(maintSeg, state.years);
+  const hold = annual * state.years + m.delta;
+
+  // hero
+  setT('hs-perm', '<em>' + (c.evCost / 100 * 100).toFixed(1) + '¢</em>');
+  setT('hs-perm-gas', (c.gasCost / 100 * 100).toFixed(1) + '¢');
+  setT('hs-annual', '<em>' + S.fmt$(annual) + '</em>');
+  setT('hs-5yr', '<em>' + S.fmt$(annual * 5 + S.maintCost(maintSeg, 5).delta) + '</em>');
+  const breakeven = annual + m.delta / state.years > 0 ? Math.round(6400 / (annual + m.delta / state.years) * 10) / 10 : null;
+  setT('hs-be', breakeven ? '<em>' + breakeven + '</em>yr' : '—');
+
+  // results strip
+  setT('r-gas100', S.fmt$2(c.gasCost));
+  setT('r-ev100', S.fmt$2(c.evCost));
+  setT('r-ann', '<em>' + (annual >= 0 ? '+' : '') + S.fmt$(annual) + '</em>');
+  setT('r-hold-k', state.years + '-year net');
+  setT('r-hold', (hold >= 0 ? '+' : '') + S.fmt$(hold));
+  setT('r-gas100-d', state.scenario === 'peak2022' ? 'at 2022 peak' : 'at current');
+  setT('r-ann-d', annual >= 0 ? 'favours EV' : 'favours ICE');
+
+  // maint
+  const ms = S.maintCost(maintSeg, 5);
+  setT('m-ice', S.fmt$(ms.ice));
+  setT('m-ev', S.fmt$(ms.ev));
+  setT('m-delta', '−' + S.fmt$(ms.delta));
+  document.getElementById('bar-gas').textContent = '$' + ms.ice.toLocaleString();
+  document.getElementById('bar-ev').textContent = '$' + ms.ev.toLocaleString();
+  document.getElementById('bar-ev').style.width = Math.round(ms.ev / ms.ice * 100) + '%';
+}
+
+function setT(id, html){ const el = document.getElementById(id); if (el) el.innerHTML = html; }
+
+// ───────── MAP ─────────
+function egalColor(v){
+  if (v == null) return '#1a1a1a';
+  if (v < 1.20) return '#c6f432';                     // most savings — full lime
+  if (v < 1.60) return 'rgba(198,244,50,0.62)';
+  if (v < 2.00) return 'rgba(198,244,50,0.36)';
+  if (v < 2.60) return 'rgba(198,244,50,0.18)';
+  return 'rgba(198,244,50,0.05)';
+}
+function drawMap(){
+  const tip = document.getElementById('egal-tip');
+  const pop = document.getElementById('egal-pop');
+  S.drawMap('egal-map', {
+    height:520, strokeColor:'#050505', strokeWidth:1,
+    colorFn: n => egalColor(S.eGallon(n)),
+    labelFn: n => { const v = S.eGallon(n); return v ? '$' + v.toFixed(2) : ''; },
+    labelColor: n => { const v = S.eGallon(n); return v && v < 1.40 ? '#050505' : '#f5f5f5'; },
+    labelSize:'10px', labelFont:'Geist Mono',
+    onHover:(name, ev, node, over) => {
+      d3.select(node).attr('stroke', over ? '#c6f432' : '#050505').attr('stroke-width', over ? 2 : 1);
+      if (over) {
+        const v = S.eGallon(name), g = S.getGasPrice(name, state.scenario);
+        if (v && g) {
+          tip.innerHTML = `<div class="t-name">${name}</div>
+            <div class="t-row"><span>E-gal</span><span class="v">$${v.toFixed(2)}</span></div>
+            <div class="t-row"><span>Gas/gal</span><span class="v">$${g.toFixed(2)}</span></div>
+            <div class="t-row"><span>% cheaper</span><span class="v">${Math.round((1 - v/g) * 100)}%</span></div>`;
+          tip.style.display = 'block';
+          tip.style.left = (ev.clientX + 16) + 'px';
+          tip.style.top  = (ev.clientY - 40) + 'px';
+        }
+      } else {
+        tip.style.display = 'none';
+      }
+    },
+    onClick:(name, ev) => {
+      const v = S.eGallon(name), g = S.getGasPrice(name, state.scenario), e = S.getElecPrice(name);
+      if (!v || !g) return;
+      pop.style.display = 'block';
+      pop.style.left = Math.min(ev.clientX + 16, window.innerWidth - 300) + 'px';
+      pop.style.top  = Math.min(ev.clientY + 8, window.innerHeight - 280) + 'px';
+      document.getElementById('pop-name').innerHTML = name + ' · <em>' + (S.stateAbbr[name] || '') + '</em>';
+      document.getElementById('pop-eg').textContent = '$' + v.toFixed(2);
+      document.getElementById('pop-gas').textContent = '$' + g.toFixed(2);
+      document.getElementById('pop-save').textContent = '$' + (g - v).toFixed(2);
+      document.getElementById('pop-pct').textContent = Math.round((1 - v/g) * 100) + '%';
+      document.getElementById('pop-elec').textContent = e.toFixed(2) + ' ¢';
+      state.state = name; document.getElementById('stateSel').value = name; persist(); recalc(); renderSeg(); renderBrand();
+    }
+  });
+}
+function refreshMap(){
+  d3.select('#egal-map svg').selectAll('path').attr('fill', d => egalColor(S.eGallon(d.properties.name)));
+  d3.select('#egal-map svg').selectAll('text').attr('fill', d => {
+    const v = S.eGallon(d.properties.name); return v && v < 1.40 ? '#050505' : '#f5f5f5';
+  });
+}
+
+function renderExtremes(){
+  const names = Object.keys(S.electricityPrices).filter(n => n !== 'National');
+  const withVal = names.map(n => ({n, v:S.eGallon(n)})).filter(x => x.v != null).sort((a,b) => a.v - b.v);
+  document.getElementById('ex-cheap').innerHTML = withVal.slice(0, 5).map(x =>
+    `<div class="ex-row"><span class="name">${S.stateAbbr[x.n]} · ${x.n.length > 14 ? x.n.slice(0, 13) + '…' : x.n}</span><span class="val">$${x.v.toFixed(2)}</span></div>`
+  ).join('');
+  document.getElementById('ex-pricey').innerHTML = withVal.slice(-5).reverse().map(x =>
+    `<div class="ex-row"><span class="name">${S.stateAbbr[x.n]} · ${x.n.length > 14 ? x.n.slice(0, 13) + '…' : x.n}</span><span class="val warn">$${x.v.toFixed(2)}</span></div>`
+  ).join('');
+}
+
+// ───────── SEGMENT MATRIX ─────────
+function renderSeg(){
+  const grid = document.getElementById('seg-mx');
+  const segs = ['Sedan','Small SUV','Large SUV','Pickup'];
+  const tiers = ['Under $35k','$35–50k','$50–75k','$75k+'];
+  grid.innerHTML = '';
+  const corner = el('div','mx-corner','Segment / Tier');
+  grid.appendChild(corner);
+  tiers.forEach(t => grid.appendChild(el('div','mx-col-h', t)));
+  segs.forEach(seg => {
+    grid.appendChild(el('div','mx-row-h', seg));
+    tiers.forEach(t => {
+      const cell = document.createElement('div');
+      const pairs = S.matchedPairs.filter(p => p.segment === seg && p.tier === t);
+      if (pairs.length === 0) { cell.className = 'mx-cell empty'; grid.appendChild(cell); return; }
+      cell.className = 'mx-cell';
+      cell.innerHTML = pairs.map(p => {
+        const c = S.costPer100(p.ev, p.gas, state.state, state.scenario, state.cityPct);
+        if (!c) return '';
+        const sav = (c.gasAnnual(state.miles) - c.evAnnual(state.miles)) * state.years;
+        return `<div class="pair">
+          <div class="gas">${p.gas}</div>
+          <div class="ev">→ ${p.ev}</div>
+          <div class="sav${sav < 0 ? ' neg':''}">${sav >= 0 ? '+':''}${S.fmt$(sav)}</div>
+        </div>`;
+      }).join('');
+      grid.appendChild(cell);
+    });
+  });
+}
+
+// ───────── BRAND ANCHOR ─────────
+function renderBrand(){
+  const wrap = document.getElementById('brand-list');
+  const rows = S.brandPairs.slice(0, 10);
+  wrap.innerHTML = rows.map(p => {
+    const ev = S.findEV(p.ev), gas = S.findGas(p.gas);
+    const c = S.costPer100(p.ev, p.gas, state.state, state.scenario, state.cityPct);
+    if (!c) return '';
+    const sav = (c.gasAnnual(state.miles) - c.evAnnual(state.miles)) * state.years;
+    return `<div class="brand-row">
+      <div class="ice">
+        <div class="name">${p.gas}</div>
+        <div class="spec">${gas.gal100} gal/100mi · ${gas.segment}</div>
+      </div>
+      <div class="arrow">→</div>
+      <div class="ev">
+        <div class="name">${p.ev}</div>
+        <div class="spec">${ev.kwh100} kWh/100mi · ${ev.range} mi</div>
+      </div>
+      <div class="save">${sav >= 0 ? '+':''}${S.fmt$(sav)}</div>
+      <div class="meta">${state.years}-yr · ${p.brand}</div>
+    </div>`;
+  }).join('');
+}
+
+// ───────── TRIPS ─────────
+function renderTrips(){
+  const ev = S.findEV(state.evModel); if (!ev) return;
+  const range = ev.range * 0.85;
+  const trips = [
+    {a:'LA → Las Vegas', d:270}, {a:'NYC → Boston', d:215},
+    {a:'SF → Tahoe', d:195},     {a:'Seattle → Portland', d:175},
+    {a:'Atlanta → Nashville', d:250},{a:'Denver → Aspen', d:160},
+    {a:'Dallas → Houston', d:240},{a:'Chicago → Detroit', d:285},
+    {a:'DC → New York', d:225},  {a:'Miami → Orlando', d:235}
+  ];
+  document.getElementById('trips-grid').innerHTML = trips.map(t => {
+    const stops = Math.max(0, Math.floor((t.d - 50) / range));
+    return `<div class="trip-row">
+      <div class="ft">${t.a}<small>${t.d} mi · ${Math.round(range)} mi real</small></div>
+      <div class="stops${stops >= 2 ? ' warn':''}">${stops === 0 ? '·' : stops}<small>${stops === 1 ? 'stop' : 'stops'}</small></div>
+    </div>`;
+  }).join('');
+}
+
+// helpers
+function el(tag, cls, text){ const n = document.createElement(tag); n.className = cls; if (text != null) n.textContent = text; return n; }
+</script>
+
+</body>
+</html>
