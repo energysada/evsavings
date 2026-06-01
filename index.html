@@ -1289,18 +1289,16 @@ function calculateSavings(milesRange) {
   setText('.ev-total-annual-cost', '$' + Math.round(evAnnual).toLocaleString());
   setText('.gas-total-annual-cost', '$' + Math.round(gasAnnual).toLocaleString());
 
+  // Breakdown table values; .savings-text-fix / .savings-text-2 / .savings-mile-text
+  // / .savings-year-text elements were removed in the restructure, so we guard
+  // their refs to avoid a null TypeError that aborted execution before the new
+  // FUEL SAVINGS box could render.
   if (evAnnualSavings > 0) {
     setText('.ev-annual-savings', '$' + Math.round(evAnnualSavings).toLocaleString());
     setText('.gas-annual-savings', '');
-    document.querySelector('.savings-text-fix').style.display = '';
-    document.querySelector('.savings-text-2').style.display = 'none';
-    setText('.savings-mile-text', '$' + (gasCostPerMile - evCostPerMile).toFixed(2));
-    setText('.savings-year-text', '$' + Math.round(evAnnualSavings).toLocaleString());
   } else {
     setText('.ev-annual-savings', '');
     setText('.gas-annual-savings', '$' + Math.round(Math.abs(evAnnualSavings)).toLocaleString());
-    document.querySelector('.savings-text-fix').style.display = 'none';
-    document.querySelector('.savings-text-2').style.display = '';
   }
 
   setText('.ev-monthly-savings', '$' + Math.round(Math.max(0, monthlySavings)).toLocaleString());
