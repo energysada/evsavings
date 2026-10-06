@@ -105,19 +105,19 @@ const SHARED = (function(){
     "Wisconsin":18.39,"Wyoming":13.91
   };
 
-  // AAA state averages, updated October 4, 2026
+  // AAA state averages, updated October 6, 2026
   const gasPrices = {
-    "National":4.370,"Alabama":3.988,"Alaska":5.038,"Arizona":4.754,"Arkansas":3.965,
-    "California":6.389,"Colorado":4.137,"Connecticut":4.458,"Delaware":4.246,"District of Columbia":4.451,
-    "Florida":4.082,"Georgia":3.867,"Hawaii":5.632,"Idaho":4.957,"Illinois":4.672,
-    "Indiana":3.753,"Iowa":4.127,"Kansas":4.061,"Kentucky":4.009,"Louisiana":3.943,
-    "Maine":4.400,"Maryland":4.240,"Massachusetts":4.351,"Michigan":4.470,"Minnesota":4.217,
-    "Mississippi":3.950,"Missouri":4.042,"Montana":4.520,"Nebraska":4.246,"Nevada":5.489,
-    "New Hampshire":4.342,"New Jersey":4.309,"New Mexico":4.349,"New York":4.474,"North Carolina":4.026,
-    "North Dakota":4.176,"Ohio":3.973,"Oklahoma":3.996,"Oregon":5.043,"Pennsylvania":4.484,
-    "Rhode Island":4.340,"South Carolina":3.928,"South Dakota":4.223,"Tennessee":3.937,"Texas":3.915,
-    "Utah":4.928,"Vermont":4.433,"Virginia":4.131,"Washington":5.488,"West Virginia":4.287,
-    "Wisconsin":4.161,"Wyoming":4.460
+    "National":4.369,"Alabama":3.973,"Alaska":5.018,"Arizona":4.739,"Arkansas":3.981,
+    "California":6.376,"Colorado":4.116,"Connecticut":4.449,"Delaware":4.154,"District of Columbia":4.430,
+    "Florida":4.147,"Georgia":3.849,"Hawaii":5.627,"Idaho":4.941,"Illinois":4.649,
+    "Indiana":3.722,"Iowa":4.255,"Kansas":4.050,"Kentucky":4.060,"Louisiana":3.930,
+    "Maine":4.395,"Maryland":4.212,"Massachusetts":4.351,"Michigan":4.429,"Minnesota":4.296,
+    "Mississippi":3.941,"Missouri":4.030,"Montana":4.514,"Nebraska":4.226,"Nevada":5.478,
+    "New Hampshire":4.332,"New Jersey":4.295,"New Mexico":4.468,"New York":4.473,"North Carolina":4.093,
+    "North Dakota":4.168,"Ohio":3.784,"Oklahoma":4.002,"Oregon":5.039,"Pennsylvania":4.470,
+    "Rhode Island":4.326,"South Carolina":4.032,"South Dakota":4.264,"Tennessee":3.970,"Texas":3.903,
+    "Utah":4.927,"Vermont":4.428,"Virginia":4.158,"Washington":5.482,"West Virginia":4.287,
+    "Wisconsin":4.148,"Wyoming":4.491
   };
 
   const stateAbbr = {Alabama:"AL",Alaska:"AK",Arizona:"AZ",Arkansas:"AR",California:"CA",Colorado:"CO",Connecticut:"CT",Delaware:"DE","District of Columbia":"DC",Florida:"FL",Georgia:"GA",Hawaii:"HI",Idaho:"ID",Illinois:"IL",Indiana:"IN",Iowa:"IA",Kansas:"KS",Kentucky:"KY",Louisiana:"LA",Maine:"ME",Maryland:"MD",Massachusetts:"MA",Michigan:"MI",Minnesota:"MN",Mississippi:"MS",Missouri:"MO",Montana:"MT",Nebraska:"NE",Nevada:"NV","New Hampshire":"NH","New Jersey":"NJ","New Mexico":"NM","New York":"NY","North Carolina":"NC","North Dakota":"ND",Ohio:"OH",Oklahoma:"OK",Oregon:"OR",Pennsylvania:"PA","Rhode Island":"RI","South Carolina":"SC","South Dakota":"SD",Tennessee:"TN",Texas:"TX",Utah:"UT",Vermont:"VT",Virginia:"VA",Washington:"WA","West Virginia":"WV",Wisconsin:"WI",Wyoming:"WY"};
@@ -181,7 +181,7 @@ const SHARED = (function(){
   ];
 
   // Peak 2022 scenario
-  const PEAK_NATL = 5.03, CURR_NATL = 4.370;
+  const PEAK_NATL = 5.03, CURR_NATL = 4.369;
   const peak2022 = {California:6.44,Washington:5.56,Oregon:5.55,Hawaii:5.62,
     Nevada:5.65,Alaska:5.61,Illinois:5.56,Michigan:5.22,Indiana:5.22,"New York":5.05};
 
