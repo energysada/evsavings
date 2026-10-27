@@ -383,19 +383,19 @@ a{color:inherit;text-decoration:none}
     <div class="section-card-body">
       <div style="text-align:center;margin-bottom:14px">
         <span style="display:inline-block;background:#e8f5e9;color:#2e7d32;font-size:12px;font-weight:700;padding:6px 16px;border-radius:20px;letter-spacing:0.4px">
-          ⛽ Gas prices &middot; AAA &middot; last updated <span id="gas-updated-date">October 26, 2026</span> &middot; auto-refreshed daily
+          ⛽ Gas prices &middot; AAA &middot; last updated <span id="gas-updated-date">October 27, 2026</span> &middot; auto-refreshed daily
         </span>
       </div>
       <p style="color:#666;text-align:center;margin-bottom:8px;font-size:15px;max-width:760px;margin-left:auto;margin-right:auto">
         The <strong>"e-gallon"</strong> is the cost of charging an EV to drive the same distance as one gallon of gas.
         Each state shows what an EV <strong>saves you per gallon-equivalent</strong> vs the local pump — click any state for the full breakdown.
       </p>
-      <p style="color:#999;text-align:center;margin-bottom:16px;font-size:12px">Calculated using Hyundai Kona Electric (27 kWh/100mi) vs Kona gas (3.2 gal/100mi) · EIA electricity rates · <a href="https://gasprices.aaa.com/" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline">AAA gas prices (October 26, 2026)</a></p>
+      <p style="color:#999;text-align:center;margin-bottom:16px;font-size:12px">Calculated using Hyundai Kona Electric (27 kWh/100mi) vs Kona gas (3.2 gal/100mi) · EIA electricity rates · <a href="https://gasprices.aaa.com/" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline">AAA gas prices (October 27, 2026)</a></p>
 
       <!-- Scenario toggle -->
       <div style="display:flex;justify-content:center;gap:0;margin-bottom:14px;flex-wrap:wrap">
         <div class="ctrl-toggle" id="scenarioToggle">
-          <button class="scenario-btn active" data-scenario="current">📊 Today ($4.29 nat'l avg)</button>
+          <button class="scenario-btn active" data-scenario="current">📊 Today ($4.27 nat'l avg)</button>
           <button class="scenario-btn" data-scenario="peak2022">🚨 If Gas Hits 2022 Peak ($5.03 nat'l avg)</button>
         </div>
       </div>
@@ -863,7 +863,7 @@ a{color:inherit;text-decoration:none}
 <section class="methodology">
   <div class="methodology-inner">
     <h3>Data & Methodology</h3>
-    <p><strong>Gas prices:</strong> <a href="https://gasprices.aaa.com/state-gas-price-averages/" target="_blank" rel="noopener">AAA state-level averages</a>, updated October 26, 2026. National average: $4.29/gallon.</p>
+    <p><strong>Gas prices:</strong> <a href="https://gasprices.aaa.com/state-gas-price-averages/" target="_blank" rel="noopener">AAA state-level averages</a>, updated October 27, 2026. National average: $4.27/gallon.</p>
     <p><strong>Electricity rates:</strong> <a href="https://www.eia.gov/electricity/monthly/epm_table_5_6_a.html" target="_blank" rel="noopener">U.S. Energy Information Administration (EIA)</a> residential electricity prices by state.</p>
     <p><strong>Vehicle efficiency:</strong> <a href="https://www.fueleconomy.gov/" target="_blank" rel="noopener">EPA fuel economy ratings</a> (kWh/100mi for EVs, gal/100mi for gas). EPA range data from manufacturer specs.</p>
     <p><strong>E-gallon data:</strong> <a href="https://yaleclimateconnections.org/" target="_blank" rel="noopener">Yale Climate Connections</a> / EIA / FuelEconomy.gov, January 2026. Based on 2025 Hyundai Kona Electric vs 2025 Hyundai Kona gas.</p>
@@ -1016,26 +1016,26 @@ const electricityPrices = [
   {state:"Wyoming",price:13.91}
 ];
 
-// Gas prices: AAA state averages, updated October 26, 2026
+// Gas prices: AAA state averages, updated October 27, 2026
 const gasPrices = [
-  {state:"National",price:4.286},{state:"Alabama",price:3.808},{state:"Alaska",price:4.840},
-  {state:"Arizona",price:4.508},{state:"Arkansas",price:3.836},{state:"California",price:6.019},
-  {state:"Colorado",price:4.456},{state:"Connecticut",price:4.296},{state:"Delaware",price:3.903},
-  {state:"District of Columbia",price:4.361},{state:"Florida",price:4.091},{state:"Georgia",price:3.649},
-  {state:"Hawaii",price:5.651},{state:"Idaho",price:4.675},{state:"Illinois",price:4.885},
-  {state:"Indiana",price:3.975},{state:"Iowa",price:4.178},{state:"Kansas",price:3.942},
-  {state:"Kentucky",price:4.029},{state:"Louisiana",price:3.777},{state:"Maine",price:4.297},
-  {state:"Maryland",price:3.972},{state:"Massachusetts",price:4.226},{state:"Michigan",price:4.816},
-  {state:"Minnesota",price:4.192},{state:"Mississippi",price:3.827},{state:"Missouri",price:3.920},
-  {state:"Montana",price:4.398},{state:"Nebraska",price:4.302},{state:"Nevada",price:5.298},
-  {state:"New Hampshire",price:4.205},{state:"New Jersey",price:4.170},{state:"New Mexico",price:4.196},
-  {state:"New York",price:4.382},{state:"North Carolina",price:3.481},{state:"North Dakota",price:4.101},
-  {state:"Ohio",price:4.401},{state:"Oklahoma",price:3.906},{state:"Oregon",price:4.868},
-  {state:"Pennsylvania",price:4.437},{state:"Rhode Island",price:4.151},{state:"South Carolina",price:3.762},
-  {state:"South Dakota",price:4.192},{state:"Tennessee",price:3.809},{state:"Texas",price:3.710},
-  {state:"Utah",price:4.643},{state:"Vermont",price:4.350},{state:"Virginia",price:4.044},
-  {state:"Washington",price:5.305},{state:"West Virginia",price:4.193},{state:"Wisconsin",price:4.520},
-  {state:"Wyoming",price:4.384}
+  {state:"National",price:4.266},{state:"Alabama",price:3.800},{state:"Alaska",price:4.827},
+  {state:"Arizona",price:4.497},{state:"Arkansas",price:3.830},{state:"California",price:5.996},
+  {state:"Colorado",price:4.444},{state:"Connecticut",price:4.290},{state:"Delaware",price:3.957},
+  {state:"District of Columbia",price:4.313},{state:"Florida",price:4.051},{state:"Georgia",price:3.640},
+  {state:"Hawaii",price:5.655},{state:"Idaho",price:4.654},{state:"Illinois",price:4.855},
+  {state:"Indiana",price:3.946},{state:"Iowa",price:4.162},{state:"Kansas",price:3.948},
+  {state:"Kentucky",price:4.000},{state:"Louisiana",price:3.766},{state:"Maine",price:4.291},
+  {state:"Maryland",price:4.005},{state:"Massachusetts",price:4.219},{state:"Michigan",price:4.769},
+  {state:"Minnesota",price:4.182},{state:"Mississippi",price:3.824},{state:"Missouri",price:3.916},
+  {state:"Montana",price:4.390},{state:"Nebraska",price:4.312},{state:"Nevada",price:5.288},
+  {state:"New Hampshire",price:4.203},{state:"New Jersey",price:4.167},{state:"New Mexico",price:4.173},
+  {state:"New York",price:4.377},{state:"North Carolina",price:3.463},{state:"North Dakota",price:4.101},
+  {state:"Ohio",price:4.366},{state:"Oklahoma",price:3.916},{state:"Oregon",price:4.859},
+  {state:"Pennsylvania",price:4.452},{state:"Rhode Island",price:4.144},{state:"South Carolina",price:3.742},
+  {state:"South Dakota",price:4.208},{state:"Tennessee",price:3.795},{state:"Texas",price:3.711},
+  {state:"Utah",price:4.660},{state:"Vermont",price:4.349},{state:"Virginia",price:4.029},
+  {state:"Washington",price:5.288},{state:"West Virginia",price:4.195},{state:"Wisconsin",price:4.474},
+  {state:"Wyoming",price:4.408}
 ];
 
 const stateNames = {
@@ -2085,10 +2085,10 @@ if (maintCityHwyEl) {
 
 // ============== SCENARIO MULTIPLIER ==============
 // Today: actual current AAA prices
-// Peak 2022: scale all states by 5.03/4.286 = 1.174x (national peak ratio)
+// Peak 2022: scale all states by 5.03/4.266 = 1.179x (national peak ratio)
 let gasPriceScenario = 'current';
 const PEAK_2022_NATIONAL = 5.03;
-const CURRENT_NATIONAL = 4.286;
+const CURRENT_NATIONAL = 4.266;
 // Confirmed state peaks from June 2022 (where available)
 const peak2022Override = {
   'California': 6.44,
